@@ -87,8 +87,8 @@ def hello():
 ```markdown
 # Index
 
-- [document_1](document_1.md)
-- [document_2](document_2.md)
+- [논문명 1](document_1.md)
+- [논문명 2](document_2.md)
 ```
 
 ## 8. 논문 조사 규칙
@@ -162,11 +162,16 @@ def hello():
 - 요약 보고서 파일명은 논문의 영어 제목을 소문자와 언더스코어 형식으로 변환해 사용한다.
 - 확장자는 `.md`를 사용한다.
 - 파일은 해당 논문이 속한 연구 주제 폴더에 저장한다.
+  - 예시:
+    - `energy_based_models_for_continual_learning.md`
 
-예시:
+### 9.6 발표 자료
 
-- `energy_based_models_for_continual_learning.md`
-
+- 발표자료는 Marp 형식(<https://marp.app/>)을 따른다.
+- 발표 자료의 파일명은 파일명의 뒤에 `_slide`라는 postfix를 추가한다.
+  - 예시:
+    - `energy_based_models_for_continual_learning_slide.md`
+  
 ## 10. 커밋 메시지 규칙
 
 - 문서 변경 커밋에는 `docs:` 접두사를 사용한다.
