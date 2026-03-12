@@ -78,12 +78,10 @@ Ablation 연구 결과:
 * **확장성**: 고차원 특징에 대한 피셔 행렬 계산은 메모리 소모가 크다. 대각 피셔와 같은 근사 방법을 사용하지만 정확도가 떨어질 수 있다.
 * **Task‑agnostic 탐지**: 학습 중 명확한 작업 경계가 가정되며, 미묘한 분포 변화 감지는 아직 해결되지 않았다.
 * **Replay 의존성**: OML은 재생 없이도 동작하지만, 작은 버퍼가 성능을 크게 향상시켜 순수 정규화만으로는 서로 다른 작업 간 망각을 완전히 해결하기 어려움을 보여준다.
-
-**미래 연구 방향**
-
-1. 대규모 CNN에 적합한 **Kronecker‑factored 피셔 근사** 개발.
-2. 작업 유사도 기반 **동적 버퍼 할당** 전략.
-3. **비지도** 혹은 **강화학습** 연속 학습 설정으로 확장.
+* **미래 연구 방향**
+  1. 대규모 CNN에 적합한 **Kronecker‑factored 피셔 근사** 개발.
+  2. 작업 유사도 기반 **동적 버퍼 할당** 전략.
+  3. **비지도** 혹은 **강화학습** 연속 학습 설정으로 확장.
 
 ## 6. 실무 인사이트
 
@@ -93,4 +91,4 @@ Ablation 연구 결과:
 
 ---
 
-_This summary follows the project’s **논문 요약 규칙** (see RULES.md) and is designed to be understandable without reading the original PDF._
+_This summary follows the project’s **논문 요약 규칙** (see RULE.md) and is designed to be understandable without reading the original PDF._
