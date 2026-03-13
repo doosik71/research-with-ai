@@ -108,7 +108,7 @@ $W_k^T$는 현재 task를 위해 새롭게 학습되는 파라미터다.
 현재 task의 학습은 일반적인 classification loss로 수행된다.
 
 $$
-\mathcal{L}_{\text{cls}} = - \sum_{c=1}^{C_J} y_c \log p_c
+\mathcal{L}\_{\text{cls}} = - \sum\_{c=1}^{C_J} y_c \log p_c
 $$
 
 여기서 $C_J$는 task $J$의 class 개수다. 중요한 점은 loss 자체보다

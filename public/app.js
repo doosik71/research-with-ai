@@ -3,6 +3,8 @@ const state = {
   currentTopic: null,
   papers: [],
   currentPaper: null,
+  showTopicPanel: true,
+  showPaperPanel: true,
 };
 
 let slideFitScheduled = false;
@@ -12,6 +14,7 @@ const els = {
   topicCount: document.getElementById('topic-count'),
   paperList: document.getElementById('paper-list'),
   paperCount: document.getElementById('paper-count'),
+  app: document.getElementById('app'),
   paperPanelTitle: document.getElementById('paper-panel-title'),
   viewerTitle: document.getElementById('viewer-title'),
   viewerMeta: document.getElementById('viewer-meta'),
@@ -19,6 +22,7 @@ const els = {
   pdfEmpty: document.getElementById('pdf-empty'),
   summaryContent: document.getElementById('summary-content'),
   slideContent: document.getElementById('slide-content'),
+  openArxiv: document.getElementById('open-arxiv'),
   openPdf: document.getElementById('open-pdf'),
   promptPopover: document.getElementById('prompt-popover'),
   promptBackdrop: document.getElementById('prompt-backdrop'),
@@ -27,6 +31,8 @@ const els = {
   promptText: document.getElementById('prompt-popover-text'),
   copyPromptButton: document.getElementById('copy-prompt-button'),
   closePromptButton: document.getElementById('close-prompt-button'),
+  toggleTopicPanel: document.getElementById('toggle-topic-panel'),
+  togglePaperPanel: document.getElementById('toggle-paper-panel'),
 };
 
 const SUMMARY_PROMPT_TEMPLATE = `모든 문서는 UTF-8로 인코딩되어 있다.
@@ -65,6 +71,19 @@ function paperClass(paper) {
   if (paper.slide) return 'blue';
   if (paper.summary) return 'black';
   return 'gray';
+}
+
+function buildArxivUrl(url) {
+  if (!url) return '';
+  if (url.includes('/abs/')) return url.replace(/^http:\/\//, 'https://');
+  if (url.includes('/pdf/')) {
+    return url
+      .replace(/^http:\/\//, 'https://')
+      .replace('/pdf/', '/abs/')
+      .replace(/\.pdf$/i, '')
+      .replace(/v\d+$/i, (match) => match);
+  }
+  return '';
 }
 
 function buildPrompt(template) {
@@ -201,6 +220,13 @@ function renderTopics() {
   }
 }
 
+function renderColumnVisibility() {
+  els.app.dataset.showTopic = String(state.showTopicPanel);
+  els.app.dataset.showPaper = String(state.showPaperPanel);
+  els.toggleTopicPanel.setAttribute('aria-pressed', String(state.showTopicPanel));
+  els.togglePaperPanel.setAttribute('aria-pressed', String(state.showPaperPanel));
+}
+
 function renderPapers() {
   els.paperList.innerHTML = '';
   if (!state.currentTopic) {
@@ -217,7 +243,7 @@ function renderPapers() {
     li.className = `item paper-item ${paperClass(paper)}${isActive ? ' active' : ''}`;
     li.innerHTML = `
       <div class="paper-title">${paper.title}</div>
-      <div class="paper-meta">${paper.author}<br>${paper.year}</div>
+      <div class="paper-meta">${paper.author} <span class="paper-year">(${paper.year})</span></div>
     `;
     li.addEventListener('click', () => selectPaper(paper.index));
     els.paperList.appendChild(li);
@@ -262,6 +288,7 @@ async function renderCurrentPaper() {
     els.pdfEmpty.hidden = false;
     renderSummaryEmptyState('Select a paper with a summary.');
     renderSlideEmptyState('Select a paper with a slide deck.');
+    setActionLink(els.openArxiv, '');
     setActionLink(els.openPdf, '');
     closePromptPopover();
     return;
@@ -273,6 +300,7 @@ async function renderCurrentPaper() {
   const pdfUrl = paper.url
     ? (paper.url.includes('/pdf/') ? paper.url : `${paper.url.replace('/abs/', '/pdf/')}.pdf`)
     : '';
+  const arxivUrl = buildArxivUrl(paper.url);
 
   if (pdfUrl) {
     els.pdfFrame.hidden = false;
@@ -283,6 +311,7 @@ async function renderCurrentPaper() {
     els.pdfFrame.hidden = true;
     els.pdfEmpty.hidden = false;
   }
+  setActionLink(els.openArxiv, arxivUrl);
   setActionLink(els.openPdf, pdfUrl);
 
   if (paper.summary) {
@@ -349,14 +378,15 @@ function setupSlideFit() {
 }
 
 function setupSplitters() {
-  const app = document.getElementById('app');
   const min1 = 180;
   const min2 = 240;
   const min3 = 320;
 
   function applyResize(which, clientX) {
     if (window.innerWidth <= 960) return;
-    const total = app.clientWidth;
+    if (which === 'left' && !state.showTopicPanel) return;
+    if (which === 'middle' && !state.showPaperPanel) return;
+    const total = els.app.clientWidth;
     const styles = getComputedStyle(document.documentElement);
     const currentCol1 = parseFloat(styles.getPropertyValue('--col1'));
     if (which === 'left') {
@@ -381,6 +411,20 @@ function setupSplitters() {
       window.addEventListener('pointermove', move);
       window.addEventListener('pointerup', up);
     });
+  });
+}
+
+function setupColumnToggles() {
+  renderColumnVisibility();
+
+  els.toggleTopicPanel.addEventListener('click', () => {
+    state.showTopicPanel = !state.showTopicPanel;
+    renderColumnVisibility();
+  });
+
+  els.togglePaperPanel.addEventListener('click', () => {
+    state.showPaperPanel = !state.showPaperPanel;
+    renderColumnVisibility();
   });
 }
 
@@ -411,6 +455,7 @@ function setupPromptPopover() {
 setupTabs();
 setupSlideFit();
 setupSplitters();
+setupColumnToggles();
 setupPromptPopover();
 loadTopics().catch((error) => {
   els.viewerTitle.textContent = 'Failed to load viewer';

@@ -1,4 +1,3 @@
-<!-- markdownlint-disable-next-line MD013 -->
 # Continual State Representation Learning for Reinforcement Learning using Generative Replay
 
 **저자**: Hugo Caselles-Dupré, Michael Garcia-Ortiz,
@@ -90,9 +89,9 @@ posterior 정규화 항으로 구성된다.
 직관적으로는 다음 목적을 최적화한다고 보면 된다.
 
 $$
-\mathcal{L}_{\mathrm{VAE}} =
-\mathbb{E}_{q_{\phi}(z|x)}[-\log p_{\theta}(x|z)]
- + \mathrm{KL}(q_{\phi}(z|x)\|p(z))
+\mathcal{L}\_{\mathrm{VAE}} =
+\mathbb{E}\_{q_{\phi}(z|x)}[-\log p_{\theta}(x|z)] +
+\mathrm{KL}(q_{\phi}(z|x)\|p(z))
 $$
 
 논문은 이 수식을 이론적으로 확장하기보다,

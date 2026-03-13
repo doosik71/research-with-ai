@@ -95,6 +95,33 @@
 - **전용 가속기 설계**: AI 전용 ASIC, FPGA 기반 가속기.
 - **분산 학습 프레임워크**: Horovod, DeepSpeed, ZeRO 등 대규모 학습을 위한 시스템.
 
+## 12. Instance Segmentation
+
+- 관련 문서: [instance_segmentation](instance_segmentation/index.md)
+
+- **객체 단위 분할**: 이미지 안의 개별 객체마다 서로 다른 마스크를 예측하여 검출과 분할을 동시에 수행한다.
+- **검출 기반 방법**: Mask R-CNN, Cascade Mask R-CNN처럼 bounding box와 mask head를 결합한 구조가 대표적이다.
+- **실시간 및 경량화**: YOLACT, CondInst, RTMDet-Ins처럼 속도와 정확도의 균형을 맞추는 연구가 활발하다.
+- **범용 분할 확장**: open-vocabulary segmentation, promptable segmentation, panoptic segmentation과의 연결도 중요한 흐름이다.
+
+## 13. Semantic Segmentation
+
+- 관련 문서: [semantic_segmentation](semantic_segmentation/index.md)
+
+- **픽셀 단위 의미 분류**: 이미지의 모든 픽셀에 클래스 라벨을 부여해 장면 구조를 이해한다.
+- **고전적 CNN 계열**: FCN, U-Net, DeepLab 계열은 semantic segmentation의 핵심 기반 방법이다.
+- **Transformer 기반 방법**: SegFormer, Mask2Former, SETR 등은 전역 문맥을 활용해 성능을 끌어올린다.
+- **응용 분야 확장**: 자율주행, 의료영상, 원격탐사, 산업 비전 등 다양한 응용에서 핵심 문제로 다뤄진다.
+
+## 14. Moving Object Tracking
+
+- 관련 문서: [moving_object_tracking](moving_object_tracking/index.md)
+
+- **이동 객체 추적**: 비디오에서 시간에 따라 움직이는 객체의 위치와 정체성을 연속적으로 유지한다.
+- **단일 및 다중 객체 추적**: SOT와 MOT는 서로 다른 평가 설정과 모델 설계를 요구한다.
+- **검출-추적 결합**: tracking-by-detection, association, re-identification이 대표적인 연구 축이다.
+- **현실적 과제**: 가림, 카메라 이동, 조명 변화, 실시간 처리 제약을 견디는 강건성이 중요하다.
+
 ---
 
 위 주제들은 현재 딥러닝 연구 커뮤니티에서 활발히 논의되고 있으며,

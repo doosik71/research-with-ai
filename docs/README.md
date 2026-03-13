@@ -50,6 +50,9 @@
 - [ethics_fairness_privacy](ethics_fairness_privacy/index.md)
 - [new_learning_paradigms](new_learning_paradigms/index.md)
 - [hardware_software_optimization](hardware_software_optimization/index.md)
+- [instance_segmentation](instance_segmentation/index.md)
+- [semantic_segmentation](semantic_segmentation/index.md)
+- [moving_object_tracking](moving_object_tracking/index.md)
 
 각 폴더에는 아래 문서가 순차적으로 정리될 수 있다.
 

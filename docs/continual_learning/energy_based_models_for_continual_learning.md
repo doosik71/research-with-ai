@@ -53,7 +53,7 @@ $$
 수식으로는 다음과 같다:
 
 $$
-\mathcal{L}_t = \underbrace{\mathbb{E}_{x\sim\mathcal{D}_t}[E_{\theta}(x)]}_{\text{작업 손실}} + \lambda \underbrace{\mathbb{E}_{x\sim\mathcal{B}_{<t}}[\max(0, E_{\theta}(x) - m)]}_{\text{망각 페널티}}
+\mathcal{L}\_t = \underbrace{\mathbb{E}\_{x\sim\mathcal{D}\_t}[E_{\theta}(x)]}\_{\text{작업 손실}} + \lambda \underbrace{\mathbb{E}\_{x\sim\mathcal{B}\_{<t}}[\max(0, E_{\theta}(x) - m)]}\_{\text{망각 페널티}}
 $$
 
 여기서 $\mathcal{B}_{<t}$는 이전 작업의 저장 혹은 생성 샘플, $\lambda$는 두 항의 가중치, $m$는 마진이다.

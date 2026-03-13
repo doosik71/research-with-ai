@@ -18,8 +18,7 @@ math: mathjax
 - Vision Transformer 계열 모델이 자연영상에서 성공한 뒤 의료영상으로 빠르게 확장됐다.
 - 의료영상은 CT, MRI, X-ray, ultrasound, pathology, PET 등 modality가 매우 다양하다.
 - 과제도 segmentation, classification, detection, reconstruction, synthesis, registration, report generation까지 넓다.
-- Transformer는 global self-attention으로 장점을 보이지만,
-  의료영상에서는 데이터 부족, 3D 입력, 계산 비용, 해석 가능성 문제가 더 크다.
+- Transformer는 global self-attention으로 장점을 보이지만, 의료영상에서는 데이터 부족, 3D 입력, 계산 비용, 해석 가능성 문제가 더 크다.
 - 이 survey는 Transformer가 의료영상 어디까지 확장됐는지를 넓게 정리한다.
 
 ---
@@ -28,7 +27,7 @@ math: mathjax
 
 - 당시 기준 125편 이상의 Transformer 기반 의료영상 논문을 폭넓게 정리한다.
 - `segmentation`, `classification`, `detection`, `reconstruction`, `synthesis`, `registration`, `clinical report generation`으로 taxonomy를 제시한다.
-- hand-crafted method -> CNN -> ViT로 이어지는 기술 배경을 함께 정리한다.
+- hand-crafted method -> CNN -> ViT로 이어지는 기술 배경을  정리한다.
 - task별 설계, dataset, challenge, trend를 구조적으로 비교한다.
 - `pre-training`, `interpretability`, `adversarial robustness`, `edge deployment`, `federated learning`, `domain adaptation/OOD`를 open challenge로 제시한다.
 
@@ -48,15 +47,14 @@ math: mathjax
 ## Transformer의 장점과 병목
 
 - 장점:
-- global context modeling
-- long-range dependency capture
-- modality 간 관계와 넓은 spatial relation 처리
+  - global context modeling
+  - long-range dependency capture
+  - modality 간 관계와 넓은 spatial relation 처리
 - 병목:
-- quadratic attention cost
-- large-scale pre-training 필요성
-- 3D volume에서 메모리 부담
-- clinical interpretability 부족
-- 발표에서는 `가능성은 컸지만 비용과 데이터 조건이 항상 발목을 잡았다`고 정리하면 된다.
+  - quadratic attention cost
+  - large-scale pre-training 필요성
+  - 3D volume에서 메모리 부담
+  - clinical interpretability 부족
 
 ---
 
@@ -65,13 +63,10 @@ math: mathjax
 - 이 survey에서 가장 큰 비중을 차지하는 분야다.
 - organ-specific, multi-organ, 2D, 3D segmentation을 모두 포괄한다.
 - 대표 구조:
-- `TransUNet`
-- `CoTr`
-- `UNETR`
-- `Swin UNETR`
+  - `TransUNet`, `CoTr`, `UNETR`, `Swin UNETR`
 - 핵심 메시지는 분명하다.
-- 의료 segmentation에서는 pure ViT보다
-  CNN encoder-decoder와 Transformer를 결합한 hybrid가 훨씬 많이 쓰였다.
+  - 의료 segmentation에서는 pure ViT보다
+    CNN encoder-decoder와 Transformer를 결합한 hybrid가 훨씬 많이 쓰였다.
 
 ---
 
@@ -82,8 +77,7 @@ math: mathjax
   black-box model과 interpretable model 구도도 함께 본다.
 - pathology WSI에서는 weakly supervised MIL + Transformer가 특히 중요하다.
 - retinal disease에서는 lesion-aware transformer가 주목된다.
-- 즉, classification에서도 Transformer는 backbone 그 이상으로
-  relation modeling 도구로 쓰이기 시작했다.
+- 즉, classification에서도 Transformer는 backbone 그 이상으로 relation modeling 도구로 쓰이기 시작했다.
 
 ---
 
@@ -100,10 +94,10 @@ math: mathjax
 
 - reconstruction은 이 survey에서 의외로 중요한 영역이다.
 - 예시:
-- low-dose CT enhancement
-- low-dose PET enhancement
-- undersampled MRI reconstruction
-- sparse-view CT reconstruction
+  - low-dose CT enhancement
+  - low-dose PET enhancement
+  - undersampled MRI reconstruction
+  - sparse-view CT reconstruction
 - Transformer는 전역 prior와 구조 보존 측면에서 장점을 보인다.
 - 특히 low-data regime에서 pretraining 또는 zero-shot prior가 중요한 축으로 제시된다.
 

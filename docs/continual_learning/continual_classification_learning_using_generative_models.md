@@ -90,8 +90,8 @@ encoder가 정의하는 근사분포 $q_{\phi}(z \mid x)$를 사용한다.
 $\log p(x, y)$에 대한 하한이다.
 
 $$
-\log p(x, y) = \mathcal{L}(x, y)
-+ D_{\mathrm{KL}}(q_{\phi}(z \mid x) \parallel p(z \mid x, y))
+\log p(x, y) = \mathcal{L}(x, y) +
+D_{\mathrm{KL}}(q_{\phi}(z \mid x) \parallel p(z \mid x, y))
 $$
 
 따라서 KL divergence가 항상 0 이상이므로,
@@ -104,9 +104,9 @@ $$
 
 $$
 \mathcal{L}(x, y)
-= \mathbb{E}_{q_{\phi}(z \mid x)}[\log p(x \mid z)]
-- D_{\mathrm{KL}}(q_{\phi}(z \mid x) \parallel p(z))
-+ \mathbb{E}_{q_{\phi}(z \mid x)}[\log p(y \mid z)]
+= \mathbb{E}\_{q_{\phi}(z \mid x)}[\log p(x \mid z)] -
+D_{\mathrm{KL}}(q_{\phi}(z \mid x) \parallel p(z)) +
+\mathbb{E}\_{q_{\phi}(z \mid x)}[\log p(y \mid z)]
 $$
 
 앞의 두 항은 일반적인 VAE의 ELBO와 같고,

@@ -8,7 +8,9 @@
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Nanum+Gothic+Coding:wght@400;700&family=Noto+Serif+KR:wght@400;500;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="/styles.css">
   <script>
     window.MathJax = {
@@ -27,7 +29,7 @@
 
 <body>
   <div class="app" id="app">
-    <section class="panel">
+    <section id="topic-panel" class="panel">
       <div class="panel-header">
         <div class="eyebrow">Research Topics</div>
         <h1 class="panel-title">Fields</h1>
@@ -35,8 +37,8 @@
       </div>
       <ul class="list" id="topic-list"></ul>
     </section>
-    <div class="splitter" data-resize="left"></div>
-    <section class="panel">
+    <div id="left-splitter" class="splitter" data-resize="left"></div>
+    <section id="paper-panel" class="panel">
       <div class="panel-header">
         <div class="eyebrow">Paper Inventory</div>
         <h2 class="panel-title" id="paper-panel-title">Papers</h2>
@@ -44,10 +46,32 @@
       </div>
       <ul class="list" id="paper-list"></ul>
     </section>
-    <div class="splitter" data-resize="middle"></div>
+    <div id="middle-splitter" class="splitter" data-resize="middle"></div>
     <section class="viewer">
       <div class="viewer-header">
-        <div class="eyebrow">Reader</div>
+        <div class="viewer-header-top">
+          <div class="eyebrow">Reader</div>
+          <div class="viewer-column-toggles">
+            <button
+              id="toggle-topic-panel"
+              type="button"
+              class="column-toggle-button"
+              aria-pressed="true"
+              title="Toggle Research Topics column"
+            >
+              T
+            </button>
+            <button
+              id="toggle-paper-panel"
+              type="button"
+              class="column-toggle-button"
+              aria-pressed="true"
+              title="Toggle Paper Inventory column"
+            >
+              P
+            </button>
+          </div>
+        </div>
         <h2 class="viewer-paper-title" id="viewer-title">Select a paper</h2>
         <div class="viewer-paper-meta" id="viewer-meta">Choose a topic on the left, then a paper in the middle column.
         </div>
@@ -55,6 +79,7 @@
           <button type="button" class="tab-button active" data-tab="summary">Summary</button>
           <button type="button" class="tab-button" data-tab="slide">Slide</button>
           <button type="button" class="tab-button" data-tab="pdf">PDF</button>
+          <a id="open-arxiv" class="action-link" target="_blank" rel="noreferrer" aria-disabled="true">Open Arxiv</a>
           <a id="open-pdf" class="action-link" target="_blank" rel="noreferrer" aria-disabled="true">Open PDF</a>
         </div>
       </div>

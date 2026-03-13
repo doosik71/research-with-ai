@@ -36,8 +36,8 @@ $\{\mathcal{T}_1, \dots, \mathcal{T}_T\}$ 순서대로 작업이 도착한다.
 작업 $t$ 에 대한 전체 손실은 다음과 같다:
 
 $$
-\mathcal{L}_t = \underbrace{\frac{1}{|\mathcal{D}_t|}\sum_{(x,y)\in\mathcal{D}_t}\ell(f_\theta(x), y)}_{\text{task loss}}
- - \lambda \underbrace{\|\nabla_\theta \phi(x)\|_2^2}_{\text{representation regularizer}}
+\mathcal{L}\_t = \underbrace{\frac{1}{|\mathcal{D}\_t|}\sum_{(x,y)\in\mathcal{D}\_t}\ell(f_\theta(x), y)}\_{\text{task loss}} -
+\lambda \underbrace{\|\nabla_\theta \phi(x)\|_2^2}\_{\text{representation regularizer}}
 $$
 
 여기서 $\phi(x)$ 는 penultimate layer의 특징 표현을 의미하고, $\lambda$ 는 두 항의 균형을 조절한다. 정규화 항은 특징 그래디언트의 크기를 억제해 **안정적이고 재사용 가능한 특징**을 만들도록 한다.
