@@ -20,7 +20,36 @@ const els = {
   summaryContent: document.getElementById('summary-content'),
   slideContent: document.getElementById('slide-content'),
   openPdf: document.getElementById('open-pdf'),
+  promptPopover: document.getElementById('prompt-popover'),
+  promptBackdrop: document.getElementById('prompt-backdrop'),
+  promptEyebrow: document.getElementById('prompt-popover-eyebrow'),
+  promptTitle: document.getElementById('prompt-popover-title'),
+  promptText: document.getElementById('prompt-popover-text'),
+  copyPromptButton: document.getElementById('copy-prompt-button'),
+  closePromptButton: document.getElementById('close-prompt-button'),
 };
+
+const SUMMARY_PROMPT_TEMPLATE = `모든 문서는 UTF-8로 인코딩되어 있다.
+먼저 \`docs\` 폴더를 작업 기준 폴더로 사용하라.
+\`README.md\` 파일을 읽고 프로젝트의 성격을 이해하라.
+\`TOPIC.md\` 파일을 읽고 연구 분야와 관련 폴더의 경로를 파악하라.
+\`RULE.md\` 파일을 읽고 문서 작성 규칙과 보고서 작성 규칙 등을 숙지하라.
+\`RULE_SEARCH.md\` 파일을 읽고 arXiv 논문의 검색 규칙을 숙지하라.
+
+이제부터 \`docs/[folder_name]\` 폴더에서 작업하겠다.
+
+\`[논문명]\` 논문의 상세 분석 보고서를 작성하라.`;
+
+const SLIDE_PROMPT_TEMPLATE = `모든 문서는 UTF-8로 인코딩되어 있다.
+먼저 \`docs\` 폴더를 작업 기준 폴더로 사용하라.
+\`README.md\` 파일을 읽고 프로젝트의 성격을 이해하라.
+\`TOPIC.md\` 파일을 읽고 연구 분야와 관련 폴더의 경로를 파악하라.
+\`RULE.md\` 파일을 읽고 문서 작성 규칙과 보고서 작성 규칙 등을 숙지하라.
+\`RULE_SEARCH.md\` 파일을 읽고 arXiv 논문의 검색 규칙을 숙지하라.
+
+이제부터 \`docs/[folder_name]\` 폴더에서 작업하겠다.
+
+\`[논문명]\` 논문의 발표자료를 작성하라.`;
 
 function setActionLink(link, href) {
   if (href) {
@@ -36,6 +65,70 @@ function paperClass(paper) {
   if (paper.slide) return 'blue';
   if (paper.summary) return 'black';
   return 'gray';
+}
+
+function buildPrompt(template) {
+  if (!state.currentTopic || !state.currentPaper) return '';
+  return template
+    .replace('[folder_name]', state.currentTopic.id)
+    .replace('[논문명]', state.currentPaper.title);
+}
+
+function closePromptPopover() {
+  els.promptPopover.hidden = true;
+}
+
+function openPromptPopover(kind) {
+  const isSlide = kind === 'slide';
+  els.promptEyebrow.textContent = isSlide ? 'Slide Prompt' : 'Summary Prompt';
+  els.promptTitle.textContent = isSlide
+    ? '발표자료 생성 프롬프트'
+    : '논문 분석 보고서 생성 프롬프트';
+  els.promptText.textContent = buildPrompt(
+    isSlide ? SLIDE_PROMPT_TEMPLATE : SUMMARY_PROMPT_TEMPLATE,
+  );
+  els.promptPopover.hidden = false;
+}
+
+function renderEmptyState(container, className, message, promptConfig = null) {
+  container.className = className;
+  container.innerHTML = '';
+
+  const text = document.createElement('p');
+  text.className = 'empty-state-text';
+  text.textContent = message;
+  container.appendChild(text);
+
+  if (!promptConfig) return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'prompt-trigger-button';
+  button.textContent = promptConfig.label;
+  button.addEventListener('click', () => openPromptPopover(promptConfig.kind));
+  container.appendChild(button);
+}
+
+function renderSummaryEmptyState(message, showPromptButton = false) {
+  renderEmptyState(
+    els.summaryContent,
+    'markdown-body empty-state',
+    message,
+    showPromptButton
+      ? { label: '논문 분석 보고서 생성 프롬프트', kind: 'summary' }
+      : null,
+  );
+}
+
+function renderSlideEmptyState(message, showPromptButton = false) {
+  renderEmptyState(
+    els.slideContent,
+    'slide-html empty-state',
+    message,
+    showPromptButton
+      ? { label: '발표자료 생성 프롬프트', kind: 'slide' }
+      : null,
+  );
 }
 
 async function fetchJson(url) {
@@ -167,11 +260,10 @@ async function renderCurrentPaper() {
     els.viewerMeta.textContent = 'Choose a topic on the left, then a paper in the middle column.';
     els.pdfFrame.hidden = true;
     els.pdfEmpty.hidden = false;
-    els.summaryContent.className = 'markdown-body empty-state';
-    els.summaryContent.textContent = 'Select a paper with a summary.';
-    els.slideContent.className = 'slide-html empty-state';
-    els.slideContent.textContent = 'Select a paper with a slide deck.';
+    renderSummaryEmptyState('Select a paper with a summary.');
+    renderSlideEmptyState('Select a paper with a slide deck.');
     setActionLink(els.openPdf, '');
+    closePromptPopover();
     return;
   }
 
@@ -202,13 +294,16 @@ async function renderCurrentPaper() {
       els.summaryContent.className = 'markdown-body';
       els.summaryContent.innerHTML = html;
       await renderMath(els.summaryContent);
+      closePromptPopover();
     } catch (error) {
-      els.summaryContent.className = 'markdown-body empty-state';
-      els.summaryContent.textContent = `Failed to load summary: ${error.message}`;
+      renderSummaryEmptyState(`Failed to load summary: ${error.message}`);
+      closePromptPopover();
     }
   } else {
-    els.summaryContent.className = 'markdown-body empty-state';
-    els.summaryContent.textContent = 'No summary markdown file is linked for this paper.';
+    renderSummaryEmptyState(
+      'No summary markdown file is linked for this paper.',
+      true,
+    );
   }
 
   if (paper.slide) {
@@ -221,12 +316,13 @@ async function renderCurrentPaper() {
       els.slideContent.innerHTML = html;
       scheduleSlideFit();
     } catch (error) {
-      els.slideContent.className = 'slide-html empty-state';
-      els.slideContent.textContent = `Failed to render slide deck: ${error.message}`;
+      renderSlideEmptyState(`Failed to render slide deck: ${error.message}`);
     }
   } else {
-    els.slideContent.className = 'slide-html empty-state';
-    els.slideContent.textContent = 'No slide markdown file is linked for this paper.';
+    renderSlideEmptyState(
+      'No slide markdown file is linked for this paper.',
+      true,
+    );
   }
 }
 
@@ -288,9 +384,34 @@ function setupSplitters() {
   });
 }
 
+function setupPromptPopover() {
+  els.closePromptButton.addEventListener('click', closePromptPopover);
+  els.promptBackdrop.addEventListener('click', closePromptPopover);
+  els.copyPromptButton.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(els.promptText.textContent || '');
+      els.copyPromptButton.textContent = '복사됨';
+      window.setTimeout(() => {
+        els.copyPromptButton.textContent = '클립보드로 복사';
+      }, 1500);
+    } catch (error) {
+      els.copyPromptButton.textContent = '복사 실패';
+      window.setTimeout(() => {
+        els.copyPromptButton.textContent = '클립보드로 복사';
+      }, 1500);
+    }
+  });
+  window.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !els.promptPopover.hidden) {
+      closePromptPopover();
+    }
+  });
+}
+
 setupTabs();
 setupSlideFit();
 setupSplitters();
+setupPromptPopover();
 loadTopics().catch((error) => {
   els.viewerTitle.textContent = 'Failed to load viewer';
   els.viewerMeta.textContent = error.message;

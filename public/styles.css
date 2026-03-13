@@ -228,6 +228,105 @@ embed {
   font-size: 15px;
 }
 
+.empty-state-text {
+  margin: 0;
+}
+
+.prompt-trigger-button,
+.prompt-action-button {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 10px 16px;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.prompt-trigger-button {
+  margin-top: 14px;
+}
+
+.prompt-trigger-button:hover,
+.prompt-action-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(30, 110, 255, 0.32);
+}
+
+.prompt-action-button.primary,
+.prompt-trigger-button {
+  background: rgba(30, 110, 255, 0.08);
+}
+
+.prompt-popover {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.prompt-popover[hidden] {
+  display: none !important;
+}
+
+.prompt-popover-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 20, 17, 0.48);
+  backdrop-filter: blur(6px);
+}
+
+.prompt-popover-panel {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(82vh, 900px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid rgba(91, 82, 70, 0.22);
+  border-radius: 24px;
+  box-shadow: 0 30px 80px rgba(16, 16, 16, 0.22);
+  overflow: hidden;
+}
+
+.prompt-popover-header {
+  padding: 20px 24px 14px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(248, 245, 238, 0.92));
+}
+
+.prompt-popover-title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.prompt-popover-text {
+  margin: 0;
+  padding: 24px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: keep-all;
+  line-height: 1.8;
+  font-size: 15px;
+  font-family: "Cascadia Code", Consolas, monospace;
+  background: linear-gradient(180deg, #fffdf9, #f7f1e6);
+  color: #2a241d;
+  flex: 1;
+}
+
+.prompt-popover-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+}
+
 .markdown-body {
   max-width: 980px;
   margin: 0 auto;
@@ -306,5 +405,19 @@ embed {
   .panel {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+  }
+
+  .prompt-popover {
+    padding: 16px;
+  }
+
+  .prompt-popover-panel {
+    max-height: 90vh;
+    border-radius: 18px;
+  }
+
+  .prompt-popover-actions {
+    justify-content: stretch;
+    flex-direction: column;
   }
 }

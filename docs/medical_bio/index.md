@@ -36,6 +36,7 @@
 - [MedMAE: A Self-Supervised Backbone for Medical Imaging Tasks (Slides)](medmae_a_self_supervised_backbone_for_medical_imaging_tasks_slide.md)
 - [Medical Image Segmentation Using Deep Learning: A Survey](medical_image_segmentation_using_deep_learning_a_survey.md)
 - [Medical Image Segmentation Using Deep Learning: A Survey (Slides)](medical_image_segmentation_using_deep_learning_a_survey_slide.md)
+- [MISSFormer: An Effective Medical Image Segmentation Transformer](missformer_an_effective_medical_image_segmentation_transformer.md)
 - [Multi-modal Vision Pre-training for Medical Image Analysis](multi_modal_vision_pre_training_for_medical_image_analysis.md)
 - [Multi-modal Vision Pre-training for Medical Image Analysis (Slides)](multi_modal_vision_pre_training_for_medical_image_analysis_slide.md)
 - [ProMISe: Promptable Medical Image Segmentation using SAM](promise_promptable_medical_image_segmentation_using_sam.md)
