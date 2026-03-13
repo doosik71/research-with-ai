@@ -124,8 +124,7 @@ math: mathjax
   - contrastive divergence objective는 이전 정보와의 interference를 줄이는 데 효과적이다.
   - 다른 continual learning 방법과 결합했을 때도 추가 성능 향상을 준다.
   - task 구분이 명시적이지 않은 더 일반적 환경에도 적응 가능하다.
-- 즉,
-  - EBM은 단순한 생성모델이 아니라 **continual learning에 유용한 model class**로 제시된다.
+- 즉, EBM은 단순한 생성모델이 아니라 **continual learning에 유용한 model class**로 제시된다.
 
 ---
 
@@ -146,8 +145,7 @@ math: mathjax
 - 실무적으로는 classification backbone보다 tuning이 어려울 수 있다.
 - energy-based training의 장점이 모든 대규모 setting에서 유지되는지는
   추가 검증이 필요하다.
-- 즉,
-- forgetting 측면의 이점은 크지만, training practicality는 별도 과제다.
+- 즉, forgetting 측면의 이점은 크지만, training practicality는 별도 과제다.
 
 ---
 
@@ -170,3 +168,9 @@ math: mathjax
   interference를 줄이고 baseline을 능가할 수 있음을 보인다.
 - 이 논문은 continual learning을
   **objective design 문제**로도 볼 수 있게 만든다는 점에서 의미가 크다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/energy_based_models_for_continual_learning_slide.md>

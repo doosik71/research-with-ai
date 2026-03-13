@@ -222,3 +222,9 @@ math: mathjax
 - 오늘의 관점에서도
   MLOps, observability, adaptive retraining system을 설계할 때
   여전히 유효한 문제 설정을 제공한다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/continual_learning_in_practice_slide.md>

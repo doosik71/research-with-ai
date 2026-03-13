@@ -5,9 +5,7 @@ paginate: true
 math: mathjax
 ---
 
-<!-- markdownlint-disable MD013 MD041 -->
 # Optimization and Generalization of Regularization-Based Continual Learning: a Loss Approximation Viewpoint
-<!-- markdownlint-enable MD013 MD041 -->
 
 - Dong Yin, Mehrdad Farajtabar, Ang Li, Nir Levine, Alex Mott
 - arXiv 2020
@@ -40,47 +38,39 @@ math: mathjax
 
 ## 손실 근사 프레임워크
 
-task $k$ 종료 시점의 파라미터 $\hat{w}_k$ 근처에서 empirical loss를 2차 근사한다.
-
-$$
-L^{\mathrm{prox}}_k(w)
-= \sum_{k'=1}^{k}
-\Big[
-\hat{L}_{k'}(\hat{w}_{k'})
-+ (w-\hat{w}_{k'})^\top \nabla \hat{L}_{k'}(\hat{w}_{k'})
-+ \frac{1}{2}(w-\hat{w}_{k'})^\top H_{k'}(w-\hat{w}_{k'})
-\Big]
-$$
-
-실제로는 보통 gradient term을 생략해 이전 task별 quadratic penalty 합으로 구현된다.
+- task $k$ 종료 시점의 파라미터 $\hat{w}_k$ 근처에서 empirical loss를 2차 근사한다.
+  $$
+  L^{\mathrm{prox}}_k(w)
+  = \sum_{k'=1}^{k}
+  \Big[
+  \hat{L}_{k'}(\hat{w}_{k'})
+  + (w-\hat{w}_{k'})^\top \nabla \hat{L}_{k'}(\hat{w}_{k'})
+  + \frac{1}{2}(w-\hat{w}_{k'})^\top H_{k'}(w-\hat{w}_{k'})
+  \Big]
+  $$
+- 실제로는 보통 gradient term을 생략해 이전 task별 quadratic penalty 합으로 구현된다.
 
 ---
 
 ## 기존 방법을 어떻게 해석하나
 
 - 이 관점에서 보면 차이는 Hessian approximation 방식이다.
-  - **EWC**
-    - Fisher diagonal approximation
-  - **Kronecker-factored Laplace**
-    - Kronecker 구조를 이용한 더 정교한 근사
-  - **SI / MAS**
-    - 유도 방식은 다르지만 결과적으로 quadratic regularizer
-- 핵심 메시지:
-  - 성능 차이는 **이전 loss landscape를 얼마나 정확히 복원하느냐**로 발생한다.
+  - **EWC**: Fisher diagonal approximation
+  - **Kronecker-factored Laplace**: Kronecker 구조를 이용한 더 정교한 근사
+  - **SI / MAS**: 유도 방식은 다르지만 결과적으로 quadratic regularizer
+- 핵심 메시지: 성능 차이는 **이전 loss landscape를 얼마나 정확히 복원하느냐**로 발생한다.
 
 ---
 
 ## 최적화 관점 핵심 통찰
 
 - 근사 loss에 대해 gradient descent를 해도 실제 loss를 줄이려면 다음이 중요하다.
-  - Hessian approximation error
-  - task 간 파라미터 이동 거리
-  - Hessian Lipschitz 성질
+  - Hessian approximation error, task 간 파라미터 이동 거리, Hessian Lipschitz 성질
 - 직관:
-  - Hessian 근사가 정확할수록
-  - 현재 파라미터가 이전 해 근처에 있을수록
-  - loss가 더 quadratic-like할수록
-- 근사 loss 최적화가 실제 loss 감소와 더 잘 정렬된다.
+  - Hessian 근사가 정확할수록,
+  현재 파라미터가 이전 해 근처에 있을수록,
+  loss가 더 quadratic-like할수록
+  근사 loss 최적화가 실제 loss 감소와 더 잘 정렬된다.
 
 ---
 
@@ -111,9 +101,7 @@ $$
 ## 실험 설정
 
 - 벤치마크:
-  - Permuted MNIST
-  - Rotated MNIST
-  - Split CIFAR
+  - Permuted MNIST, Rotated MNIST, Split CIFAR
 - 비교 대상:
   - Vanilla SGD, EWC, SI, Kronecker-factored Laplace approximation
 - 핵심 비교 포인트:
@@ -165,10 +153,8 @@ $$
 ## 계산 비용 Trade-off
 
 - Kronecker 방법은 가장 잘 되지만 비용이 크다.
-  - Permuted / Rotated MNIST:
-    EWC 대비 약 5배 시간
-  - Split CIFAR:
-    EWC 대비 약 10배 시간
+  - Permuted / Rotated MNIST: EWC 대비 약 5배 시간
+  - Split CIFAR: EWC 대비 약 10배 시간
 - 메시지:
   - 더 정확한 curvature approximation은 더 좋은 성능을 주지만,
     계산량과 메모리 비용을 함께 올린다.
@@ -216,3 +202,9 @@ $$
   그만큼 계산 비용도 크다.
 - 이 논문은 정규화 기반 continual learning을
   **loss approximation 문제**로 바라보는 기준점을 제공한다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/optimization_and_generalization_of_regularization_based_continual_learning_a_loss_approximation_viewpoint_slide.md>

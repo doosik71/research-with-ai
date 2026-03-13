@@ -35,9 +35,8 @@ math: mathjax
   **feature representation 자체를 잘 만드는 것**이다.
 - task가 바뀌어도 재사용 가능한 표현을 가지면
   downstream forgetting을 줄일 수 있다는 관점이다.
-- 즉,
-  - "어떤 파라미터를 덜 바꿀까"보다
-  - **"어떤 표현을 배우면 덜 잊을까"** 에 가깝다.
+- 즉, "어떤 파라미터를 덜 바꿀까"보다
+  **"어떤 표현을 배우면 덜 잊을까"** 에 가깝다.
 
 ---
 
@@ -198,3 +197,9 @@ math: mathjax
   작은 replay buffer와 결합하면 더 좋아진다.
 - 이 논문은 continual learning을
   **representation design 문제**로 바라보게 만든다는 점에서 의미가 크다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/meta_learning_representations_for_continual_learning_slide.md>

@@ -144,3 +144,9 @@ math: mathjax
   forgetting을 완화할 가능성을 보여 준다.
 - 오늘 기준 SOTA라기보다,
   generative replay 계열 continual learning의 초기 핵심 아이디어를 담은 논문이다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/continual_classification_learning_using_generative_models_slide.md>

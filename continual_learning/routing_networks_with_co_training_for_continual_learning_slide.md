@@ -21,8 +21,7 @@ math: mathjax
 - 기존 방법은 크게 두 계열이다.
   - fixed-capacity network에서 학습 규칙을 바꾸는 방법
   - 새 task마다 네트워크 용량을 점점 늘리는 방법
-- 핵심 질문:
-  - **고정 용량 네트워크 안에서** task별로 다른 계산 경로를 쓰게 만들 수 있는가?
+- 핵심 질문: **고정 용량 네트워크 안에서** task별로 다른 계산 경로를 쓰게 만들 수 있는가?
 
 ---
 
@@ -168,3 +167,9 @@ math: mathjax
 - co-training은 새 task 도입 시 poorly initialized expert 문제를 완화한다.
 - 결과적으로 작은 replay와 결합했을 때,
   dense network보다 더 나은 continual learning 성능을 보인다.
+
+---
+
+**온라인 슬라이드 보기**
+
+- <https://findapptools.com/marp_viewer?url=https://raw.githubusercontent.com/doosik71/research_with_ai/refs/heads/master/continual_learning/routing_networks_with_co_training_for_continual_learning_slide.md>

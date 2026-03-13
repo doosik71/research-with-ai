@@ -28,4 +28,3 @@
 - [U-Net and its variants for Medical Image Segmentation : A short review](u_net_and_its_variants_for_medical_image_segmentation_a_short_review.md)
 - [Vision Foundation Models in Medical Image Analysis: Advances and Challenges](vision_foundation_models_in_medical_image_analysis_advances_and_challenges.md)
 - [Yucca: A Deep Learning Framework For Medical Image Analysis](yucca_a_deep_learning_framework_for_medical_image_analysis.md)
-- [paper_list](paper_list.md)
