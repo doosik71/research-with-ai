@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import MarkdownIt from 'markdown-it';
+	import { MarpLite } from './marp-lite';
 
 	type Topic = {
 		id: string;
@@ -33,6 +34,24 @@
 
 	// Renderers
 	const md = new MarkdownIt({ html: true, linkify: true, typographer: true });
+	const marp = new MarpLite({ html: true });
+
+	async function typesetMathJax() {
+		if (typeof window === 'undefined') return;
+		const mj = (window as unknown as { MathJax?: { typesetPromise?: () => Promise<void> } }).MathJax;
+		if (!mj?.typesetPromise) return;
+		try {
+			await tick();
+			await mj.typesetPromise();
+		} catch (e) {
+			console.error('MathJax typeset error:', e);
+		}
+	}
+
+	$effect(() => {
+		if (!renderHtml) return;
+		void typesetMathJax();
+	});
 
 	onMount(async () => {
 		try {
@@ -186,20 +205,8 @@
 				if (type === 'summary') {
 					renderHtml = md.render(text);
 				} else if (type === 'slide') {
-					const renderRes = await fetch('/api/render-slide', {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'application/json'
-						},
-						body: JSON.stringify({ markdown: text })
-					});
-
-					if (renderRes.ok) {
-						const { html, css } = await renderRes.json();
-						renderHtml = `<style>${css}</style><div class="marp-slide">${html}</div>`;
-					} else {
-						renderHtml = `<p>Failed to render slide on server.</p>`;
-					}
+					const { html, css } = marp.render(text);
+					renderHtml = `<style>${css}</style><div class="marp-slide-wrapper">${html}</div>`;
 				}
 			} else {
 				renderHtml = `<p>File not found: ${filename}</p>`;
@@ -215,6 +222,31 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<script>
+		window.MathJax = {
+			tex: {
+				inlineMath: [
+					['$', '$'],
+					['\\(', '\\)']
+				],
+				displayMath: [
+					['$$', '$$'],
+					['\\[', '\\]']
+				],
+				packages: { '[+]': ['ams'] }
+			},
+			svg: {
+				fontCache: 'global'
+			},
+			options: {
+				skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre']
+			}
+		};
+	</script>
+	<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+</svelte:head>
 
 <div
 	class="app-container"
@@ -524,6 +556,11 @@
 		color: #666;
 		font-size: 0.85rem;
 	}
+	.paper-item:hover {
+		border-right: 4px solid transparent;
+		border-color: orange;
+		color: orange;
+	}
 	.actions {
 		display: flex;
 		gap: 0.5rem;
@@ -603,15 +640,21 @@
 		border: lightgray 1px solid;
 	}
 
-	:global(.marp-slide .marpit) {
+	.marp-slide-wrapper {
+		padding: 0.2rem;
+	}
+
+	.marp-slide {
 		display: flex;
 		flex-direction: column;
 		margin: 1rem;
 		gap: 1rem;
 	}
 
-	:global(.marpit svg) {
+	:global(section .marp-slide) {
 		border-radius: 1rem;
+		color: red;
+		border: blue 10px solid;
 		filter: drop-shadow(3px 3px 4px rgba(0, 0, 0, 0.2));
 	}
 

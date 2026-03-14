@@ -17,10 +17,6 @@ git_commit_message.txt
 temp.txt
 **/*.txt
 
-
-
-node_modules
-
 # Output
 .output
 .vercel
