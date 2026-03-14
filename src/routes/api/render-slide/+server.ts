@@ -5,10 +5,10 @@ const marp = new Marp({ html: true, script: false });
 
 /**
  * Handles POST requests to render markdown slides.
- * @param {object} { request }
- * @returns {Response}
+ * @param {{ request: Request }} param
+ * @returns {Promise<Response>}
  */
-export async function POST({ request }) {
+export async function POST({ request }): Promise<Response> {
 	try {
 		const { markdown } = await request.json();
 		if (typeof markdown !== 'string') {
@@ -17,6 +17,7 @@ export async function POST({ request }) {
 		const { html, css } = marp.render(markdown);
 		return json({ html, css });
 	} catch (error) {
-		return json({ error: 'Failed to render slide.', details: error.message }, { status: 500 });
+		const details = error instanceof Error ? error.message : 'Unknown error';
+		return json({ error: 'Failed to render slide.', details }, { status: 500 });
 	}
 }
