@@ -406,6 +406,7 @@
 						/></svg
 					>
 				</button>
+				<button type="button" class="toolbar-button" title="도움말" disabled> ? </button>
 			</div>
 		</div>
 		{#if renderType === 'summary'}
@@ -570,6 +571,9 @@
 	}
 	.paper-item.selected {
 		background: #f0f9ff;
+		border-top: 1px gray solid;
+		border-bottom: 1px gray solid;
+		border-right: 1px gray solid;
 	}
 	.paper-item.paper-gray {
 		color: #808080;
@@ -594,9 +598,10 @@
 		font-size: 0.85rem;
 	}
 	.paper-item:hover {
-		border-right: 4px solid transparent;
-		border-color: orange;
-		color: orange;
+		border-left: 1px solid gray;
+		border-right: 4px solid gray;
+		/* border-color: orange; */
+		background-color: white;
 	}
 	.actions {
 		display: flex;
@@ -614,10 +619,11 @@
 		overflow: hidden;
 		background: #fff;
 	}
+
 	.preview-header {
 		padding: 0.5rem;
-		border-bottom: 1px solid #eee;
-		background: #fafafa;
+		border-bottom: 1px solid lightgray;
+		background-color: Linen;
 	}
 	.preview-header-top {
 		display: flex;
@@ -732,6 +738,12 @@
 		overflow: hidden;
 	}
 
+	@media (max-width: 1400px) {
+		.preview-content .summary-content {
+			padding: 2rem;
+		}
+	}
+
 	@media (max-width: 960px) {
 		.app-container {
 			grid-template-columns: 1fr;
@@ -777,6 +789,10 @@
 
 		.splitter {
 			display: none;
+		}
+
+		.preview-content .summary-content {
+			padding: 1rem;
 		}
 	}
 
