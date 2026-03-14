@@ -15,6 +15,7 @@ node_modules/
 git_commit_message.txt
 *.pdf
 temp.txt
+temp.md
 **/*.txt
 
 # Output

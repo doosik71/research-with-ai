@@ -38,7 +38,8 @@
 
 	async function typesetMathJax() {
 		if (typeof window === 'undefined') return;
-		const mj = (window as unknown as { MathJax?: { typesetPromise?: () => Promise<void> } }).MathJax;
+		const mj = (window as unknown as { MathJax?: { typesetPromise?: () => Promise<void> } })
+			.MathJax;
 		if (!mj?.typesetPromise) return;
 		try {
 			await tick();
@@ -50,6 +51,8 @@
 
 	$effect(() => {
 		if (!renderHtml) return;
+
+		console.log(renderHtml);
 		void typesetMathJax();
 	});
 
@@ -324,9 +327,9 @@
 	<!-- 3. Preview Area -->
 	<main class="preview">
 		<div class="preview-header">
-			<div class="preview-header-top">
+			<!-- <div class="preview-header-top">
 				<h2>{previewTitle}</h2>
-			</div>
+			</div> -->
 			<div class="preview-toolbar">
 				<button
 					type="button"
@@ -427,7 +430,41 @@
 			</div>
 		{:else}
 			<div class="placeholder">
-				<span>Select a summary or slide to preview</span>
+				<span
+					>Select a
+					<button
+						type="button"
+						class="toolbar-button"
+						title="분석 보고서 보기"
+						disabled={!selectedPaper?.summary}
+						onclick={() => {
+							if (selectedPaper) loadPreview(selectedPaper, 'summary');
+						}}
+					>
+						<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"
+							><path
+								fill="currentColor"
+								d="M168 80c-13.3 0-24 10.7-24 24l0 304c0 8.4-1.4 16.5-4.1 24L440 432c13.3 0 24-10.7 24-24l0-304c0-13.3-10.7-24-24-24L168 80zM72 480c-39.8 0-72-32.2-72-72L0 112C0 98.7 10.7 88 24 88s24 10.7 24 24l0 296c0 13.3 10.7 24 24 24s24-10.7 24-24l0-304c0-39.8 32.2-72 72-72l272 0c39.8 0 72 32.2 72 72l0 304c0 39.8-32.2 72-72 72L72 480zM192 152c0-13.3 10.7-24 24-24l48 0c13.3 0 24 10.7 24 24l0 48c0 13.3-10.7 24-24 24l-48 0c-13.3 0-24-10.7-24-24l0-48zm152 24l48 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-48 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zM216 256l176 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-176 0c-13.3 0-24-10.7-24-24s10.7-24 24-24zm0 80l176 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-176 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"
+							/></svg
+						>
+					</button>
+					or
+					<button
+						type="button"
+						class="toolbar-button"
+						title="발표자료 보기"
+						disabled={!selectedPaper?.slide}
+						onclick={() => {
+							if (selectedPaper) loadPreview(selectedPaper, 'slide');
+						}}
+						><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 512 512"
+							><path
+								fill="currentColor"
+								d="M448 96l0 256-384 0 0-256 384 0zM64 32C28.7 32 0 60.7 0 96L0 352c0 35.3 28.7 64 64 64l144 0-16 48-72 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l272 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-72 0-16-48 144 0c35.3 0 64-28.7 64-64l0-256c0-35.3-28.7-64-64-64L64 32z"
+							/></svg
+						>
+					</button> to preview</span
+				>
 			</div>
 		{/if}
 	</main>
@@ -588,15 +625,11 @@
 		justify-content: space-between;
 		gap: 0.75rem;
 	}
-	.preview-header h2 {
-		margin: 0;
-		font-size: 1.1rem;
-	}
 	.preview-toolbar {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
-		margin-top: 0.75rem;
+		/* margin: 0; */
 	}
 	.toolbar-button {
 		border: 1px solid #d1d5db;
@@ -606,7 +639,7 @@
 		font: inherit;
 		font-size: 0.75rem;
 		font-weight: 700;
-		padding: 0.35rem 0.8rem;
+		padding: 0.1rem 0.8rem;
 		cursor: pointer;
 		transition:
 			background 0.18s ease,
@@ -642,20 +675,6 @@
 
 	.marp-slide-wrapper {
 		padding: 0.2rem;
-	}
-
-	.marp-slide {
-		display: flex;
-		flex-direction: column;
-		margin: 1rem;
-		gap: 1rem;
-	}
-
-	:global(section .marp-slide) {
-		border-radius: 1rem;
-		color: red;
-		border: blue 10px solid;
-		filter: drop-shadow(3px 3px 4px rgba(0, 0, 0, 0.2));
 	}
 
 	.placeholder {
@@ -758,6 +777,46 @@
 
 		.splitter {
 			display: none;
+		}
+	}
+
+	@media print {
+		/* 1. 나머지 컬럼을 완전히 제거 */
+		.app-container {
+			display: block; /* grid 해제 → .preview가 자동으로 전체 폭 차지 */
+		}
+
+		/* 2. 숨길 패널들 */
+		.topic-list,
+		.left-splitter,
+		.paper-list,
+		.middle-splitter,
+		.preview-header {
+			display: none; /* visibility:hidden 대신 display:none → 공간도 완전히 제거 */
+		}
+
+		/* 3. 프리뷰 전체 폭 */
+		.preview {
+			width: 100%;
+			height: auto;
+			overflow: visible; /* 인쇄 시 잘리지 않게 */
+			background-color: white;
+			border: none;
+		}
+
+		.preview-content .summary-content {
+			filter: none;
+			border: 1px white solid;
+			padding: 0;
+		}
+
+		:global(div.marp-slide-wrapper) {
+			padding: 0.2rem;
+			background-color: white;
+		}
+
+		:global(div.marp-slide-wrapper .marp-svg) {
+			margin: 2rem 0 4rem;
 		}
 	}
 </style>

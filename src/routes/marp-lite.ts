@@ -350,6 +350,61 @@ function renderImage(alt: string, url: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Math content encoder/decoder
+//
+// renderBlocks 호출 전에 수식 내부 문자를 hex 인코딩으로 보호한다.
+// 인라인:  $...$   →  $hex-encoded$
+// 블록:    $$...$$ →  $$hex-encoded$$
+//
+// 인코딩 규칙: 각 문자를 4자리 hex (codePoint)로 변환
+//   예) $a$      →  $0061$
+//   예) $$a\nb$$ →  $$00610a0062$$  (0a = LF)
+//
+// 이렇게 하면 수식 내부의 개행, 마커 문자('-', '*' 등), 들여쓰기가
+// 마크다운 파서에 영향을 주지 않는다.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function encodeMathContent(markdown: string): string {
+	// 블록 수식 $$...$$ 를 먼저 처리 (인라인보다 우선)
+	let result = markdown.replace(/([ \t]*)\$\$([\s\S]*?)\$\$/g, (_, leading, inner) => {
+		const encoded = Array.from(inner)
+			.map((ch) => ch.codePointAt(0)!.toString(16).padStart(4, '0'))
+			.join('');
+		return `${leading}$$${encoded}$$`;
+	});
+	// 인라인 수식 $...$ (줄 내에서만, 이미 인코딩된 $$...$$는 건드리지 않음)
+	result = result.replace(/(?<!\$)\$(?!\$)([^$\n]+?)(?<!\$)\$(?!\$)/g, (_, inner) => {
+		const encoded = Array.from(inner)
+			.map((ch) => ch.codePointAt(0)!.toString(16).padStart(4, '0'))
+			.join('');
+		return `$${encoded}$`;
+	});
+	return result;
+}
+
+function decodeMathContent(html: string): string {
+	// $$...$$ 블록 복원
+	let result = html.replace(/\$\$([0-9a-f]*)\$\$/g, (_, encoded) => {
+		const inner =
+			encoded
+				.match(/.{4}/g)
+				?.map((h: string) => String.fromCodePoint(parseInt(h, 16)))
+				.join('') ?? '';
+		return `$$${inner}$$`;
+	});
+	// $...$ 인라인 복원
+	result = result.replace(/(?<!\$)\$(?!\$)([0-9a-f]+?)(?<!\$)\$(?!\$)/g, (_, encoded) => {
+		const inner =
+			encoded
+				.match(/.{4}/g)
+				?.map((h: string) => String.fromCodePoint(parseInt(h, 16)))
+				.join('') ?? '';
+		return `$${inner}$`;
+	});
+	return result;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Block-level Markdown renderer
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -575,8 +630,7 @@ function renderList(
 		const line = lines[i];
 		const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
 
-		// 현재 레벨보다 깊은 들여쓰기 → 아직 부모 li 처리 중이어야 하므로 skip
-		// (아래 자식 블록 수집 로직이 이미 소비했어야 함)
+		// 현재 레벨보다 깊은 들여쓰기이고 마커가 없는 줄 → 이미 부모 li에서 소비됐어야 함, skip
 		if (indent > baseIndent) {
 			i++;
 			continue;
@@ -592,11 +646,14 @@ function renderList(
 
 		// 아이템 텍스트 추출 (들여쓰기 + 마커 제거)
 		const itemText = line
-			.replace(/^\s*/, '') // leading whitespace
-			.replace(/^(\*|-|\+)\s/, '') // ul marker
-			.replace(/^\d+[.)]\s/, ''); // ol marker
+			.replace(/^\s*/, '')
+			.replace(/^(\*|-|\+)\s/, '')
+			.replace(/^\d+[.)]\s/, '');
 
-		// 다음 줄들 중 현재보다 깊은 들여쓰기 → 자식 리스트 줄 수집
+		// 다음 줄들 분류: baseIndent 초과인 줄을 continuation / 자식 리스트로 구분
+		// - 자식 리스트: 마커(`- `, `* `, `+ `, `숫자. `)로 시작하는 줄
+		// - continuation: 그 외 (블록 수식 포함) — <li> 텍스트에 이어 붙임
+		const continuationLines: string[] = [];
 		const childLines: string[] = [];
 		let j = i + 1;
 		while (j < lines.length) {
@@ -604,30 +661,50 @@ function renderList(
 			if (lines[j].trim() === '') {
 				j++;
 				continue;
-			} // 빈 줄 건너뜀
-			if (childIndent <= baseIndent) break; // 같은 레벨 또는 상위 → 종료
-			childLines.push(lines[j]);
+			}
+			if (childIndent <= baseIndent) break;
+			const trimmed = lines[j].trimStart();
+			const isChildMarker = /^(\*|-|\+)\s/.test(trimmed) || /^\d+[.)]\s/.test(trimmed);
+			if (isChildMarker) {
+				// 자식 리스트 시작 → 이후는 모두 자식 리스트 줄
+				while (j < lines.length) {
+					const d2 = lines[j].match(/^(\s*)/)?.[1].length ?? 0;
+					if (lines[j].trim() === '') {
+						j++;
+						continue;
+					}
+					if (d2 <= baseIndent) break;
+					childLines.push(lines[j]);
+					j++;
+				}
+				break;
+			}
+			// continuation 줄: 원래 줄 그대로 보존 (들여쓰기 포함)
+			continuationLines.push(lines[j]);
 			j++;
 		}
 
+		// continuation 줄이 있으면 itemText 뒤에 개행으로 이어 붙임
+		const fullItemText =
+			continuationLines.length > 0
+				? itemText + '\n' + continuationLines.map((l) => l.trimStart()).join('\n')
+				: itemText;
+
 		if (childLines.length > 0) {
-			// 자식의 기준 들여쓰기: 첫 번째 자식 줄의 들여쓰기
 			const childBaseIndent = childLines[0].match(/^(\s*)/)?.[1].length ?? baseIndent + 2;
-			// 자식 리스트 태그 결정: 자식 첫 아이템이 ol 패턴이면 ol, 아니면 ul
 			const firstChild = childLines.find((l) => l.trim() !== '');
 			const childTag: 'ul' | 'ol' =
 				firstChild && /^\d+[.)]\s/.test(firstChild.trimStart()) ? 'ol' : 'ul';
-			// fragment 여부: 자식 첫 마커가 `*` 이면 fragment
 			const childIsFragment = firstChild ? /^\*\s/.test(firstChild.trimStart()) : false;
 			const childCls = childIsFragment ? ' class="marp-fragment"' : '';
 
 			html.push(
-				`<li>${renderInline(itemText, allowHtml)}` +
+				`<li>${renderInline(fullItemText, allowHtml)}` +
 					renderList(childLines, childBaseIndent, allowHtml, childTag, childCls) +
 					`</li>`
 			);
 		} else {
-			html.push(`<li>${renderInline(itemText, allowHtml)}</li>`);
+			html.push(`<li>${renderInline(fullItemText, allowHtml)}</li>`);
 		}
 
 		i = j;
@@ -1047,8 +1124,11 @@ export class MarpLite {
 		// viewBox 크기 결정
 		const [vbW, vbH] = d.size ? sizeToViewBox(d.size) : [1280, 720];
 
+		// 수식 내부 문자를 hex 인코딩으로 보호 (마크다운 파싱 간섭 방지)
+		const encodedContent = encodeMathContent(slide.content);
+
 		// Render Markdown content to HTML
-		let innerHtml = renderBlocks(slide.content, allowHtml);
+		let innerHtml = renderBlocks(encodedContent, allowHtml);
 
 		// Extract background image placeholders
 		const [bgs, cleanedHtml] = extractBackgrounds(innerHtml);
@@ -1132,17 +1212,19 @@ export class MarpLite {
 			.filter(Boolean)
 			.join('\n');
 
-		return [
-			`<svg class="marp-svg" viewBox="0 0 ${vbW} ${vbH}"`,
-			`     width="100%" preserveAspectRatio="xMidYMid meet"`,
-			`     xmlns="http://www.w3.org/2000/svg"`,
-			`     xmlns:xhtml="http://www.w3.org/1999/xhtml"`,
-			`     data-page="${pageNum}" style="display:block;max-height:100%;">`,
-			`  <foreignObject width="${vbW}" height="${vbH}">`,
-			sectionHtml,
-			`  </foreignObject>`,
-			`</svg>`
-		].join('\n');
+		return decodeMathContent(
+			[
+				`<svg class="marp-svg" viewBox="0 0 ${vbW} ${vbH}"`,
+				`     width="100%" preserveAspectRatio="xMidYMid meet"`,
+				`     xmlns="http://www.w3.org/2000/svg"`,
+				`     xmlns:xhtml="http://www.w3.org/1999/xhtml"`,
+				`     data-page="${pageNum}" style="display:block;max-height:100%;">`,
+				`  <foreignObject width="${vbW}" height="${vbH}">`,
+				sectionHtml,
+				`  </foreignObject>`,
+				`</svg>`
+			].join('\n')
+		);
 	}
 
 	private buildCSS(globalDirs: SlideDirectives, slides: ParsedSlide[]): string {
