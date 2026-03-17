@@ -12,12 +12,16 @@
 	type Paper = {
 		title: string;
 		author: string;
-		year: string;
+		year: number | string;
 		url: string;
 		summary: string;
 		slide: string;
 		index: number;
 	};
+
+	type PaperListItem =
+		| { kind: 'year'; yearLabel: string; yearValue: number | null; key: string }
+		| { kind: 'paper'; paper: Paper; key: string };
 	let topics = $state<Topic[]>([]);
 	let papers = $state<Paper[]>([]);
 	let selectedTopic = $state<Topic | null>(null);
@@ -42,16 +46,61 @@
     )
 	);
 
+	function paperYearValue(paper: Paper): number | null {
+		const raw = paper.year;
+		if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+		const str = String(raw ?? '').trim();
+		const match = str.match(/\b(19|20)\d{2}\b/);
+		if (!match) return null;
+		const year = Number(match[0]);
+		return Number.isFinite(year) ? year : null;
+	}
+
+	function comparePapersByYearThenTitle(a: Paper, b: Paper) {
+		const ay = paperYearValue(a);
+		const by = paperYearValue(b);
+
+		if (ay !== null && by !== null && ay !== by) return by - ay; // year desc
+		if (ay === null && by !== null) return 1;
+		if (ay !== null && by === null) return -1;
+
+		return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
+	}
+
 	let filteredPapers = $derived(
-		papers.filter(
-			(p) =>
-				searchPaperQuery.trim() === '' ||
-				p.title.toLowerCase().includes(searchPaperQuery.toLowerCase()) ||
-				p.author.toLowerCase().includes(searchPaperQuery.toLowerCase())
-		).sort((a, b) => 
-      a.title.localeCompare(b.title, undefined, { sensitivity: 'base' })
-    )
+		papers
+			.filter(
+				(p) =>
+					searchPaperQuery.trim() === '' ||
+					p.title.toLowerCase().includes(searchPaperQuery.toLowerCase()) ||
+					p.author.toLowerCase().includes(searchPaperQuery.toLowerCase())
+			)
+			.toSorted(comparePapersByYearThenTitle)
 	);
+
+	let paperListItems = $derived.by(() => {
+		const items: PaperListItem[] = [];
+		let lastYearValue: number | null | undefined;
+
+		for (const paper of filteredPapers) {
+			const yearValue = paperYearValue(paper);
+			const yearLabel = yearValue === null ? 'Unknown year' : String(yearValue);
+
+			if (yearValue !== lastYearValue) {
+				items.push({
+					kind: 'year',
+					yearLabel,
+					yearValue,
+					key: `year-${yearLabel}`
+				});
+				lastYearValue = yearValue;
+			}
+
+			items.push({ kind: 'paper', paper, key: `paper-${paper.index}` });
+		}
+
+		return items;
+	});
 
 	// Preview State
 	let renderHtml = $state('');
@@ -244,7 +293,7 @@
 							return null;
 						}
 					})
-					.filter((p) => p); // null을 제거함.
+					.filter((p): p is Paper => Boolean(p)); // null을 제거함.
 			}
 		} catch (e) {
 			console.error('Error fetching paper list:', e);
@@ -420,15 +469,19 @@
 			<div class="loading">Loading...</div>
 		{/if}
 		<div class="list-content">
-			{#each filteredPapers as paper (paper.index)}
-				<button
-					class={`paper-item ${paperTone(paper)}`}
-					class:selected={selectedPaper?.index === paper.index}
-					onclick={() => selectPaper(paper)}
-				>
-					<p class="title">{paper.title}</p>
-					<p class="meta">{paper.author} ({paper.year})</p>
-				</button>
+			{#each paperListItems as item (item.key)}
+				{#if item.kind === 'year'}
+					<div class="paper-year-header">{item.yearLabel}</div>
+				{:else}
+					<button
+						class={`paper-item ${paperTone(item.paper)}`}
+						class:selected={selectedPaper?.index === item.paper.index}
+						onclick={() => selectPaper(item.paper)}
+					>
+						<p class="title">{item.paper.title}</p>
+						<p class="meta">{item.paper.author} ({item.paper.year})</p>
+					</button>
+				{/if}
 			{/each}
 		</div>
 	</div>
@@ -918,6 +971,16 @@
 	}
 
 	/* ─── Paper List ─────────────────────────────────────────────── */
+	.paper-year-header {
+		margin: 0.75rem 0 0.25rem;
+		padding: 0.2rem 0.15rem;
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--text-muted);
+		border-bottom: 1px solid var(--border-subtle);
+	}
 	.paper-item {
 		display: block;
 		width: 100%;
