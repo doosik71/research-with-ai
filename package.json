@@ -7,6 +7,7 @@
 		"predev": "node generate-manifest.js",
 		"dev": "vite dev",
 		"build": "vite build",
+		"manifest": "node generate-manifest.js",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",

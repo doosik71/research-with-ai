@@ -1,7 +1,7 @@
 {"title": "An Introduction to Autoencoders", "author": "Umberto Michelucci", "year": 2022, "url": "http://arxiv.org/abs/2201.03898v1", "summary": "", "slide": ""}
 {"title": "An Introduction to Variational Autoencoders", "author": "Diederik P. Kingma, Max Welling", "year": 2019, "url": "http://arxiv.org/abs/1906.02691v3", "summary": "", "slide": ""}
 {"title": "Autoencoders", "author": "Dor Bank, Noam Koenigstein, Raja Giryes", "year": 2020, "url": "http://arxiv.org/abs/2003.05991v2", "summary": "", "slide": ""}
-{"title": "Gaussian Masked Autoencoders", "author": "Jathushan Rajasegaran, Xinlei Chen, Rulilong Li, Christoph Feichtenhofer, Jitendra Malik, Shiry Ginosar", "year": 2025, "url": "http://arxiv.org/abs/2501.03229v1", "summary": "", "slide": ""}
-{"title": "Low-Rank Adapting Models for Sparse Autoencoders", "author": "Matthew Chen, Joshua Engels, Max Tegmark", "year": 2025, "url": "http://arxiv.org/abs/2501.19406v2", "summary": "", "slide": ""}
+// {"title": "Gaussian Masked Autoencoders", "author": "Jathushan Rajasegaran, Xinlei Chen, Rulilong Li, Christoph Feichtenhofer, Jitendra Malik, Shiry Ginosar", "year": 2025, "url": "http://arxiv.org/abs/2501.03229v1", "summary": "", "slide": ""}
+// {"title": "Low-Rank Adapting Models for Sparse Autoencoders", "author": "Matthew Chen, Joshua Engels, Max Tegmark", "year": 2025, "url": "http://arxiv.org/abs/2501.19406v2", "summary": "", "slide": ""}
 {"title": "Relational Autoencoder for Feature Extraction", "author": "Qinxue Meng, Daniel Catchpoole, David Skillicorn, Paul J. Kennedy", "year": 2018, "url": "http://arxiv.org/abs/1802.03145v1", "summary": "", "slide": ""}
-{"title": "Variational Composite Autoencoders", "author": "Jiangchao Yao, Ivor Tsang, Ya Zhang", "year": 2018, "url": "http://arxiv.org/abs/1804.04435v1", "summary": "", "slide": ""}
+// {"title": "Variational Composite Autoencoders", "author": "Jiangchao Yao, Ivor Tsang, Ya Zhang", "year": 2018, "url": "http://arxiv.org/abs/1804.04435v1", "summary": "", "slide": ""}

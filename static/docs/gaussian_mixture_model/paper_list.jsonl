@@ -1,10 +1,10 @@
-{"title": "A survey on Bayesian inference for Gaussian mixture model", "author": "Jun Lu", "year": 2021, "url": "http://arxiv.org/abs/2108.11753v1", "summary": "", "slide": ""}
-{"title": "Bayesian Sparse Gaussian Mixture Model in High Dimensions", "author": "Dapeng Yao, Fangzheng Xie, Yanxun Xu", "year": 2022, "url": "http://arxiv.org/abs/2207.10301v3", "summary": "", "slide": ""}
+// {"title": "A survey on Bayesian inference for Gaussian mixture model", "author": "Jun Lu", "year": 2021, "url": "http://arxiv.org/abs/2108.11753v1", "summary": "", "slide": ""}
+// {"title": "Bayesian Sparse Gaussian Mixture Model in High Dimensions", "author": "Dapeng Yao, Fangzheng Xie, Yanxun Xu", "year": 2022, "url": "http://arxiv.org/abs/2207.10301v3", "summary": "", "slide": ""}
 {"title": "Deep Gaussian Mixture Models", "author": "Cinzia Viroli, Geoffrey J. McLachlan", "year": 2017, "url": "http://arxiv.org/abs/1711.06929v1", "summary": "", "slide": ""}
-{"title": "Gaussian Mixture Convolution Networks", "author": "Adam Celarek, Pedro Hermosilla, Bernhard Kerbl, Timo Ropinski, Michael Wimmer", "year": 2022, "url": "http://arxiv.org/abs/2202.09153v1", "summary": "", "slide": ""}
-{"title": "Infinite Mixtures of Multivariate Gaussian Processes", "author": "Shiliang Sun", "year": 2013, "url": "http://arxiv.org/abs/1307.7028v1", "summary": "", "slide": ""}
+// {"title": "Gaussian Mixture Convolution Networks", "author": "Adam Celarek, Pedro Hermosilla, Bernhard Kerbl, Timo Ropinski, Michael Wimmer", "year": 2022, "url": "http://arxiv.org/abs/2202.09153v1", "summary": "", "slide": ""}
+// {"title": "Infinite Mixtures of Multivariate Gaussian Processes", "author": "Shiliang Sun", "year": 2013, "url": "http://arxiv.org/abs/1307.7028v1", "summary": "", "slide": ""}
 {"title": "Model Selection for Gaussian Mixture Models", "author": "Tao Huang, Heng Peng, Kun Zhang", "year": 2013, "url": "http://arxiv.org/abs/1301.3558v1", "summary": "", "slide": ""}
-{"title": "Nonparametric mixture of Gaussian graphical models", "author": "Kevin Lee, Lingzhou Xue", "year": 2015, "url": "http://arxiv.org/abs/1512.09206v1", "summary": "", "slide": ""}
-{"title": "Optimal transport for Gaussian mixture models", "author": "Yongxin Chen, Tryphon T. Georgiou, Allen Tannenbaum", "year": 2017, "url": "http://arxiv.org/abs/1710.07876v2", "summary": "", "slide": ""}
-{"title": "Optimal transport for vector Gaussian mixture models", "author": "Jiening Zhu, Kaiming Xu, Allen Tannenbaum", "year": 2020, "url": "http://arxiv.org/abs/2012.09226v3", "summary": "", "slide": ""}
-{"title": "Superpixel Segmentation Using Gaussian Mixture Model", "author": "Zhihua Ban, Jianguo Liu, Li Cao", "year": 2016, "url": "http://arxiv.org/abs/1612.08792v2", "summary": "", "slide": ""}
+// {"title": "Nonparametric mixture of Gaussian graphical models", "author": "Kevin Lee, Lingzhou Xue", "year": 2015, "url": "http://arxiv.org/abs/1512.09206v1", "summary": "", "slide": ""}
+// {"title": "Optimal transport for Gaussian mixture models", "author": "Yongxin Chen, Tryphon T. Georgiou, Allen Tannenbaum", "year": 2017, "url": "http://arxiv.org/abs/1710.07876v2", "summary": "", "slide": ""}
+// {"title": "Optimal transport for vector Gaussian mixture models", "author": "Jiening Zhu, Kaiming Xu, Allen Tannenbaum", "year": 2020, "url": "http://arxiv.org/abs/2012.09226v3", "summary": "", "slide": ""}
+// {"title": "Superpixel Segmentation Using Gaussian Mixture Model", "author": "Zhihua Ban, Jianguo Liu, Li Cao", "year": 2016, "url": "http://arxiv.org/abs/1612.08792v2", "summary": "", "slide": ""}
