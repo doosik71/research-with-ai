@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import MarkdownIt from 'markdown-it';
-	import { MarpLite } from './marp-lite';
+	import { MarpLite } from '../marp-lite';
 
 	type Topic = {
 		id: string;
@@ -28,12 +30,113 @@
 	let selectedPaper = $state<Paper | null>(null);
 	let showTopicPanel = $state(true);
 	let showPaperPanel = $state(true);
+	let isMobile = $state(false);
+	let mobileStage = $state<0 | 1 | 2>(0); // 0: topics, 1: papers, 2: preview
+
+	type RoutePaperMatch = { paper: Paper; type: 'summary' | 'slide' };
+
+	function basename(path: string): string {
+		const normalized = String(path ?? '');
+		const slashSplit = normalized.split('/');
+		const lastSlash = slashSplit[slashSplit.length - 1] ?? normalized;
+		const backSplit = lastSlash.split('\\');
+		return backSplit[backSplit.length - 1] ?? lastSlash;
+	}
+
+	function paperSlugFromFilename(filename: string): string {
+		return basename(filename).replace(/\.md$/i, '');
+	}
+
+	function findPaperBySlug(paperSlug: string, allPapers: Paper[]): RoutePaperMatch | null {
+		const targetFilename = `${paperSlug}.md`;
+
+		for (const paper of allPapers) {
+			if (paper.summary && basename(paper.summary) === targetFilename) return { paper, type: 'summary' };
+			if (paper.slide && basename(paper.slide) === targetFilename) return { paper, type: 'slide' };
+		}
+
+		return null;
+	}
+
+	// SvelteKit rest params are strings like "a/b/c" (or `undefined` at `/`).
+	let routeSlug = $derived($page.params.slug as string | undefined);
+	let routeSegments = $derived(
+		(routeSlug ? routeSlug.split('/').filter(Boolean) : []) as string[]
+	);
+	let routeTopicId = $derived(routeSegments[0]);
+	let routePaperSlug = $derived(routeSegments[1]);
+	let routeHasExtra = $derived(routeSegments.length > 2);
+
+	let appliedRouteKey = $state('');
+	let routeApplySeq = 0;
+
+	$effect(() => {
+		if (!isMobile) return;
+
+		// Ensure desktop-only panel toggles don't hide screens on mobile.
+		showTopicPanel = true;
+		showPaperPanel = true;
+
+		// Only correct invalid states (don't force-forward if user navigated back).
+		if (!selectedTopic && mobileStage !== 0) mobileStage = 0;
+		if (mobileStage === 2 && !selectedPaper) mobileStage = 1;
+	});
 
 	// Search State
 	let showSearchTopicInput = $state(false);
 	let showSearchPaperInput = $state(false);
 	let searchTopicQuery = $state('');
 	let searchPaperQuery = $state('');
+	let topicSearchInputEl = $state<HTMLInputElement | null>(null);
+	let paperSearchInputEl = $state<HTMLInputElement | null>(null);
+
+	async function openSearchPopover(kind: 'topic' | 'paper') {
+		if (kind === 'topic') {
+			if (showSearchTopicInput) {
+				showSearchTopicInput = false;
+				return;
+			}
+			showSearchTopicInput = true;
+			await tick();
+			topicSearchInputEl?.focus();
+			topicSearchInputEl?.select();
+			return;
+		}
+
+		if (showSearchPaperInput) {
+			showSearchPaperInput = false;
+			return;
+		}
+		showSearchPaperInput = true;
+		await tick();
+		paperSearchInputEl?.focus();
+		paperSearchInputEl?.select();
+	}
+
+	function closeSearchPopoverOnFocusOut(
+		event: FocusEvent,
+		kind: 'topic' | 'paper'
+	) {
+		const container = event.currentTarget as HTMLElement | null;
+		const next = event.relatedTarget as Node | null;
+		if (container && next && container.contains(next)) return;
+
+		if (kind === 'topic') showSearchTopicInput = false;
+		else showSearchPaperInput = false;
+	}
+
+	async function clearSearchQuery(kind: 'topic' | 'paper') {
+		if (kind === 'topic') {
+			searchTopicQuery = '';
+			await tick();
+			topicSearchInputEl?.focus();
+			return;
+		}
+
+		searchPaperQuery = '';
+		await tick();
+		paperSearchInputEl?.focus();
+	}
 
 	let filteredTopics = $derived(
 		topics.filter(
@@ -104,10 +207,55 @@
 
 	// Preview State
 	let renderHtml = $state('');
-	let renderType = $state('none'); // 'none', 'summary', 'slide'
+	let renderType = $state<'none' | 'summary' | 'slide'>('none');
 	let isLoading = $state(false);
 	let appEl: HTMLDivElement | null = null;
 	let theme = $state<'light' | 'dark'>('light');
+	let readerMode = $state(false);
+	let slideWidthPct = $state(100);
+
+	let canReader = $derived.by(() => {
+		if (!selectedPaper) return false;
+		if (isLoading) return false;
+		if (!renderHtml) return false;
+		if (renderType === 'summary') return !!selectedPaper.summary;
+		if (renderType === 'slide') return !!selectedPaper.slide;
+		return false;
+	});
+
+	let canSlideWidth = $derived.by(() => {
+		if (!selectedPaper?.slide) return false;
+		if (isLoading) return false;
+		if (!renderHtml) return false;
+		return renderType === 'slide';
+	});
+
+	let headDescription = $derived.by(() => {
+		if (!selectedPaper) return '';
+		const author = String(selectedPaper.author ?? '').trim();
+		const title = String(selectedPaper.title ?? '').trim();
+		const year = String(selectedPaper.year ?? '').trim();
+		const parts = [author, title ? `"${title}"` : '', year].filter(Boolean);
+		return parts.join(', ');
+	});
+
+	let ogType = $derived.by(() =>
+		selectedPaper && (renderType === 'summary' || renderType === 'slide') ? 'article' : 'website'
+	);
+
+	$effect(() => {
+		if (!readerMode) return;
+		if (!canReader) readerMode = false;
+	});
+
+	$effect(() => {
+		if (!readerMode) return;
+		const onKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') readerMode = false;
+		};
+		window.addEventListener('keydown', onKeyDown);
+		return () => window.removeEventListener('keydown', onKeyDown);
+	});
 
 	$effect(() => {
 		document.documentElement.setAttribute('data-theme', theme);
@@ -140,27 +288,134 @@
 		void typesetMathJax();
 	});
 
-	onMount(async () => {
-		try {
-			const saved = localStorage.getItem('app-theme');
-			if (saved === 'dark' || saved === 'light') theme = saved;
-		} catch {
-			// Do nothing.
-		}
+	onMount(() => {
+		const MOBILE_MEDIA_QUERY = '(max-width: 960px)';
 
-		try {
-			const res = await fetch('/docs/manifest.json');
-
-			if (res.ok) {
-				topics = await res.json();
-				// Sort topics by title
-				topics.sort((a, b) => (a.title || a.id).localeCompare(b.title || b.id));
-			} else {
-				console.error('Failed to load manifest.json');
+		const ensureMobileStageValid = () => {
+			if (!isMobile) return;
+			if (!selectedTopic) {
+				mobileStage = 0;
+				return;
 			}
-		} catch (e) {
-			console.error('Error fetching manifest:', e);
+			if (mobileStage === 2 && !selectedPaper) mobileStage = 1;
+		};
+
+		const mql = window.matchMedia(MOBILE_MEDIA_QUERY);
+		let prevMatches = mql.matches;
+
+		const applyMobileMode = (matches: boolean, enteringMobile: boolean) => {
+			isMobile = matches;
+			if (!matches) return;
+
+			// Desktop-only panel toggles shouldn't affect mobile stack navigation.
+			showTopicPanel = true;
+			showPaperPanel = true;
+
+			if (enteringMobile) {
+				mobileStage = !selectedTopic ? 0 : !selectedPaper ? 1 : 2;
+			}
+
+			ensureMobileStageValid();
+		};
+
+		const onMediaChange = (event: MediaQueryListEvent) => {
+			const enteringMobile = !prevMatches && event.matches;
+			prevMatches = event.matches;
+			applyMobileMode(event.matches, enteringMobile);
+		};
+
+		applyMobileMode(mql.matches, mql.matches);
+		mql.addEventListener('change', onMediaChange);
+
+		void (async () => {
+			try {
+				const saved = localStorage.getItem('app-theme');
+				if (saved === 'dark' || saved === 'light') theme = saved;
+			} catch {
+				// Do nothing.
+			}
+
+			try {
+				const res = await fetch('/docs/manifest.json');
+
+				if (res.ok) {
+					topics = await res.json();
+					// Sort topics by title
+					topics.sort((a, b) => (a.title || a.id).localeCompare(b.title || b.id));
+				} else {
+					console.error('Failed to load manifest.json');
+				}
+			} catch (e) {
+				console.error('Error fetching manifest:', e);
+			}
+		})();
+
+		return () => {
+			mql.removeEventListener('change', onMediaChange);
+		};
+	});
+
+	$effect(() => {
+		// Disallow more than /{topic}/{paper}.
+		if (routeHasExtra) {
+			void goto('/', { replaceState: true, noScroll: true, keepFocus: true });
+			return;
 		}
+
+		const topicId = routeTopicId;
+		const paperSlug = routePaperSlug;
+		const nextKey = `${topicId ?? ''}/${paperSlug ?? ''}`;
+
+		if (nextKey === appliedRouteKey) return;
+
+		// If route references a topic but manifest not loaded yet, wait.
+		if ((topicId || paperSlug) && topics.length === 0) return;
+
+		appliedRouteKey = nextKey;
+		const seq = ++routeApplySeq;
+
+		void (async () => {
+			if (seq !== routeApplySeq) return;
+
+			// Root: clear selection.
+			if (!topicId) {
+				selectedTopic = null;
+				selectedPaper = null;
+				papers = [];
+				renderType = 'none';
+				renderHtml = '';
+				if (isMobile) mobileStage = 0;
+				return;
+			}
+
+			const topic = topics.find((t) => t.id === topicId) ?? null;
+			if (!topic) {
+				void goto('/', { replaceState: true, noScroll: true, keepFocus: true });
+				return;
+			}
+
+			// Ensure topic is selected and papers are loaded.
+			if (selectedTopic?.id !== topic.id || papers.length === 0) {
+				await selectTopic(topic, { syncUrl: false });
+			}
+
+			// /{topic}: no paper selected.
+			if (!paperSlug) {
+				selectedPaper = null;
+				renderType = 'none';
+				renderHtml = '';
+				if (isMobile) mobileStage = 1;
+				return;
+			}
+
+			const match = findPaperBySlug(paperSlug, papers);
+			if (!match) {
+				void goto(`/${topic.id}`, { replaceState: true, noScroll: true, keepFocus: true });
+				return;
+			}
+
+			await loadPreview(match.paper, match.type, { syncUrl: false });
+		})();
 	});
 
 	function setColumnVar(name: '--col1' | '--col2', value: number) {
@@ -248,10 +503,12 @@
 		renderHtml = '';
 
 		if (paper.summary) {
-			loadPreview(paper, 'summary');
+			loadPreview(paper, 'summary', { syncUrl: true });
 		} else if (paper.slide) {
-			loadPreview(paper, 'slide');
+			loadPreview(paper, 'slide', { syncUrl: true });
 		}
+
+		if (isMobile) mobileStage = 2;
 	}
 
 	function openExternal(kind: 'arxiv' | 'ar5iv' | 'pdf') {
@@ -264,20 +521,28 @@
 		else if (kind === 'ar5iv')
 			 targetUrl = buildAr5ivUrl(selectedPaper.url);
 		else if (kind === 'pdf')
-				buildPdfUrl(selectedPaper.url);
+				targetUrl = buildPdfUrl(selectedPaper.url);
 
 		if (!targetUrl) return;
 		
 		window.open(targetUrl, '_blank', 'noopener,noreferrer');
 	}
 
-	async function selectTopic(topic: Topic) {
+	async function selectTopic(topic: Topic, options?: { syncUrl?: boolean }) {
+		const syncUrl = options?.syncUrl ?? true;
 		selectedTopic = topic;
 		selectedPaper = null;
 		renderType = 'none';
 		renderHtml = '';
 		papers = [];
 		isLoading = true;
+
+		if (isMobile) mobileStage = 1;
+
+		if (syncUrl) {
+			appliedRouteKey = `${topic.id}/`;
+			void goto(`/${topic.id}`, { noScroll: true, keepFocus: true });
+		}
 
 		try {
 			const res = await fetch(`/docs/${topic.id}/paper_list.jsonl`);
@@ -293,7 +558,7 @@
 							return null;
 						}
 					})
-					.filter((p): p is Paper => Boolean(p)); // null을 제거함.
+					.filter((p): p is Paper => Boolean(p)); // null???�거??
 			}
 		} catch (e) {
 			console.error('Error fetching paper list:', e);
@@ -302,7 +567,12 @@
 		}
 	}
 
-	async function loadPreview(paper: Paper, type: 'summary' | 'slide') {
+	async function loadPreview(
+		paper: Paper,
+		type: 'summary' | 'slide',
+		options?: { syncUrl?: boolean }
+	) {
+		const syncUrl = options?.syncUrl ?? false;
 		if (!selectedTopic) return;
 
 		selectedPaper = paper;
@@ -310,11 +580,19 @@
 		isLoading = true;
 		renderHtml = '';
 
+		if (isMobile) mobileStage = 2;
+
 		const filename = type === 'summary' ? paper.summary : paper.slide;
 		if (!filename) {
 			renderHtml = '<p>No file specified.</p>';
 			isLoading = false;
 			return;
+		}
+
+		if (syncUrl) {
+			const slug = paperSlugFromFilename(filename);
+			appliedRouteKey = `${selectedTopic.id}/${slug}`;
+			void goto(`/${selectedTopic.id}/${slug}`, { noScroll: true, keepFocus: true });
 		}
 
 		try {
@@ -344,6 +622,12 @@
 
 <svelte:head>
 	<title>Research-with-AI</title>
+	{#if headDescription}
+		<meta name="description" content={headDescription} />
+		<meta property="og:description" content={headDescription} />
+	{/if}
+	<meta property="og:title" content="Research-with-AI" />
+	<meta property="og:type" content={ogType} />
 	<script>
 		window.MathJax = {
 			tex: {
@@ -372,6 +656,10 @@
 	class="app-container"
 	data-show-topic={showTopicPanel}
 	data-show-paper={showPaperPanel}
+	data-mobile-stage={mobileStage}
+	data-reader={readerMode}
+	style:--mobile-stage={mobileStage}
+	style:--slide-max-width={`${slideWidthPct}vw`}
 	bind:this={appEl}
 >
 	<!-- 1. Topic List -->
@@ -386,11 +674,11 @@
 				>
 				Topics
 			</h2>
-			<div class="search-container">
+			<div class="search-container" onfocusout={(e) => closeSearchPopoverOnFocusOut(e, 'topic')} >
 				<button
 					class="search-button"
 					title="Search topics"
-					onclick={() => (showSearchTopicInput = !showSearchTopicInput)}
+					onclick={() => openSearchPopover('topic')}
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 512 512">
 						<path
@@ -401,7 +689,24 @@
 				</button>
 				{#if showSearchTopicInput}
 					<div class="search-popover">
-						<input type="text" bind:value={searchTopicQuery} placeholder="Filter by keywords" />
+						<div class="search-input">
+							<input
+								type="text"
+								bind:value={searchTopicQuery}
+								placeholder="Filter by keywords"
+								bind:this={topicSearchInputEl}
+							/>
+							{#if searchTopicQuery.trim() !== ''}
+								<button
+									type="button"
+									class="search-clear"
+									aria-label="Clear topic search"
+									onclick={() => clearSearchQuery('topic')}
+								>
+									×
+								</button>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -431,6 +736,17 @@
 	<!-- 2. Paper List -->
 	<div class="paper-list">
 		<div class="paper-list-header">
+			{#if isMobile}
+				<button
+					type="button"
+					class="nav-back"
+					aria-label="Back to topics"
+					onclick={() => (mobileStage = 0)}
+				>
+					<span aria-hidden="true">←</span>
+					<span class="nav-back-label">Topics</span>
+				</button>
+			{/if}
 			<h2>
 				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"
 					><path
@@ -440,11 +756,11 @@
 				>
 				Papers {selectedTopic ? `(${filteredPapers.length})` : ''}
 			</h2>
-			<div class="search-container">
+			<div class="search-container" onfocusout={(e) => closeSearchPopoverOnFocusOut(e, 'paper')}>
 				<button
 					class="search-button"
 					title="Search papers"
-					onclick={() => (showSearchPaperInput = !showSearchPaperInput)}
+					onclick={() => openSearchPopover('paper')}
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 512 512">
 						<path
@@ -455,11 +771,24 @@
 				</button>
 				{#if showSearchPaperInput}
 					<div class="search-popover">
-						<input
-							type="text"
-							bind:value={searchPaperQuery}
-							placeholder="Filter by title or author"
-						/>
+						<div class="search-input">
+							<input
+								type="text"
+								bind:value={searchPaperQuery}
+								placeholder="Filter by title or author"
+								bind:this={paperSearchInputEl}
+							/>
+							{#if searchPaperQuery.trim() !== ''}
+								<button
+									type="button"
+									class="search-clear"
+									aria-label="Clear paper search"
+									onclick={() => clearSearchQuery('paper')}
+								>
+									×
+								</button>
+							{/if}
+						</div>
 					</div>
 				{/if}
 			</div>
@@ -494,15 +823,27 @@
 
 	<!-- 3. Preview Area -->
 	<main class="preview">
+		{#if !readerMode}
 		<div class="preview-header">
 			<div class="preview-toolbar">
+				{#if isMobile}
+					<button
+						type="button"
+						class="nav-back"
+						aria-label="Back to papers"
+						onclick={() => (mobileStage = 1)}
+					>
+						<span aria-hidden="true">←</span>
+						<span class="nav-back-label">Papers</span>
+					</button>
+				{/if}
 				<button
 					type="button"
 					class="toolbar-button"
-					title="분석 보고서 보기"
+					title="View report"
 					disabled={!selectedPaper?.summary}
 					onclick={() => {
-						if (selectedPaper) loadPreview(selectedPaper, 'summary');
+						if (selectedPaper) loadPreview(selectedPaper, 'summary', { syncUrl: true });
 					}}
 				>
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"
@@ -515,10 +856,10 @@
 				<button
 					type="button"
 					class="toolbar-button"
-					title="발표자료 보기"
+					title="View presentation"
 					disabled={!selectedPaper?.slide}
 					onclick={() => {
-						if (selectedPaper) loadPreview(selectedPaper, 'slide');
+						if (selectedPaper) loadPreview(selectedPaper, 'slide', { syncUrl: true });
 					}}
 					><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512"
 						><path
@@ -546,7 +887,7 @@
 				<button
 					type="button"
 					class="toolbar-button"
-					title="토픽 보이기/숨기기"
+					title="Toggle topics"
 					aria-pressed={!showTopicPanel}
 					onclick={() => (showTopicPanel = !showTopicPanel)}
 				>
@@ -560,7 +901,7 @@
 				<button
 					type="button"
 					class="toolbar-button"
-					title="목록 보이기/숨기기"
+					title="Toggle papers"
 					aria-pressed={!showPaperPanel}
 					onclick={() => (showPaperPanel = !showPaperPanel)}
 				>
@@ -571,16 +912,87 @@
 						/></svg
 					>
 				</button>
-				<select class="theme-select" bind:value={theme} title="테마 선택" aria-label="테마 선택">
+				<select class="theme-select" bind:value={theme} title="Select theme" aria-label="Select theme">
 					<option value="light">☀ Light</option>
 					<option value="dark">◑ Dark</option>
 				</select>
-				<button type="button" class="toolbar-button" title="도움말" disabled> ? </button>
+				<button
+					type="button"
+					class="toolbar-button"
+					title="Reader mode"
+					aria-pressed={readerMode}
+					disabled={!canReader}
+					onclick={() => (readerMode = !readerMode)}
+				>
+					Reader
+				</button>
+				{#if renderType === 'slide'}
+					<label
+						class="slide-width-control"
+						class:disabled={!canSlideWidth}
+						aria-label="Slide width control"
+					>
+						<span class="slide-width-label">Slide</span>
+						<input
+							class="slide-width-range"
+							type="range"
+							min="30"
+							max="100"
+							step="1"
+							bind:value={slideWidthPct}
+							disabled={!canSlideWidth}
+							aria-label="Slide width (percent of viewport width)"
+						/>
+						<span class="slide-width-value">{slideWidthPct}%</span>
+					</label>
+				{/if}
 			</div>
 		</div>
-		{#if renderType === 'summary'}
-			<div class="preview-content markdown-body">
-				<div class="summary-content">
+		{/if}
+		{#if readerMode}
+			<button
+				type="button"
+				class="toolbar-button reader-close"
+				aria-label="Exit reader mode"
+				onclick={() => (readerMode = false)}
+			>
+				X
+			</button>
+			<div class="reader-body">
+				{#if renderType === 'summary'}
+					<article class="summary-content markdown-body">
+						{#if isLoading}
+							<p>Loading content...</p>
+						{:else}
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html renderHtml}
+						{/if}
+					</article>
+				{:else if renderType === 'slide'}
+					<div class="preview-content markdown-body slide-content">
+						{#if isLoading}
+							<p>Loading content...</p>
+						{:else}
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html renderHtml}
+						{/if}
+					</div>
+				{/if}
+			</div>
+		{:else}
+			{#if renderType === 'summary'}
+				<div class="preview-content markdown-body">
+					<article class="summary-content">
+						{#if isLoading}
+							<p>Loading content...</p>
+						{:else}
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html renderHtml}
+						{/if}
+					</article>
+				</div>
+			{:else if renderType === 'slide'}
+				<div class="preview-content markdown-body slide-content">
 					{#if isLoading}
 						<p>Loading content...</p>
 					{:else}
@@ -588,79 +1000,70 @@
 						{@html renderHtml}
 					{/if}
 				</div>
-			</div>
-		{:else if renderType === 'slide'}
-			<div class="preview-content markdown-body slide-content">
-				{#if isLoading}
-					<p>Loading content...</p>
-				{:else}
-					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-					{@html renderHtml}
-				{/if}
-			</div>
-		{:else}
-			<div class="placeholder">
-				{#if selectedTopic}
-					<h3>
-						{selectedTopic.title}
-						({selectedTopic.id})
-					</h3>
+			{:else}
+				<div class="placeholder">
+					{#if selectedTopic}
+						<h3>
+							{selectedTopic.title}
+							({selectedTopic.id})
+						</h3>
 
-					{#if selectedPaper}
-						<h2>{selectedPaper?.title}</h2>
-						<div class="clamp-5">
-							{selectedPaper?.author}
-							{#if selectedPaper?.year}
-								({selectedPaper?.year})
-							{/if}
-						</div>
-						<div>
-							Select
-							<button
-								type="button"
-								class="toolbar-button"
-								disabled={!selectedPaper?.url}
-								onclick={() => openExternal('arxiv')}
-							>
-								arXiv
-							</button>,
-							<button
-								type="button"
-								class="toolbar-button"
-								disabled={!selectedPaper?.url}
-								onclick={() => openExternal('ar5iv')}
-							>
-								ar5iv
-							</button>
-							or
-							<button
-								type="button"
-								class="toolbar-button"
-								disabled={!selectedPaper?.url}
-								onclick={() => openExternal('pdf')}
-							>
-								PDF
-							</button>
-						</div>
+						{#if selectedPaper}
+							<h2>{selectedPaper?.title}</h2>
+							<div class="clamp-5">
+								{selectedPaper?.author}
+								{#if selectedPaper?.year}
+									({selectedPaper?.year})
+								{/if}
+							</div>
+							<div>
+								Select
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('arxiv')}
+								>
+									arXiv
+								</button>,
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('ar5iv')}
+								>
+									ar5iv
+								</button>
+								or
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('pdf')}
+								>
+									PDF
+								</button>
+							</div>
+						{:else}
+							<div>Select a paper.</div>
+						{/if}
 					{:else}
-						<div>Select a paper.</div>
+						<div>Select a research topic.</div>
 					{/if}
-				{:else}
-					<div>Select a research topic.</div>
-				{/if}
-			</div>
+				</div>
+			{/if}
 		{/if}
 	</main>
 </div>
 
 <style>
-	/* ─── Layout variables (theme-independent) ───────────────────── */
+	/* Layout variables (theme-independent) */
 	:global(:root) {
 		--col1: 250px;
 		--col2: 350px;
 	}
 
-	/* ─── Light Theme ────────────────────────────────────────────── */
+	/* Light Theme */
 	:global([data-theme='light']) {
 		/* Surface */
 		--bg-base: #f4f5f7;
@@ -682,7 +1085,7 @@
 		--text-disabled: #c0c4d0;
 		--link-color: #2a5cc8;
 
-		/* Accent — indigo */
+		/* Accent - indigo */
 		--accent: #4c5fd5;
 		--accent-dim: #7b8de0;
 		--accent-subtle: rgba(76, 95, 213, 0.1);
@@ -721,7 +1124,7 @@
 		--slide-wrapper-bg: #e8eaef;
 	}
 
-	/* ─── Dark Theme ─────────────────────────────────────────────── */
+	/* Dark Theme */
 	:global([data-theme='dark']) {
 		--bg-base: #0f1117;
 		--bg-panel: #16181f;
@@ -774,7 +1177,7 @@
 		--slide-wrapper-bg: #0f1117;
 	}
 
-	/* ─── Reset / Base ───────────────────────────────────────────── */
+	/* Reset / Base */
 	:global(body) {
 		margin: 0;
 		font-family: 'Instrument Sans', 'DM Sans', system-ui, sans-serif;
@@ -790,7 +1193,7 @@
 			color 0.2s;
 	}
 
-	/* ─── Layout Grid ────────────────────────────────────────────── */
+	/* Layout Grid */
 	.app-container {
 		display: grid;
 		grid-template-columns:
@@ -819,7 +1222,7 @@
 		grid-column: 5;
 	}
 
-	/* ─── Side Panels ────────────────────────────────────────────── */
+	/* Side Panels */
 	.topic-list,
 	.paper-list {
 		display: flex;
@@ -861,7 +1264,7 @@
 		opacity: 0.5;
 	}
 
-	/* ─── Search UI ──────────────────────────────────────────────── */
+	/* Search UI */
 	.search-container {
 		position: relative;
 		max-height: 18px;
@@ -892,9 +1295,14 @@
 		box-shadow: var(--shadow-md);
 		z-index: 10;
 	}
+	.search-popover .search-input {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
 	.search-popover input {
 		width: 10rem;
-		padding: 0.4rem 0.6rem;
+		padding: 0.4rem 2rem 0.4rem 0.6rem;
 		font-family: inherit;
 		font-size: 0.85rem;
 		border: 1px solid var(--border-strong);
@@ -906,8 +1314,33 @@
 		outline: 2px solid var(--accent);
 		border-color: transparent;
 	}
+	.search-popover .search-clear {
+		position: absolute;
+		right: 6px;
+		top: 50%;
+		transform: translateY(-50%);
+		width: 22px;
+		height: 22px;
+		padding: 0;
+		margin: 0;
+		vertical-align: middle;
+		border-radius: 999px;
+		border: none;
+		background: transparent;
+		color: var(--text-secondary);
+		cursor: pointer;
+		opacity: 0.65;
+		line-height: 1;
+		display: grid;
+		place-items: center;
+		font-size: 1rem;
+	}
+	.search-popover .search-clear:hover {
+		background: var(--bg-hover);
+		opacity: 1;
+	}
 
-	/* ─── Scrollbars ─────────────────────────────────────────────── */
+	/* Scrollbars */
 	.topic-content::-webkit-scrollbar,
 	.list-content::-webkit-scrollbar,
 	.preview-content::-webkit-scrollbar {
@@ -934,7 +1367,7 @@
 		touch-action: pan-y;
 	}
 
-	/* ─── Topic List ─────────────────────────────────────────────── */
+	/* Topic List */
 	.topic-list ul {
 		list-style: none;
 		padding: 0;
@@ -970,7 +1403,7 @@
 		font-weight: 600;
 	}
 
-	/* ─── Paper List ─────────────────────────────────────────────── */
+	/* Paper List */
 	.paper-year-header {
 		margin: 0.75rem 0 0.25rem;
 		padding: 0.2rem 0.15rem;
@@ -1053,7 +1486,7 @@
   	-webkit-line-clamp: 5;
 	}
 
-	/* ─── Splitter ───────────────────────────────────────────────── */
+	/* Splitter */
 	.splitter {
 		background: var(--bg-base);
 		cursor: col-resize;
@@ -1084,7 +1517,7 @@
 		height: 72px;
 	}
 
-	/* ─── Preview ────────────────────────────────────────────────── */
+	/* Preview */
 	.preview {
 		flex: 1;
 		display: flex;
@@ -1112,7 +1545,71 @@
 		align-items: center;
 	}
 
-	/* ─── Toolbar Buttons ────────────────────────────────────────── */
+	.slide-width-control {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		border: 1px solid var(--border-default);
+		border-radius: 999px;
+		background: var(--bg-panel-alt);
+		color: var(--text-secondary);
+		font-size: 0.72rem;
+		font-weight: 600;
+		padding: 0 0.6rem;
+		min-height: 28px;
+	}
+	.slide-width-label {
+		opacity: 0.8;
+	}
+	.slide-width-range {
+		width: 7.5rem;
+	}
+	.slide-width-value {
+		font-variant-numeric: tabular-nums;
+		min-width: 3.25ch;
+		text-align: right;
+		opacity: 0.85;
+	}
+	.slide-width-control.disabled {
+		background: transparent;
+		border-color: var(--border-subtle);
+		color: var(--text-disabled);
+	}
+
+	/* Reader Mode */
+	.app-container[data-reader='true'] {
+		grid-template-columns: 1fr;
+	}
+	.app-container[data-reader='true'] .topic-list,
+	.app-container[data-reader='true'] .paper-list,
+	.app-container[data-reader='true'] .left-splitter,
+	.app-container[data-reader='true'] .middle-splitter {
+		display: none;
+	}
+	.app-container[data-reader='true'] .preview {
+		grid-column: 1;
+	}
+	.reader-body {
+		flex: 1;
+		overflow-y: auto;
+		background: var(--bg-base);
+		padding-top: 3.25rem;
+	}
+	.reader-body .preview-content {
+		overflow: visible;
+		background: transparent;
+	}
+	.reader-close {
+		position: fixed;
+		top: 1rem;
+		right: 2rem;
+		z-index: 50;
+		width: 2rem;
+		height: 2rem;
+		padding: 0;
+	}
+
+	/* Toolbar Buttons */
 	.toolbar-button {
 		display: inline-flex;
 		align-items: center;
@@ -1161,7 +1658,7 @@
 		flex-shrink: 0;
 	}
 
-	/* ─── Theme Select ───────────────────────────────────────────── */
+	/* Theme Select */
 	.theme-select {
 		appearance: none;
 		-webkit-appearance: none;
@@ -1198,7 +1695,7 @@
 		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234a5070' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	}
 
-	/* ─── Preview Content ────────────────────────────────────────── */
+	/* Preview Content */
 	.preview-content {
 		flex: 1;
 		overflow-y: auto;
@@ -1207,7 +1704,7 @@
 		touch-action: pan-y;
 		transition: background 0.2s;
 	}
-	.preview-content .summary-content {
+	.summary-content {
 		max-width: 7.2in;
 		padding: 2.5rem 4rem 5rem;
 		margin: 2rem auto;
@@ -1249,12 +1746,23 @@
 	}
 
 	.marp-slide-wrapper {
+		display: flex;
+		justify-content: center;
+		width: var(--slide-max-width);
+		max-width: 100%;
 		padding: 0.5rem;
+		margin: 0 auto;
 		background: var(--slide-wrapper-bg);
 		min-height: 100%;
 	}
+	.marp-slide-wrapper :global(.marp-svg) {
+		display: block;
+		max-height: 100dvh;
+		width: 100%;
+		height: auto;
+	}
 
-	/* ─── Placeholder & Loading ──────────────────────────────────── */
+	/* Placeholder & Loading */
 	.placeholder {
 		display: flex;
 		flex-direction: column;
@@ -1278,7 +1786,7 @@
 		letter-spacing: 0.05em;
 	}
 
-	/* ─── Panel Visibility ───────────────────────────────────────── */
+	/* Panel Visibility */
 	.app-container[data-show-topic='false'][data-show-paper='true'] {
 		grid-template-columns: 0 0 minmax(240px, var(--col2)) 6px minmax(320px, 1fr);
 	}
@@ -1297,62 +1805,101 @@
 		overflow: hidden;
 	}
 
-	/* ─── Responsive ─────────────────────────────────────────────── */
+	/* Responsive */
 	@media (max-width: 1400px) {
-		.preview-content .summary-content {
+		.summary-content {
 			padding: 2rem;
 		}
 	}
 	@media (max-width: 960px) {
 		.app-container {
 			grid-template-columns: 1fr;
-			grid-template-rows: 28vh 30vh 1fr;
+			grid-template-rows: 1fr;
+			position: relative;
+			height: 100dvh;
+			overflow: hidden;
 		}
 		.topic-list,
-		.left-splitter,
 		.paper-list,
-		.middle-splitter,
 		.preview {
 			grid-column: 1;
+			grid-row: 1;
+			position: absolute;
+			inset: 0;
+			height: 100dvh;
+			border-right: 0;
+			border-bottom: 0;
+			pointer-events: none;
+			transform: translateX(calc((var(--panel-index) - var(--mobile-stage)) * 100%));
+			transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+			will-change: transform;
 		}
 		.topic-list {
-			grid-row: 1;
-			border-right: 0;
-			border-bottom: 1px solid var(--border-subtle);
-			height: 28vh;
+			--panel-index: 0;
 		}
 		.paper-list {
-			grid-row: 2;
-			border-right: 0;
-			border-bottom: 1px solid var(--border-subtle);
-			height: 30vh;
+			--panel-index: 1;
 		}
 		.preview {
-			grid-row: 3;
-		}
-		.app-container[data-show-topic='false'][data-show-paper='true'] {
-			grid-template-columns: 1fr;
-			grid-template-rows: 0 30vh 1fr;
-		}
-		.app-container[data-show-topic='true'][data-show-paper='false'] {
-			grid-template-columns: 1fr;
-			grid-template-rows: 28vh 0 1fr;
-		}
-		.app-container[data-show-topic='false'][data-show-paper='false'] {
-			grid-template-columns: 1fr;
-			grid-template-rows: 0 0 1fr;
+			--panel-index: 2;
 		}
 		.splitter {
 			display: none;
 		}
-		.preview-content .summary-content {
+		.app-container[data-mobile-stage='0'] .topic-list {
+			pointer-events: auto;
+		}
+		.app-container[data-mobile-stage='1'] .paper-list {
+			pointer-events: auto;
+		}
+		.app-container[data-mobile-stage='2'] .preview {
+			pointer-events: auto;
+		}
+		.preview-toolbar button[aria-pressed] {
+			display: none;
+		}
+		.nav-back {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.35rem;
+			padding: 0.35rem 0.55rem;
+			border-radius: 10px;
+			border: 1px solid var(--border-default);
+			background: var(--bg-panel);
+			color: var(--text-secondary);
+			font-size: 0.78rem;
+			line-height: 1;
+			white-space: nowrap;
+		}
+		.nav-back:hover {
+			background: var(--bg-hover);
+		}
+		.paper-list-header,
+		.preview-toolbar {
+			gap: 0.5rem;
+		}
+		.paper-list-header {
+			justify-content: flex-start;
+		}
+		.paper-list-header .search-container {
+			margin-left: auto;
+		}
+		.summary-content {
 			padding: 1rem;
 			margin: 0.5rem;
 			border-radius: 8px;
 		}
 	}
 
-	/* ─── Print ──────────────────────────────────────────────────── */
+	@media (max-width: 960px) and (prefers-reduced-motion: reduce) {
+		.topic-list,
+		.paper-list,
+		.preview {
+			transition: none;
+		}
+	}
+
+	/* Print */
 	@media print {
 		:global(body) {
 			background: white;
@@ -1375,7 +1922,7 @@
 			background: white;
 			border: none;
 		}
-		.preview-content .summary-content {
+		.summary-content {
 			box-shadow: none;
 			border: none;
 			padding: 0;
@@ -1391,3 +1938,4 @@
 		}
 	}
 </style>
+

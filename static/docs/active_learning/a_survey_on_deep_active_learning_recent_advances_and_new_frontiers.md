@@ -39,9 +39,9 @@ DAL이 중요한 이유는 딥러닝의 성공이 대규모 human-annotated data
 
 논문은 DAL의 일반 절차를 다음과 같이 설명합니다.
 
-1. 큰 unlabeled pool $\mathcal{D}_{\textbf{pool}}$ 이 존재한다.
+1. 큰 unlabeled pool $\mathcal{D}\_{\textbf{pool}}$ 이 존재한다.
 2. 초기 샘플 집합 $\mathcal{Q}\_0$ 를 선택해 초기 training set $\mathcal{D}\_{\textbf{train}}^0$ 를 만든다.
-3. 모델 $\mathcal{M}_0$ 를 학습한다.
+3. 모델 $\mathcal{M}\_0$ 를 학습한다.
 4. query function $\alpha$ 를 사용해 unlabeled pool에서 informative sample batch를 선택한다.
 5. oracle이 선택된 샘플에 라벨을 부여한다.
 6. 이를 training set에 추가해 모델을 재학습 또는 fine-tuning한다.

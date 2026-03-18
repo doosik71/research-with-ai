@@ -992,10 +992,10 @@ export class MarpLite {
 		return decodeMathContent(
 			[
 				`<svg class="marp-svg" viewBox="0 0 ${vbW} ${vbH}"`,
-				`     width="100%" preserveAspectRatio="xMidYMid meet"`,
+				`     preserveAspectRatio="xMidYMid meet"`,
 				`     xmlns="http://www.w3.org/2000/svg"`,
 				`     xmlns:xhtml="http://www.w3.org/1999/xhtml"`,
-				`     data-page="${pageNum}" style="display:block;max-height:100%;">`,
+				`     data-page="${pageNum}" style="display:block;">`,
 				`  <foreignObject width="${vbW}" height="${vbH}">`,
 				sectionHtml,
 				`  </foreignObject>`,
@@ -1055,13 +1055,15 @@ export class MarpLite {
 /* SVG 래퍼: viewBox 기반 자동 배율 조절 */
 .marp-slide-wrapper {
   display: flex; flex-direction: column; gap: 1rem;
-  align-items: center; padding: 0.5rem;
+  align-items: center; justify-content: center;
+  padding: 0.5rem;
+  box-sizing: border-box;
 }
 svg.marp-svg {
   display: block;
-  /* width="100%" 은 인라인 속성으로 지정됨 */
   /* 최대 너비를 컨테이너에 맞추고 높이는 viewBox 비율로 자동 결정 */
-  max-width: 100%;
+  max-width: min(100%, var(--slide-max-width, 100%));
+  max-height: 100dvh;
   border: 1px lightgray solid;
   filter: drop-shadow(3px 3px 4px rgba(0, 0, 0, 0.3));
 }
