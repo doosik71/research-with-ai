@@ -1180,7 +1180,16 @@
 	/* Reset / Base */
 	:global(body) {
 		margin: 0;
-		font-family: 'Instrument Sans', 'DM Sans', system-ui, sans-serif;
+		font-family:
+			'Pretendard Variable',
+			'Pretendard',
+			-apple-system,
+			BlinkMacSystemFont,
+			'Apple SD Gothic Neo',
+			'Noto Sans KR',
+			'Malgun Gothic',
+			'Segoe UI',
+			sans-serif;
 		font-size: 14px;
 		line-height: 1.5;
 		background: var(--bg-base);
