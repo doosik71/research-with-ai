@@ -37,7 +37,7 @@ $$
 로 정의되고, 표준 regression loss는
 
 $$
-\mathcal{L}*{regr} = \sum*{i=1}^{n} |o_i - \hat{o}_i|
+\mathcal{L}\_{regr} = \sum\_{i=1}^{n} |o_i - \hat{o}\_i|
 $$
 
 이며 여기서

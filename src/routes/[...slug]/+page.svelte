@@ -158,6 +158,10 @@
 	let tagDraft = $state('');
 	let tagInputEl = $state<HTMLInputElement | null>(null);
 	let skipTagBlurSave = $state(false);
+	let slidePreviewContentEl = $state<HTMLDivElement | null>(null);
+	let readerBodyEl = $state<HTMLDivElement | null>(null);
+	let touchStartX = 0;
+	let touchStartY = 0;
 	let selectedPaperTagKey = $derived(buildPaperTagKey(selectedTopic?.id, selectedPaper));
 	let selectedPaperTags = $derived(tagsForPaper(selectedTopic?.id, selectedPaper));
 
@@ -252,6 +256,108 @@
 			}
 		});
 		cancelTagEdit();
+	}
+
+	function getActiveSlideScrollContainer(): HTMLElement | null {
+		if (renderType !== 'slide' || isLoading || !renderHtml) return null;
+		return readerMode ? readerBodyEl : slidePreviewContentEl;
+	}
+
+	function getSlideElements(container: HTMLElement): SVGElement[] {
+		return Array.from(container.querySelectorAll('.marp-slide-wrapper .marp-svg'));
+	}
+
+	function getCurrentSlideIndex(container: HTMLElement, slides: SVGElement[]): number {
+		if (slides.length === 0) return -1;
+
+		const containerRect = container.getBoundingClientRect();
+		let closestIndex = 0;
+		let closestDistance = Number.POSITIVE_INFINITY;
+
+		for (let index = 0; index < slides.length; index += 1) {
+			const rect = slides[index].getBoundingClientRect();
+			const distance = Math.abs(rect.top - containerRect.top);
+			if (distance < closestDistance) {
+				closestDistance = distance;
+				closestIndex = index;
+			}
+		}
+
+		return closestIndex;
+	}
+
+	function scrollSlideIntoView(container: HTMLElement, slide: SVGElement) {
+		const containerRect = container.getBoundingClientRect();
+		const slideRect = slide.getBoundingClientRect();
+		const nextTop = container.scrollTop + slideRect.top - containerRect.top;
+		container.scrollTo({ top: nextTop, behavior: 'smooth' });
+	}
+
+	function navigateSlides(direction: 1 | -1): boolean {
+		const container = getActiveSlideScrollContainer();
+		if (!container) return false;
+
+		const slides = getSlideElements(container);
+		if (slides.length === 0) return false;
+
+		const currentIndex = getCurrentSlideIndex(container, slides);
+		if (currentIndex < 0) return false;
+
+		const nextIndex = Math.max(0, Math.min(slides.length - 1, currentIndex + direction));
+		if (nextIndex === currentIndex) return false;
+
+		scrollSlideIntoView(container, slides[nextIndex]);
+		return true;
+	}
+
+	function shouldIgnoreSlideShortcut(eventTarget: EventTarget | null): boolean {
+		const el = eventTarget instanceof HTMLElement ? eventTarget : null;
+		if (!el) return false;
+		return !!el.closest(
+			'input, textarea, select, button, [contenteditable="true"], [contenteditable=""], a[href]'
+		);
+	}
+
+	function onSlideKeyDown(event: KeyboardEvent) {
+		if (renderType !== 'slide' || shouldIgnoreSlideShortcut(event.target)) return;
+
+		if (event.key === 'PageDown' || event.key === ' ') {
+			if (navigateSlides(1)) event.preventDefault();
+			return;
+		}
+
+		if (event.key === 'PageUp') {
+			if (navigateSlides(-1)) event.preventDefault();
+			return;
+		}
+	}
+
+	function onSlideTouchStart(event: TouchEvent) {
+		const touch = event.touches[0];
+		if (!touch) return;
+		touchStartX = touch.clientX;
+		touchStartY = touch.clientY;
+	}
+
+	function onSlideTouchEnd(event: TouchEvent) {
+		if (renderType !== 'slide') return;
+
+		const touch = event.changedTouches[0];
+		if (!touch) return;
+
+		const deltaX = touch.clientX - touchStartX;
+		const deltaY = touch.clientY - touchStartY;
+		const absX = Math.abs(deltaX);
+		const absY = Math.abs(deltaY);
+
+		if (absY < 48 || absY <= absX) return;
+
+		if (deltaY < 0) {
+			if (navigateSlides(1)) event.preventDefault();
+			return;
+		}
+
+		if (navigateSlides(-1)) event.preventDefault();
 	}
 
 	async function clearSearchQuery(kind: 'topic' | 'paper') {
@@ -384,6 +490,13 @@
 		};
 		window.addEventListener('keydown', onKeyDown);
 		return () => window.removeEventListener('keydown', onKeyDown);
+	});
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+
+		window.addEventListener('keydown', onSlideKeyDown);
+		return () => window.removeEventListener('keydown', onSlideKeyDown);
 	});
 
 	$effect(() => {
@@ -1173,7 +1286,13 @@
 			>
 				X
 			</button>
-			<div class="reader-body">
+			<div
+				class="reader-body"
+				role="presentation"
+				bind:this={readerBodyEl}
+				ontouchstart={onSlideTouchStart}
+				ontouchend={onSlideTouchEnd}
+			>
 				{#if renderType === 'summary'}
 					<article class="summary-content markdown-body">
 						{#if isLoading}
@@ -1207,7 +1326,13 @@
 					</article>
 				</div>
 			{:else if renderType === 'slide'}
-				<div class="preview-content markdown-body slide-content">
+				<div
+					class="preview-content markdown-body slide-content"
+					role="presentation"
+					bind:this={slidePreviewContentEl}
+					ontouchstart={onSlideTouchStart}
+					ontouchend={onSlideTouchEnd}
+				>
 					{#if isLoading}
 						<p>Loading content...</p>
 					{:else}
