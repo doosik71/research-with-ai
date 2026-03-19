@@ -35,132 +35,10 @@
     ]
   },
   {
-    "id": "artificial_general_intelligence",
-    "title": "Artificial General Intelligence",
-    "keyword": [
-      "artificial general intelligence"
-    ]
-  },
-  {
-    "id": "autoencoder",
-    "title": "Autoencoder",
-    "keyword": [
-      "autoencoder"
-    ]
-  },
-  {
-    "id": "blood_pressure_estimation_ppg",
-    "title": "Blood Pressure Estimation Ppg",
-    "keyword": [
-      "blood pressure estimation ppg"
-    ]
-  },
-  {
-    "id": "chain_of_thought",
-    "title": "Chain Of Thought",
-    "keyword": [
-      "chain of thought"
-    ]
-  },
-  {
     "id": "continual_learning",
     "title": "Continual Learning",
     "keyword": [
       "continual learning"
-    ]
-  },
-  {
-    "id": "curriculum_learning",
-    "title": "Curriculum Learning",
-    "keyword": [
-      "curriculum learning"
-    ]
-  },
-  {
-    "id": "deep_learning",
-    "title": "Deep Learning",
-    "keyword": [
-      "deep learning"
-    ]
-  },
-  {
-    "id": "domain_adaptation",
-    "title": "Domain Adaptation",
-    "keyword": [
-      "domain adaptation"
-    ]
-  },
-  {
-    "id": "explainable_ai",
-    "title": "Explainable AI",
-    "keyword": [
-      "explainable ai",
-      "xai"
-    ]
-  },
-  {
-    "id": "federated_learning",
-    "title": "Federated Learning",
-    "keyword": [
-      "federated learning"
-    ]
-  },
-  {
-    "id": "few-shot_learning",
-    "title": "Few Shot Learning",
-    "keyword": [
-      "few shot learning"
-    ]
-  },
-  {
-    "id": "foundation_model",
-    "title": "Foundation Model",
-    "keyword": [
-      "foundation model"
-    ]
-  },
-  {
-    "id": "gaussian_mixture_model",
-    "title": "Gaussian Mixture Model",
-    "keyword": [
-      "gaussian mixture model"
-    ]
-  },
-  {
-    "id": "gemini",
-    "title": "Gemini",
-    "keyword": [
-      "gemini"
-    ]
-  },
-  {
-    "id": "generative_adversarial_networks",
-    "title": "Generative Adversarial Networks",
-    "keyword": [
-      "generative adversarial networks"
-    ]
-  },
-  {
-    "id": "generative_models",
-    "title": "Generative Models",
-    "keyword": [
-      "generative models",
-      "diffusion models",
-      "gan"
-    ]
-  },
-  {
-    "id": "imitation_learning",
-    "title": "Imitation Learning",
-    "keyword": [
-      "imitation learning"
-    ]
-  },
-  {
-    "id": "in-context_learning",
-    "title": "In Context Learning",
-    "keyword": [
-      "in context learning"
     ]
   },
   {
@@ -173,31 +51,12 @@
     ]
   },
   {
-    "id": "instance_segmentation_3d",
-    "title": "Instance Segmentation 3d",
+    "id": "medical_bio",
+    "title": "Medical and Bio Applications",
     "keyword": [
-      "instance segmentation 3d"
-    ]
-  },
-  {
-    "id": "instance_segmentation_video",
-    "title": "Instance Segmentation Video",
-    "keyword": [
-      "instance segmentation video"
-    ]
-  },
-  {
-    "id": "keyword_spotting",
-    "title": "Keyword Spotting",
-    "keyword": [
-      "keyword spotting"
-    ]
-  },
-  {
-    "id": "reinforcement_learning",
-    "title": "Reinforcement Learning",
-    "keyword": [
-      "reinforcement learning"
+      "medical image analysis",
+      "medical ai",
+      "bioinformatics deep learning"
     ]
   }
 ]
