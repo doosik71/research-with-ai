@@ -1166,6 +1166,20 @@
 					>
 				</button>
 				<button
+					id="preview-toolbar-reader-mode"
+					type="button"
+					class="toolbar-button"
+					title="Toggle reader mode"
+					aria-label="Toggle reader mode"
+					aria-pressed={readerMode}
+					disabled={!canReader}
+					onclick={() => (readerMode = !readerMode)}
+				>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 448 512">
+						<path fill="currentColor" d="M168 32L24 32C10.7 32 0 42.7 0 56L0 200c0 9.7 5.8 18.5 14.8 22.2S34.1 223.8 41 217l40-40 79 79-79 79-40-40c-6.9-6.9-17.2-8.9-26.2-5.2S0 302.3 0 312L0 456c0 13.3 10.7 24 24 24l144 0c9.7 0 18.5-5.8 22.2-14.8s1.7-19.3-5.2-26.2l-40-40 79-79 79 79-40 40c-6.9 6.9-8.9 17.2-5.2 26.2S270.3 480 280 480l144 0c13.3 0 24-10.7 24-24l0-144c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2l-40 40-79-79 79-79 40 40c6.9 6.9 17.2 8.9 26.2 5.2S448 209.7 448 200l0-144c0-13.3-10.7-24-24-24L280 32c-9.7 0-18.5 5.8-22.2 14.8S256.2 66.1 263 73l40 40-79 79-79-79 40-40c6.9-6.9 8.9-17.2 5.2-26.2S177.7 32 168 32z"/>
+					</svg>
+				</button>
+				<button
 					id="preview-toolbar-open-arxiv"
 					type="button"
 					class="toolbar-button"
@@ -1175,6 +1189,17 @@
 					onclick={() => openExternal('arxiv')}
 				>
 					arXiv
+				</button>
+				<button
+					id="preview-toolbar-open-ar5iv"
+					type="button"
+					class="toolbar-button"
+					title="Open ar5iv page"
+					aria-label="Open ar5iv page"
+					disabled={!selectedPaper?.url}
+					onclick={() => openExternal('ar5iv')}
+				>
+					ar5iv
 				</button>
 				<button
 					id="preview-toolbar-open-pdf"
@@ -1191,18 +1216,6 @@
 					<option value="light">☀ Light</option>
 					<option value="dark">◑ Dark</option>
 				</select>
-				<button
-					id="preview-toolbar-reader-mode"
-					type="button"
-					class="toolbar-button"
-					title="Toggle reader mode"
-					aria-label="Toggle reader mode"
-					aria-pressed={readerMode}
-					disabled={!canReader}
-					onclick={() => (readerMode = !readerMode)}
-				>
-					Reader
-				</button>
 				{#if renderType === 'summary'}
 					<span class="preview-toolbar-splitter" aria-hidden="true"></span>
 					<div class="summary-tag-panel">
@@ -2170,8 +2183,27 @@
 		transition:
 			background 0.2s,
 			box-shadow 0.2s;
+		font-family: 'Noto Serif KR', serif;
 	}
 
+	.summary-content :global(h1),
+	.summary-content :global(h2),
+	.summary-content :global(h3),
+	.summary-content :global(h4),
+	.summary-content :global(h5),
+	.summary-content :global(em),
+	.summary-content :global(strong),
+	.summary-content :global(pre),
+	.summary-content :global(code)
+  {
+		font-family: 
+			'Pretendard Variable',
+			'Pretendard';
+	}
+
+	.summary-content :global(strong) {
+  	font-weight: 600;
+	}
 	.summary-content :global(a) {
 		color: var(--link-color);
 	}
@@ -2200,6 +2232,11 @@
 	}
 	.summary-content :global(p) {
 		line-height: 1.7;
+	}
+	.summary-content :global(img) {
+		max-height: 100dvh;
+		max-width: 100%;
+		margin: 1em auto;
 	}
 
 	.marp-slide-wrapper {
@@ -2343,7 +2380,7 @@
 		}
 		.summary-content {
 			padding: 1rem;
-			margin: 0.5rem;
+			margin: 0.5rem auto;
 			border-radius: 8px;
 		}
 	}
@@ -2358,11 +2395,27 @@
 
 	/* Print */
 	@media print {
+		:global(html) {
+			height: auto;
+			overflow: visible;
+		}
 		:global(body) {
 			background: white;
+			height: auto;
+			overflow: visible;
 		}
 		.app-container {
 			display: block;
+			height: auto;
+			min-height: 0;
+			overflow: visible;
+			background: white;
+		}
+		.preview {
+			display: block;
+			height: auto;
+			min-height: 0;
+			overflow: visible;
 			background: white;
 		}
 		.topic-list,
@@ -2373,17 +2426,41 @@
 			display: none;
 		}
 		.preview-content {
+			display: block;
+			flex: none;
 			width: 100%;
 			height: auto;
+			min-height: 0;
 			overflow: visible;
 			background: white;
 			border: none;
 		}
 		.summary-content {
+			max-width: none;
 			box-shadow: none;
 			border: none;
 			padding: 0;
 			margin: 0 auto;
+			background: white;
+			color: black;
+			break-inside: auto;
+			page-break-inside: auto;
+		}
+		.summary-content :global(h1) {
+			break-after: avoid;
+			page-break-after: avoid;
+		}
+		.summary-content :global(h2) {
+			break-after: avoid;
+			page-break-after: avoid;
+		}
+		.summary-content :global(h3) {
+			break-after: avoid;
+			page-break-after: avoid;
+		}
+		.summary-content :global(h4) {
+			break-after: avoid;
+			page-break-after: avoid;
 		}
 
 		:global(div.marp-slide-wrapper) {
