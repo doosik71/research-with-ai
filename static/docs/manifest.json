@@ -49,14 +49,5 @@
       "mask r-cnn",
       "panoptic segmentation"
     ]
-  },
-  {
-    "id": "medical_bio",
-    "title": "Medical and Bio Applications",
-    "keyword": [
-      "medical image analysis",
-      "medical ai",
-      "bioinformatics deep learning"
-    ]
   }
 ]

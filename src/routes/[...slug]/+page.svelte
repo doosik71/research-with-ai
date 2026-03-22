@@ -1205,15 +1205,14 @@
 				const res = await fetchWithProxy(ar5ivUrl);
 				if (res.ok) {
 					const html = await res.text();
-					if (html.length > 500) {
-						const noScript = html.replace(
-							/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-							''
-						);
-						const noTags = noScript.replace(/<[^>]+>/g, '');
-						const noTrailing = noTags.replace(/[ \t]+$/gm, '');
-						const collapsed = noTrailing.replace(/\n{3,}/g, '\n\n');
-						return collapsed.trim();
+					const noScript = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+					const noTags = noScript.replace(/<[^>]+>/g, '');
+					const noTrailing = noTags.replace(/[ \t]+$/gm, '');
+					const collapsed = noTrailing.replace(/\n{3,}/g, '\n\n');
+					const text = collapsed.trim();
+
+					if (text.length > 1000) {
+						return text;
 					}
 				}
 			} catch {
