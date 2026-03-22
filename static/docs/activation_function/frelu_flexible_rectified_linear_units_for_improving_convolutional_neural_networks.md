@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 CNN에서 가장 널리 쓰이는 activation인 ReLU의 한계를 정면으로 다룬다. 저자들은 ReLU가 계산이 단순하고 gradient vanishing을 완화하는 장점이 있지만, 음수 입력을 전부 0으로 잘라 버리는 **zero-hard rectification** 때문에 negative information을 활용하지 못한다고 본다. 동시에 ELU류가 음수 값을 살려 zero-like property를 제공하긴 하지만, 지수 연산이 필요하고 batch normalization과의 궁합 문제가 있다는 점도 지적한다. 이를 해결하기 위해 저자들은 ReLU의 절단점을 고정값이 아니라 학습 가능한 형태로 바꾼 **FReLU (Flexible Rectified Linear Unit)** 를 제안한다. 논문의 핵심 주장은 FReLU가 ReLU의 sparsity와 계산 효율을 유지하면서도 음수 출력을 허용해 표현력을 확장하고, 그 결과 plain network와 residual network 모두에서 더 빠른 수렴과 더 높은 성능을 낸다는 것이다.  
+이 논문은 CNN에서 가장 널리 쓰이는 activation인 ReLU의 한계를 정면으로 다룬다. 저자들은 ReLU가 계산이 단순하고 gradient vanishing을 완화하는 장점이 있지만, 음수 입력을 전부 0으로 잘라 버리는 **zero-hard rectification** 때문에 negative information을 활용하지 못한다고 본다. 동시에 ELU류가 음수 값을 살려 zero-like property를 제공하긴 하지만, 지수 연산이 필요하고 batch normalization과의 궁합 문제가 있다는 점도 지적한다. 이를 해결하기 위해 저자들은 ReLU의 절단점을 고정값이 아니라 학습 가능한 형태로 바꾼 **FReLU (Flexible Rectified Linear Unit)**를 제안한다. 논문의 핵심 주장은 FReLU가 ReLU의 sparsity와 계산 효율을 유지하면서도 음수 출력을 허용해 표현력을 확장하고, 그 결과 plain network와 residual network 모두에서 더 빠른 수렴과 더 높은 성능을 낸다는 것이다.  
 
 이 문제가 중요한 이유는 activation function이 단순 비선형성 이상의 역할을 하기 때문이다. activation은 정보가 층 사이를 어떻게 통과하는지, feature가 어떤 분포를 가지는지, batch normalization과 어떤 상호작용을 하는지까지 좌우한다. 이 논문은 ReLU 계열의 장점을 최대한 보존하면서 negative output과 zero-like property를 더 싼 비용으로 도입하려는 시도라는 점에서 의미가 있다. 특히 ELU의 장점 일부를 지수 연산 없이 얻고, BN과도 잘 결합되도록 설계했다는 점이 논문의 실용적 포인트다.  
 
@@ -139,7 +139,7 @@ ImageNet 실험에서는 논문 표에서 ReLU가 53.00, PReLU가 52.20, ELU와 
 
 ## 6. Conclusion
 
-이 논문은 ReLU의 zero-hard rectification이 negative information을 버린다는 문제를 지적하고, 이를 해결하기 위해 **FReLU (Flexible Rectified Linear Unit)** 를 제안했다. FReLU는 본질적으로 ReLU 출력에 layer-wise learnable bias를 더하는 구조이며,
+이 논문은 ReLU의 zero-hard rectification이 negative information을 버린다는 문제를 지적하고, 이를 해결하기 위해 **FReLU (Flexible Rectified Linear Unit)**를 제안했다. FReLU는 본질적으로 ReLU 출력에 layer-wise learnable bias를 더하는 구조이며,
 
 $$
 \mathrm{frelu}(x)=

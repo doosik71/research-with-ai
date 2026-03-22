@@ -22,7 +22,7 @@
 
 ### 3.1 Neural network와 deep architecture의 기본 관점
 
-3~5쪽에서 저자들은 perceptron에서 출발해, 입력층-출력층 사이에 hidden layer가 추가되면 더 복잡한 비선형 관계를 학습할 수 있다고 설명한다. Figure 2는 기본 neural network 구조를 보여주고, 4쪽은 hidden layer가 많아질수록 더 복잡한 abstraction이 가능하다고 서술한다. 이 맥락에서 “deep learning”은 단순 neural network가 아니라 **더 많은 hidden layer를 가진 deep neural network(DNN)** 로 정의된다. 저자들은 이런 깊은 구조가 이미지, 음성, 텍스트뿐 아니라 의료영상에도 큰 영향을 주고 있다고 정리한다.
+3~5쪽에서 저자들은 perceptron에서 출발해, 입력층-출력층 사이에 hidden layer가 추가되면 더 복잡한 비선형 관계를 학습할 수 있다고 설명한다. Figure 2는 기본 neural network 구조를 보여주고, 4쪽은 hidden layer가 많아질수록 더 복잡한 abstraction이 가능하다고 서술한다. 이 맥락에서 “deep learning”은 단순 neural network가 아니라 **더 많은 hidden layer를 가진 deep neural network(DNN)**로 정의된다. 저자들은 이런 깊은 구조가 이미지, 음성, 텍스트뿐 아니라 의료영상에도 큰 영향을 주고 있다고 정리한다.
 
 ### 3.2 논문이 정리한 주요 아키텍처
 
@@ -34,9 +34,9 @@
 
 **RNN**은 순차 데이터 학습 능력 때문에 speech, character recognition, NLP와 함께 소개된다. Table 1은 LSTM, BLSTM, MDLSTM 같은 변형을 언급하며, sequential event와 time dependency를 다룰 수 있다고 설명한다. 하지만 gradient vanishing 문제와 대규모 데이터 요구가 단점으로 적혀 있다. 이 논문은 의료영상 문맥에서 RNN을 깊게 다루지는 않지만, 구조적 시계열 패턴이 있는 문제에 가능성을 본 것으로 읽힌다.
 
-**DBN(Deep Belief Network)** 과 **DBM(Deep Boltzmann Machine)** 은 보다 고전적인 deep generative architecture로 소개된다. 10쪽 Figure 6은 DBN 구조를 보여준다. Table 1에서 DBN은 greedy layer-wise strategy와 tractable inference를 장점으로, initialization과 computational expense를 단점으로 정리한다. DBM은 ambiguous data에서도 robust inference를 할 수 있다고 하지만, 큰 데이터셋에서 parameter optimization이 쉽지 않다고 설명한다.
+**DBN(Deep Belief Network)**과 **DBM(Deep Boltzmann Machine)**은 보다 고전적인 deep generative architecture로 소개된다. 10쪽 Figure 6은 DBN 구조를 보여준다. Table 1에서 DBN은 greedy layer-wise strategy와 tractable inference를 장점으로, initialization과 computational expense를 단점으로 정리한다. DBM은 ambiguous data에서도 robust inference를 할 수 있다고 하지만, 큰 데이터셋에서 parameter optimization이 쉽지 않다고 설명한다.
 
-**Deep Autoencoder(dA)** 는 비지도 학습과 차원 축소, 특징 추출에 쓰이는 구조로 정리된다. 10쪽 Figure 7은 deep autoencoder를 도식화한다. 저자들은 label이 필요 없고 sparse/denoising/convolutional autoencoder 같은 변형이 robustness를 높일 수 있다고 적지만, pretraining 필요성과 vanishing 문제를 약점으로 본다.
+**Deep Autoencoder(dA)**는 비지도 학습과 차원 축소, 특징 추출에 쓰이는 구조로 정리된다. 10쪽 Figure 7은 deep autoencoder를 도식화한다. 저자들은 label이 필요 없고 sparse/denoising/convolutional autoencoder 같은 변형이 robustness를 높일 수 있다고 적지만, pretraining 필요성과 vanishing 문제를 약점으로 본다.
 
 ### 3.3 의료영상 적용 맥락에서의 CNN 중심성
 
@@ -87,7 +87,7 @@
 
 ### 4.7 논문 전체가 보여주는 패턴
 
-22쪽 Table 7은 cardiac CAC, lung cancer, diabetic retinopathy, blood analysis, blood vessel segmentation, brain lesion segmentation, polyp recognition, Alzheimer’s disease 등 다양한 문제를 한 표에 모아 놓는다. 이 표가 보여주는 핵심은, 당시 의료영상 딥러닝의 주류 문제들이 거의 모두 **분류(classification)와 분할(segmentation)** 이고, 사용된 핵심 모델은 여전히 **CNN / DNN / DBN**이라는 점이다.
+22쪽 Table 7은 cardiac CAC, lung cancer, diabetic retinopathy, blood analysis, blood vessel segmentation, brain lesion segmentation, polyp recognition, Alzheimer’s disease 등 다양한 문제를 한 표에 모아 놓는다. 이 표가 보여주는 핵심은, 당시 의료영상 딥러닝의 주류 문제들이 거의 모두 **분류(classification)와 분할(segmentation)**이고, 사용된 핵심 모델은 여전히 **CNN / DNN / DBN**이라는 점이다.
 
 ## 5. Strengths, Limitations, and Interpretation
 

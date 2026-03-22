@@ -1,6 +1,6 @@
 # Are Larger Pretrained Language Models Uniformly Better? Comparing Performance at the Instance Level
 
-이 논문은 “더 큰 pretrained language model이 평균 정확도는 더 높지만, **각 개별 데이터 포인트(instance)** 에서도 항상 더 나은가?”라는 질문을 정면으로 다룬다. 저자들은 이 질문에 답하려면 단순히 한 번 학습한 큰 모델과 작은 모델을 비교해서는 안 된다고 본다. 이유는 **instance-level prediction이 random seed에 매우 민감**하기 때문이다. 그래서 이 논문은 pretraining seed와 finetuning seed에 따른 잡음을 명시적으로 모델링하고, 이를 평균낸 **instance accuracy**라는 개념과 통계적 검정 절차를 제안한다. 그 결과, BERT-large는 평균적으로는 더 좋지만 MNLI, SST-2, QQP 전반에서 **적어도 1–4%의 instance에서는 오히려 BERT-mini보다 더 나쁘다**고 결론내린다. 동시에 저자들은 **finetuning noise가 모델 크기와 함께 증가**하고, instance-level 성능 변화에는 **momentum**이 존재한다고 보고한다. 즉 큰 모델의 성능 향상은 “모든 샘플에서의 균일한 향상”이 아니라, 일부 샘플에서는 좋아지고 일부에서는 오히려 악화되는 비균일한 현상이라는 것이 논문의 핵심 메시지다.  
+이 논문은 “더 큰 pretrained language model이 평균 정확도는 더 높지만, **각 개별 데이터 포인트(instance)**에서도 항상 더 나은가?”라는 질문을 정면으로 다룬다. 저자들은 이 질문에 답하려면 단순히 한 번 학습한 큰 모델과 작은 모델을 비교해서는 안 된다고 본다. 이유는 **instance-level prediction이 random seed에 매우 민감**하기 때문이다. 그래서 이 논문은 pretraining seed와 finetuning seed에 따른 잡음을 명시적으로 모델링하고, 이를 평균낸 **instance accuracy**라는 개념과 통계적 검정 절차를 제안한다. 그 결과, BERT-large는 평균적으로는 더 좋지만 MNLI, SST-2, QQP 전반에서 **적어도 1–4%의 instance에서는 오히려 BERT-mini보다 더 나쁘다**고 결론내린다. 동시에 저자들은 **finetuning noise가 모델 크기와 함께 증가**하고, instance-level 성능 변화에는 **momentum**이 존재한다고 보고한다. 즉 큰 모델의 성능 향상은 “모든 샘플에서의 균일한 향상”이 아니라, 일부 샘플에서는 좋아지고 일부에서는 오히려 악화되는 비균일한 현상이라는 것이 논문의 핵심 메시지다.  
 
 ## 1. Paper Overview
 
@@ -14,7 +14,7 @@
 
 첫째, 모델 비교의 기본 단위를 **overall accuracy**가 아니라 **instance accuracy**로 바꾸자는 것이다. 저자들은 한 모델 크기 $s$와 특정 instance $i$에 대해, 그 instance를 얼마나 자주 맞히는지를
 $$
-\mathrm{Acc}\_i^s := \mathbb{E}\_{P,F}[c_i^s]
+\mathrm{Acc}_i^s := \mathbb{E}_{P,F}[c_i^s]
 $$
 로 정의한다. 여기서 $P$는 pretraining seed, $F$는 finetuning seed, $c_i^s \in {0,1}$는 해당 run에서 그 instance를 맞혔는지 여부다. 즉 “이 모델은 몇 % 정확한가?”가 아니라 “**이 instance는 이 크기의 모델이 몇 % 확률로 맞히는가?**”를 보자는 것이다.  
 
@@ -52,7 +52,7 @@ $$
 
 그래서 논문은 각 instance에 대해 seed 평균 정확도인 instance accuracy를 정의한다. 그리고 두 모델 크기 $s_1, s_2$ 사이의 차이를
 $$
-{}^{s_1}\_{s_2}\Delta \mathrm{Acc}\_i := \mathrm{Acc}\_i^{s_2} - \mathrm{Acc}\_i^{s_1}
+{}^{s_1}_{s_2}\Delta \mathrm{Acc}_i := \mathrm{Acc}_i^{s_2} - \mathrm{Acc}_i^{s_1}
 $$
 로 본다. 이 값이 음수이면, larger model이 smaller model보다 그 instance를 덜 자주 맞힌다는 뜻이다. 이런 negative tail이 바로 **decaying instances**의 신호다.
 
@@ -62,7 +62,7 @@ Figure 1과 Figure 2 설명에서 저자들은 blue histogram(실제 비교)과 
 
 하지만 negative tail이 보여도, 그 일부는 여전히 추정 오차 때문에 생긴 가짜일 수 있다. 그래서 저자들은 **random baseline**을 사용해 false discovery fraction을 추정하고, Section 4에서 보다 formal한 lower bound를 제시한다. 논문은 이 방법이 classical BH + Fisher exact test보다 항상 더 나은 lower bound를 준다고 말한다. 실제 표 4 snippet에서도 모든 크기 쌍과 pretrained model 수 설정에서 **저자들의 방법이 BH보다 더 큰 decaying fraction lower bound**를 제공한다고 설명한다.
 
-이 설계는 이 논문의 중요한 공헌이다. 단순 empirical observation을 “interesting pattern”으로 끝내지 않고, **통계적으로 방어 가능한 하한(lower bound)** 으로 바꾼다.
+이 설계는 이 논문의 중요한 공헌이다. 단순 empirical observation을 “interesting pattern”으로 끝내지 않고, **통계적으로 방어 가능한 하한(lower bound)**으로 바꾼다.
 
 ### 3.5 Decaying fraction 추정
 
@@ -104,7 +104,7 @@ Section 5와 6의 다른 흥미로운 결과는 다음 두 가지다.
 
 세 번째 강점은 **실질적 메시지**가 분명하다는 점이다. 큰 pretrained language model의 평균 성능 향상은 사실이지만, 그것이 모든 sample에서의 균일한 개선을 의미하지는 않는다. 이 결론은 robustness, fairness, subgroup analysis, data curation 같은 후속 논의와 직접 연결된다.
 
-한계도 있다. 첫째, 분석 대상이 **BERT family와 세 개의 분류 태스크(QQP, MNLI, SST-2)** 에 집중되어 있다. 따라서 autoregressive LM이나 현대의 instruction-tuned LLM, generative evaluation setting으로 바로 일반화하기는 어렵다. 이는 논문 시점의 자연스러운 한계다.
+한계도 있다. 첫째, 분석 대상이 **BERT family와 세 개의 분류 태스크(QQP, MNLI, SST-2)**에 집중되어 있다. 따라서 autoregressive LM이나 현대의 instruction-tuned LLM, generative evaluation setting으로 바로 일반화하기는 어렵다. 이는 논문 시점의 자연스러운 한계다.
 
 둘째, 저자들도 인정하듯 seed dependence 때문에 rigorous lower bound를 만들기 위해 target quantity를 약간 수정해야 했다. 즉 이 문제는 통계적으로 까다롭고, 제안한 하한도 여전히 “보수적 추정”에 가깝다. 실제 decaying fraction은 더 클 수 있어도, 그 정확한 값은 완전히 닫혀 있지 않다.  
 

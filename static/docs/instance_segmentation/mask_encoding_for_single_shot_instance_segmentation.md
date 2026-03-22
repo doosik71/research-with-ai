@@ -1,12 +1,12 @@
 # Mask Encoding for Single Shot Instance Segmentation
 
-이 논문은 two-stage 계열이 지배하던 instance segmentation에서, **one-stage detector 위에 직접 instance mask를 얹기 어려운 핵심 이유가 mask 표현의 고차원성**에 있다고 보고, 이를 해결하기 위해 **mask를 저차원 고정 길이 벡터로 압축해 회귀하는 방식**을 제안한다. 저자들은 이 프레임워크를 **MEInst (Mask Encoding based Instance Segmentation)** 라고 부르며, 기존처럼 $2$차원 mask를 직접 예측하지 않고, dictionary 기반으로 압축된 표현 벡터만 예측한 뒤 이를 복원한다. 이 아이디어를 FCOS 같은 one-stage detector에 병렬 mask branch로 붙이면, 구조는 단순하면서도 경쟁력 있는 instance segmentation이 가능하다는 것이 논문의 핵심 주장이다. 논문은 MS-COCO에서 single-model, single-scale setting으로 **36.9% mask AP**, best model로 **38.2% mask AP on test-dev**를 보고한다.  
+이 논문은 two-stage 계열이 지배하던 instance segmentation에서, **one-stage detector 위에 직접 instance mask를 얹기 어려운 핵심 이유가 mask 표현의 고차원성**에 있다고 보고, 이를 해결하기 위해 **mask를 저차원 고정 길이 벡터로 압축해 회귀하는 방식**을 제안한다. 저자들은 이 프레임워크를 **MEInst (Mask Encoding based Instance Segmentation)**라고 부르며, 기존처럼 $2$차원 mask를 직접 예측하지 않고, dictionary 기반으로 압축된 표현 벡터만 예측한 뒤 이를 복원한다. 이 아이디어를 FCOS 같은 one-stage detector에 병렬 mask branch로 붙이면, 구조는 단순하면서도 경쟁력 있는 instance segmentation이 가능하다는 것이 논문의 핵심 주장이다. 논문은 MS-COCO에서 single-model, single-scale setting으로 **36.9% mask AP**, best model로 **38.2% mask AP on test-dev**를 보고한다.  
 
 ## 1. Paper Overview
 
 이 논문의 연구 문제는 **single-shot / one-stage instance segmentation**을 어떻게 효율적이면서도 정확하게 설계할 것인가이다. 당시 주류인 Mask R-CNN류 two-stage 방법은 proposal을 만든 뒤 각 RoI 내부에서 mask를 픽셀 단위로 예측하므로 성능은 높지만, 이미지 내 인스턴스 수에 따라 runtime이 늘고 구조도 복잡하다. 반면 one-stage detector는 full image를 직접 처리하므로 속도와 구조적 단순성 면에서 유리하지만, instance mask를 compact하게 표현하기가 어려워 two-stage 수준의 성능을 내지 못했다. 저자들은 이 병목이 바로 “mask 자체의 표현 방식”에 있다고 본다.
 
-특히 논문은 기존 one-stage 계열 중 contour-based mask representation이 갖는 구조적 한계를 비판한다. 예를 들어 contour coefficient나 polar ray distance 기반 표현은 최적화와 추론은 쉽지만, **하나의 외곽선(single contour)** 으로만 객체를 기술하기 때문에 구멍이 있거나 분리된 구조(disjointed object)를 가진 물체에서 **“hollow decay”** 같은 체계적 artifact가 생긴다고 지적한다. 이 논문은 이런 한계를 넘기 위해 contour가 아니라 **mask 자체를 non-parametric하게 압축**하는 접근을 선택한다.
+특히 논문은 기존 one-stage 계열 중 contour-based mask representation이 갖는 구조적 한계를 비판한다. 예를 들어 contour coefficient나 polar ray distance 기반 표현은 최적화와 추론은 쉽지만, **하나의 외곽선(single contour)**으로만 객체를 기술하기 때문에 구멍이 있거나 분리된 구조(disjointed object)를 가진 물체에서 **“hollow decay”** 같은 체계적 artifact가 생긴다고 지적한다. 이 논문은 이런 한계를 넘기 위해 contour가 아니라 **mask 자체를 non-parametric하게 압축**하는 접근을 선택한다.
 
 ## 2. Core Idea
 

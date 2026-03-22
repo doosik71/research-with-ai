@@ -8,7 +8,7 @@
 
 ## 2. Core Idea
 
-이 논문의 중심 아이디어는 **멀티모달 융합을 단순한 모델링 기법의 문제가 아니라, DIKW 계층을 따라 점진적으로 의미를 축적하는 과정**으로 보는 데 있다. 저자들은 raw data가 preprocessing과 structuring을 거쳐 information이 되고, 여러 정보 간 관계가 조직되며 knowledge가 되며, 마지막으로 actionable insight와 decision support 수준의 wisdom으로 발전한다고 설명한다. 또한 이 과정은 일방향이 아니라 **순환적(cyclical)** 이어서, 상위 단계에서 얻은 wisdom이 다시 데이터 수집과 처리 방식을 개선한다고 본다.
+이 논문의 중심 아이디어는 **멀티모달 융합을 단순한 모델링 기법의 문제가 아니라, DIKW 계층을 따라 점진적으로 의미를 축적하는 과정**으로 보는 데 있다. 저자들은 raw data가 preprocessing과 structuring을 거쳐 information이 되고, 여러 정보 간 관계가 조직되며 knowledge가 되며, 마지막으로 actionable insight와 decision support 수준의 wisdom으로 발전한다고 설명한다. 또한 이 과정은 일방향이 아니라 **순환적(cyclical)**이어서, 상위 단계에서 얻은 wisdom이 다시 데이터 수집과 처리 방식을 개선한다고 본다.
 
 논문이 기존 서베이와 구별되는 지점은 크게 네 가지다. 첫째, 기존 DIKW 개념을 **smart healthcare multimodal fusion**에 맞게 적용·확장했다. 둘째, feature selection, rule-based systems, machine learning, deep learning, NLP를 **DIKW 축 위의 taxonomy**로 조직했다. 셋째, 현재 기술 동향을 요약하는 데 그치지 않고 **generic DIKW fusion framework**를 제안했다. 넷째, 기술적 과제와 해결 방향, 그리고 4P healthcare(Predictive, Preventive, Personalized, Participatory) 기반 미래 방향까지 연결했다. 즉, 이 논문의 novelty는 새 알고리즘 제안이 아니라, **분절된 기술들을 임상적 의미 생성 과정으로 재정렬한 설계 관점**에 있다.
 

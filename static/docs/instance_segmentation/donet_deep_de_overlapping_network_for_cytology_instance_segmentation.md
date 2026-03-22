@@ -62,13 +62,13 @@ DoNet은 크게 네 부분으로 구성된다.
 ### 3.2 문제 정식화
 
 논문은 데이터셋을
-$\mathcal{D}={(\mathcal{X}\_k,\mathcal{Y}\_k)}\_{k=1}^{K}$
+$\mathcal{D}={(\mathcal{X}_k,\mathcal{Y}_k)}_{k=1}^{K}$
 형태로 두고, 각 이미지에 bounding box, category, instance mask annotation이 있다고 둔다. 그리고 각 인스턴스 mask를 겹침 구조에 따라 다음 두 부분으로 나눈다.
 
-* intersection region: $\mathcal{O}\_k={o_{k,i}}\_{i=1}^{N_k}$
-* complement region: $\mathcal{M}\_k={m_{k,i}}\_{i=1}^{N_k}$
+* intersection region: $\mathcal{O}_k={o_{k,i}}_{i=1}^{N_k}$
+* complement region: $\mathcal{M}_k={m_{k,i}}_{i=1}^{N_k}$
 
-즉, 최종 instance mask $\mathcal{E}\_k$를 직접만 보지 않고, 이를 overlap 관계에 의해 분해된 두 구성요소로 다시 표현하는 것이다. 이 정식화 자체가 논문의 구조를 잘 드러낸다. 세포 인스턴스를 “하나의 바이너리 mask”로 보는 대신 “겹침 관계가 반영된 구조적 객체”로 본다는 점이 중요하다.  
+즉, 최종 instance mask $\mathcal{E}_k$를 직접만 보지 않고, 이를 overlap 관계에 의해 분해된 두 구성요소로 다시 표현하는 것이다. 이 정식화 자체가 논문의 구조를 잘 드러낸다. 세포 인스턴스를 “하나의 바이너리 mask”로 보는 대신 “겹침 관계가 반영된 구조적 객체”로 본다는 점이 중요하다.  
 
 ### 3.3 DRM: 분해 단계
 

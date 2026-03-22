@@ -22,7 +22,7 @@
 
 ### 3.2 Network Decomposition
 
-가장 중요한 설계는 **신경망 분해(decomposition)** 이다. 논문은 전체 모델을 두 부분으로 나눈다.
+가장 중요한 설계는 **신경망 분해(decomposition)**이다. 논문은 전체 모델을 두 부분으로 나눈다.
 
 * IoT device 쪽: 매우 얕은 local sub-network
 * 중앙 서버 쪽: 나머지 깊은 sub-network

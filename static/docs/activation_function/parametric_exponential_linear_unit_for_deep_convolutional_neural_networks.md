@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 ELU(Exponential Linear Unit)의 핵심 장점인 음수 출력과 bias shift 완화 효과는 유지하면서, 기존 ELU에서 사람이 수동으로 정해야 했던 shape parameter를 **학습 가능한 형태**로 바꾸는 activation function인 **PELU (Parametric ELU)** 를 제안한다. 저자들은 CNN에서 activation function이 단순 비선형성이 아니라 최적화 안정성, 표현력, 수렴 속도, 최종 일반화 성능에 직접 영향을 준다고 보고, 각 layer가 자기에게 맞는 activation shape를 직접 배우도록 만드는 것이 더 합리적이라고 주장한다. 이를 MNIST, CIFAR-10/100, ImageNet에서 ResNet, NiN, Overfeat, All-CNN, VGG 등에 적용해 ELU 대비 개선을 보였다고 보고한다. 특히 NiN on ImageNet에서 상대 오류율 7.28% 개선을 강조하며, 추가 파라미터는 극히 적다고 주장한다.
+이 논문은 ELU(Exponential Linear Unit)의 핵심 장점인 음수 출력과 bias shift 완화 효과는 유지하면서, 기존 ELU에서 사람이 수동으로 정해야 했던 shape parameter를 **학습 가능한 형태**로 바꾸는 activation function인 **PELU (Parametric ELU)**를 제안한다. 저자들은 CNN에서 activation function이 단순 비선형성이 아니라 최적화 안정성, 표현력, 수렴 속도, 최종 일반화 성능에 직접 영향을 준다고 보고, 각 layer가 자기에게 맞는 activation shape를 직접 배우도록 만드는 것이 더 합리적이라고 주장한다. 이를 MNIST, CIFAR-10/100, ImageNet에서 ResNet, NiN, Overfeat, All-CNN, VGG 등에 적용해 ELU 대비 개선을 보였다고 보고한다. 특히 NiN on ImageNet에서 상대 오류율 7.28% 개선을 강조하며, 추가 파라미터는 극히 적다고 주장한다.
 
 이 문제가 중요한 이유는 activation의 형태가 네트워크의 gradient 전달과 hidden representation의 분포를 바꾸기 때문이다. ELU는 음수 영역을 통해 bias shift를 줄이는 장점이 있지만, 그 shape을 고정하면 네트워크와 layer마다 최적인 비선형 구조를 반영하기 어렵다. 논문은 이 한계를 “각 layer가 activation shape를 직접 학습”하게 함으로써 해결하려 한다.
 

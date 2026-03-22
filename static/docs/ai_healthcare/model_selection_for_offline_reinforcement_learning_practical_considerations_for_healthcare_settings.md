@@ -1,6 +1,6 @@
 # Model Selection for Offline Reinforcement Learning: Practical Considerations for Healthcare Settings
 
-이 논문은 healthcare와 같은 high-stakes domain에서 **offline reinforcement learning(offline RL)** 을 사용할 때, 실제로 가장 어려운 문제 중 하나인 **model selection** 을 정면으로 다룬다. 핵심 문제는 supervised learning처럼 validation set에서 성능을 직접 측정할 수 없다는 점이다. RL에서는 validation performance를 알려면 학습된 policy를 실제 환경에 배치해 봐야 하는데, 의료 환경에서는 여러 미검증 치료 정책을 실제 환자에게 시험하는 것이 비현실적이거나 위험하다. 저자들은 이 공백을 메우기 위해 **off-policy evaluation(OPE)** 를 validation proxy로 사용하는 training-validation pipeline을 제안하고, 어떤 OPE가 실제 model ranking에 유용한지, 또 계산 비용은 얼마나 드는지를 sepsis treatment task에서 체계적으로 분석한다. 특히 **FQE(Fitted Q Evaluation)** 가 가장 좋은 ranking을 주지만 계산 비용이 크다는 점을 보이고, 이를 보완하기 위해 **WIS로 후보를 먼저 거르고 FQE로 최종 선택하는 2-stage selection** 을 제안한다.
+이 논문은 healthcare와 같은 high-stakes domain에서 **offline reinforcement learning(offline RL)**을 사용할 때, 실제로 가장 어려운 문제 중 하나인 **model selection** 을 정면으로 다룬다. 핵심 문제는 supervised learning처럼 validation set에서 성능을 직접 측정할 수 없다는 점이다. RL에서는 validation performance를 알려면 학습된 policy를 실제 환경에 배치해 봐야 하는데, 의료 환경에서는 여러 미검증 치료 정책을 실제 환자에게 시험하는 것이 비현실적이거나 위험하다. 저자들은 이 공백을 메우기 위해 **off-policy evaluation(OPE)**를 validation proxy로 사용하는 training-validation pipeline을 제안하고, 어떤 OPE가 실제 model ranking에 유용한지, 또 계산 비용은 얼마나 드는지를 sepsis treatment task에서 체계적으로 분석한다. 특히 **FQE(Fitted Q Evaluation)**가 가장 좋은 ranking을 주지만 계산 비용이 크다는 점을 보이고, 이를 보완하기 위해 **WIS로 후보를 먼저 거르고 FQE로 최종 선택하는 2-stage selection** 을 제안한다.
 
 ## 1. Paper Overview
 
@@ -12,7 +12,7 @@
 
 ## 2. Core Idea
 
-이 논문의 중심 아이디어는 **OPE를 validation performance의 대리 지표(proxy)** 로 사용해 offline RL의 training-validation pipeline을 구성하는 것이다. supervised learning에서는 validation set accuracy가 model selection 기준이 되지만, offline RL에서는 learned policy를 실제 환경에서 실행할 수 없으므로 그 역할을 OPE가 대신해야 한다. 저자들은 이 단순한 발상을 실제로 작동하게 만들기 위해, OPE estimator의 ranking quality, 추가 hyperparameter, auxiliary model 필요성, computational overhead까지 함께 평가한다.  
+이 논문의 중심 아이디어는 **OPE를 validation performance의 대리 지표(proxy)**로 사용해 offline RL의 training-validation pipeline을 구성하는 것이다. supervised learning에서는 validation set accuracy가 model selection 기준이 되지만, offline RL에서는 learned policy를 실제 환경에서 실행할 수 없으므로 그 역할을 OPE가 대신해야 한다. 저자들은 이 단순한 발상을 실제로 작동하게 만들기 위해, OPE estimator의 ranking quality, 추가 hyperparameter, auxiliary model 필요성, computational overhead까지 함께 평가한다.  
 
 핵심적으로 논문은 네 가지 popular OPE method를 비교한다. 그리고 이들 사이의 trade-off를 명확히 드러낸다. 저자들의 주요 결론은 다음과 같다.
 FQE는 candidate policy ranking을 가장 잘해 주지만 계산 비용이 높다.
@@ -32,13 +32,13 @@ $$
 $$
 로 두고, 목표 policy $\pi$의 성능을
 $$
-v(\pi)=J(\pi;\mathcal{M})=\mathbb{E}\_{s\sim \mu_0}[V^\pi(s)]
+v(\pi)=J(\pi;\mathcal{M})=\mathbb{E}_{s\sim \mu_0}[V^\pi(s)]
 $$
 로 정의한다. 여기서
 $$
-V^\pi(s)=\mathbb{E}\_{\pi}\mathbb{E}\_{\mathcal{M}}\left[\sum*{t=1}^{\infty}\gamma^{t-1}r_t \mid s_1=s\right]
+V^\pi(s)=\mathbb{E}_{\pi}\mathbb{E}_{\mathcal{M}}\left[\sum*{t=1}^{\infty}\gamma^{t-1}r_t \mid s_1=s\right]
 $$
-이다. offline RL에서는 environment와 상호작용하지 못하고, 관측 데이터셋 $\mathcal{D}\_{obs}={s_i,a_i,r_i,s_i'}\_{i=1}^N$ 만 이용해 policy를 학습한다. 따라서 실제 목표는 이 데이터만으로 좋은 policy를 배우는 것뿐 아니라, 여러 learned policy 중 가장 좋은 policy를 고르는 것이다.  
+이다. offline RL에서는 environment와 상호작용하지 못하고, 관측 데이터셋 $\mathcal{D}_{obs}={s_i,a_i,r_i,s_i'}_{i=1}^N$ 만 이용해 policy를 학습한다. 따라서 실제 목표는 이 데이터만으로 좋은 policy를 배우는 것뿐 아니라, 여러 learned policy 중 가장 좋은 policy를 고르는 것이다.  
 
 ### 3.2 왜 supervised-style validation이 불가능한가
 

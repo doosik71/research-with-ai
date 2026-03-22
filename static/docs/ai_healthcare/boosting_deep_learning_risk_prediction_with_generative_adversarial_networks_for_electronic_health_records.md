@@ -14,7 +14,7 @@
 
 핵심 아이디어는 다음 두 단계로 요약된다.
 
-첫째, EHR 시계열을 직접 생성할 수 있도록 **EHR 전용 GAN(ehrGAN)** 을 설계한다. 이 생성기는 단순한 noise-to-sample 방식보다, 실제 환자 기록 주변의 plausible한 variation을 생성하는 방향으로 설계된다. 논문은 생성 분포를 실제 데이터 manifold 주변의 **transition distribution**처럼 다루며, 이를 통해 완전히 엉뚱한 synthetic data가 아니라 실제 샘플과 유사하면서도 새로운 training example을 만든다.  
+첫째, EHR 시계열을 직접 생성할 수 있도록 **EHR 전용 GAN(ehrGAN)**을 설계한다. 이 생성기는 단순한 noise-to-sample 방식보다, 실제 환자 기록 주변의 plausible한 variation을 생성하는 방향으로 설계된다. 논문은 생성 분포를 실제 데이터 manifold 주변의 **transition distribution**처럼 다루며, 이를 통해 완전히 엉뚱한 synthetic data가 아니라 실제 샘플과 유사하면서도 새로운 training example을 만든다.  
 
 둘째, 이렇게 생성한 synthetic EHR를 **semi-supervised data augmentation**으로 사용한다. 즉, 생성기가 만들어낸 샘플을 원래의 labeled training set에 보강하여 classifier를 학습시키고, 그 결과 onset prediction의 generalization을 높인다. 논문은 이 방식을 SSL-GAN이라고 부른다.
 
@@ -57,9 +57,9 @@ $$
 
 $$
 \min_G \max_D
-\mathbb{E}\_{\mathbf{x}\sim p*{data}(\mathbf{x})}[\log D(\mathbf{x})]
+\mathbb{E}_{\mathbf{x}\sim p*{data}(\mathbf{x})}[\log D(\mathbf{x})]
 +
-\mathbb{E}\_{\mathbf{z}\sim p*{\mathbf{z}}(\mathbf{z})}
+\mathbb{E}_{\mathbf{z}\sim p*{\mathbf{z}}(\mathbf{z})}
 [\log(1-D(G(\mathbf{z})))]
 $$
 
@@ -80,13 +80,13 @@ $$
 논문이 제시하는 generator objective의 핵심은 adversarial loss와 reconstruction-like regularization을 함께 쓰는 것이다. 스니펫에 따르면 생성기는 대략 다음 형태의 목적을 최소화한다.
 
 $$
-\mathbb{E}\_{\mathbf{x}\sim p*{data}(\mathbf{x})}
+\mathbb{E}_{\mathbf{x}\sim p*{data}(\mathbf{x})}
 \left[
 \rho \cdot
-\mathbb{E}\_{\tilde{\mathbf{x}}\sim p_g(\tilde{\mathbf{x}}|\mathbf{x})}
+\mathbb{E}_{\tilde{\mathbf{x}}\sim p_g(\tilde{\mathbf{x}}|\mathbf{x})}
 [-\log D(\tilde{\mathbf{x}})]
 +
-(1-\rho)\cdot |\bar{\mathbf{x}}-\mathbf{x}|\_2^2
+(1-\rho)\cdot |\bar{\mathbf{x}}-\mathbf{x}|_2^2
 \right]
 $$
 

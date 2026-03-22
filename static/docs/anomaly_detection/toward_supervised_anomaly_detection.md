@@ -115,7 +115,7 @@ $$
 
 ### 4.1 장난감 데이터에서의 학습 패러다임 비교
 
-Section 5에서는 2차원 synthetic data를 사용한 controlled experiment를 수행한다. 훈련/검증 데이터는 두 개의 정상 Gaussian cluster와 하나의 anomaly cluster로 만들고, 테스트 시점에는 여기에 **두 개의 새로운 anomaly cluster** 를 추가한다. 이 설정은 “테스트 시 새로운 이상 분포가 등장한다”는 anomaly detection의 본질을 의도적으로 재현한 것이다. 비교 대상은 supervised SVM, transductive semi-supervised LDS, unsupervised SVDD, LPUE 계열의 SVDDneg, 그리고 제안법 SSAD다. 평가는 false-positive interval $[0, 0.01]$ 에서의 ROC AUC, 즉 $\mathrm{AUC}\_{0.01}$ 로 수행한다. 각 반복에서 $\eta_u, \eta_l$은 validation set에서 $[10^{-2}, 10^2]$ 범위로 튜닝했다.
+Section 5에서는 2차원 synthetic data를 사용한 controlled experiment를 수행한다. 훈련/검증 데이터는 두 개의 정상 Gaussian cluster와 하나의 anomaly cluster로 만들고, 테스트 시점에는 여기에 **두 개의 새로운 anomaly cluster** 를 추가한다. 이 설정은 “테스트 시 새로운 이상 분포가 등장한다”는 anomaly detection의 본질을 의도적으로 재현한 것이다. 비교 대상은 supervised SVM, transductive semi-supervised LDS, unsupervised SVDD, LPUE 계열의 SVDDneg, 그리고 제안법 SSAD다. 평가는 false-positive interval $[0, 0.01]$ 에서의 ROC AUC, 즉 $\mathrm{AUC}_{0.01}$ 로 수행한다. 각 반복에서 $\eta_u, \eta_l$은 validation set에서 $[10^{-2}, 10^2]$ 범위로 튜닝했다.
 
 결과는 매우 분명하다. supervised learning paradigm에서 출발한 SVM과 LDS는 novel anomaly cluster를 처리하지 못해 모든 라벨 비율에서 낮은 성능을 보인다. 오히려 라벨을 전혀 쓰지 않는 SVDD보다도 못한 경우가 있다. 반면 unsupervised paradigm 위에 세워진 SVDDneg와 SSAD는 모든 경쟁법을 이긴다. 특히 SSAD는 anomaly 라벨뿐 아니라 normal 라벨도 활용하기 때문에 적은 수의 라벨만으로도 빠르게 성능이 포화된다. 논문은 약 15% 수준의 labeled data만으로도 SSAD가 거의 최적 수준에 도달한다고 보고한다. 또한 Figure 7은 fully supervised, semi-supervised, unsupervised 세 경우의 contour를 비교해, 적은 라벨만으로도 semi-supervised 해가 거의 완전한 분리에 도달할 수 있음을 시각적으로 보여준다.
 
@@ -125,7 +125,7 @@ Section 5에서는 2차원 synthetic data를 사용한 controlled experiment를 
 
 실제 응용은 HTTP 네트워크 트래픽에 대한 intrusion detection이다. 정상 데이터는 Fraunhofer Institute FIRST에서 10일간 수집한 145,069개의 정상 연결로 이루어져 있으며, 평균 길이는 489 bytes다. 각 payload는 3-gram bag-of-features 방식으로 임베딩된다. 즉, 가능한 모든 길이 3의 byte string을 특징으로 보고, payload 안에 해당 3-gram이 있으면 1, 아니면 0인 sparse vector로 바꾼다. 이 표현은 차원 수가 $256^3$으로 매우 크지만, 실제 payload는 sparse하기 때문에 효율적 처리 가능하다고 설명한다. 악성 데이터는 Metasploit을 사용해 만든 27개 실제 attack class이며, buffer overflow, code injection, HTTP tunnel, cross-site scripting 등이 포함된다. 또한 cloaked pool이라는 난도 높은 조건을 만들기 위해, 공격 payload에 benign한 HTTP header를 덧붙여 feature space에서 정상처럼 보이게 만드는 obfuscation도 적용한다.
 
-탐지 성능 실험에서는 두 가지 시나리오를 비교한다. 하나는 normal vs. malicious, 다른 하나는 normal vs. cloaked다. 매 반복마다 정상 966개와 공격 34개를 training set으로 사용하고, holdout/test set은 정상 795개와 공격 27개로 구성한다. 특히 동일 attack class가 train과 test에 동시에 들어가지 않도록 하여, truly novel attack generalization을 평가한다. 평가 지표는 again $\mathrm{AUC}\_{0.01}$ 이다.
+탐지 성능 실험에서는 두 가지 시나리오를 비교한다. 하나는 normal vs. malicious, 다른 하나는 normal vs. cloaked다. 매 반복마다 정상 966개와 공격 34개를 training set으로 사용하고, holdout/test set은 정상 795개와 공격 27개로 구성한다. 특히 동일 attack class가 train과 test에 동시에 들어가지 않도록 하여, truly novel attack generalization을 평가한다. 평가 지표는 again $\mathrm{AUC}_{0.01}$ 이다.
 
 normal vs. malicious에서는 사실상 모든 방법이 잘 동작한다. 이는 원본 악성 트래픽이 3-gram 표현만으로도 충분히 구분되기 때문이다. 그러나 더 현실적인 normal vs. cloaked에서는 차이가 크게 난다. unsupervised SVDD는 약 70% 수준까지 떨어지고, SVDDneg도 소폭 개선만 보인다. 반면 SSAD는 모든 labeled data를 활용하기 때문에 훨씬 큰 폭의 향상을 보이며, 5% 정도의 labeled data만으로도 최고의 baseline을 쉽게 넘어선다. 무작위 라벨링으로 15%의 데이터를 라벨링하면 거의 완벽에 가까운 분리가 가능하다고 저자들은 보고한다. Figure 9의 설명에서는 cloaked data에서 SSAD가 baseline보다 **최대 30% 높은 accuracy** 를 보인다고 정리한다.
 

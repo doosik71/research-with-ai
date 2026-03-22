@@ -72,7 +72,7 @@ $$
 즉, detection마다 최종적으로
 
 $$
-\mathbf{a}\_d \in \mathbb{R}^{K \times M \times M}
+\mathbf{a}_d \in \mathbb{R}^{K \times M \times M}
 $$
 
 형태의 attention을 얻게 됩니다. 여기서 $M \times M$은 coarse attention resolution입니다. 저자들은 이 attention이 object의 **대략적인 shape, pose, instance-level layout**를 담는다고 설명합니다.
@@ -84,7 +84,7 @@ $$
 blender는 논문의 핵심입니다. 그림 설명에 따르면, 각 basis와 attention을 **element-wise product**로 곱한 뒤, 이를 합쳐 최종 mask를 만듭니다. 개념적으로는 다음처럼 이해할 수 있습니다.
 
 $$
-\hat{M}\_d = \sum*{k=1}^{K} \left(B_k \otimes A_{d,k}\right)
+\hat{M}_d = \sum*{k=1}^{K} \left(B_k \otimes A_{d,k}\right)
 $$
 
 여기서

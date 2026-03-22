@@ -12,7 +12,7 @@
 
 연속 학습(Continual Learning, CL)은 신경망이 **재앙적 망각(catastrophic forgetting)** 없이 순차적으로 새로운 작업을 습득하도록 하는 것을 목표로 한다. 기존 CL 방법들은 주로 **메모리 재생**, **정규화**, **아키텍처 확장**에 의존하는데, 각각 메모리 사용량, 계산 비용, 확장성 측면에서 트레이드오프가 존재한다.
 
-**메타‑학습(meta‑learning, learning to learn)** 은 작업 분포에 대해 모델을 학습시켜 **빠르게 적응**할 수 있는 표현을 획득한다는 관점을 제공한다. 저자들은 작업 간 **표현 안정성(representation stability)** 을 명시적으로 최적화하는 메타‑학습자가 망각을 완화하면서도 빠른 적응을 유지할 수 있다고 가정한다.
+**메타‑학습(meta‑learning, learning to learn)**은 작업 분포에 대해 모델을 학습시켜 **빠르게 적응**할 수 있는 표현을 획득한다는 관점을 제공한다. 저자들은 작업 간 **표현 안정성(representation stability)**을 명시적으로 최적화하는 메타‑학습자가 망각을 완화하면서도 빠른 적응을 유지할 수 있다고 가정한다.
 
 ## 2. 핵심 기여
 
@@ -25,9 +25,9 @@
 
 ### 3.1 문제 설정
 
-$\{\mathcal{T}\_1, \dots, \mathcal{T}\_T\}$ 순서대로 작업이 도착한다.
+$\{\mathcal{T}_1, \dots, \mathcal{T}_T\}$ 순서대로 작업이 도착한다.
 
-각 작업 $\mathcal{T}\_t$ 에는 데이터셋 $\mathcal{D}\_t$ 가 존재한다.
+각 작업 $\mathcal{T}_t$ 에는 데이터셋 $\mathcal{D}_t$ 가 존재한다.
 
 추론 단계에서는 명시적인 작업 식별자를 사용하지 않는 **task‑agnostic** 설정을 가정한다.
 
@@ -36,8 +36,8 @@ $\{\mathcal{T}\_1, \dots, \mathcal{T}\_T\}$ 순서대로 작업이 도착한다.
 작업 $t$ 에 대한 전체 손실은 다음과 같다:
 
 $$
-\mathcal{L}\_t = \underbrace{\frac{1}{|\mathcal{D}\_t|}\sum_{(x,y)\in\mathcal{D}\_t}\ell(f_\theta(x), y)}\_{\text{task loss}} -
-\lambda \underbrace{\|\nabla_\theta \phi(x)\|\_2^2}\_{\text{representation regularizer}}
+\mathcal{L}_t = \underbrace{\frac{1}{|\mathcal{D}_t|}\sum_{(x,y)\in\mathcal{D}_t}\ell(f_\theta(x), y)}_{\text{task loss}} -
+\lambda \underbrace{\|\nabla_\theta \phi(x)\|_2^2}_{\text{representation regularizer}}
 $$
 
 여기서 $\phi(x)$ 는 penultimate layer의 특징 표현을 의미하고, $\lambda$ 는 두 항의 균형을 조절한다. 정규화 항은 특징 그래디언트의 크기를 억제해 **안정적이고 재사용 가능한 특징**을 만들도록 한다.

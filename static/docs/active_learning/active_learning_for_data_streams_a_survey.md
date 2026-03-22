@@ -91,7 +91,7 @@ drifting stream에서는 covariate shift, real concept drift, label distribution
 
 ## 4. Experiments and Findings
 
-이 논문은 survey이므로 새로운 실험 결과를 제시하기보다, 기존 연구들을 **평가 방식과 적용 영역 기준으로 비교·정리**한다는 점이 중요하다. 저자들은 active learning 평가에서 learning curve와 통계 검정의 필요성을 강조하며, 특히 online stream 환경에서는 고정 holdout test set보다 **prequential evaluation(test-then-train)** 이 concept drift를 더 잘 반영할 수 있다고 설명한다. 즉 각 시점마다 먼저 예측하고, 그다음 샘플을 학습에 반영하는 평가 방식이 streaming 현실에 더 가깝다는 것이다.
+이 논문은 survey이므로 새로운 실험 결과를 제시하기보다, 기존 연구들을 **평가 방식과 적용 영역 기준으로 비교·정리**한다는 점이 중요하다. 저자들은 active learning 평가에서 learning curve와 통계 검정의 필요성을 강조하며, 특히 online stream 환경에서는 고정 holdout test set보다 **prequential evaluation(test-then-train)**이 concept drift를 더 잘 반영할 수 있다고 설명한다. 즉 각 시점마다 먼저 예측하고, 그다음 샘플을 학습에 반영하는 평가 방식이 streaming 현실에 더 가깝다는 것이다.
 
 또한 Table 1에서는 어떤 연구가 holdout 기반 평가를 썼고, 어떤 연구가 prequential 방식을 썼는지를 정리한다. 저자들의 해석은 명확하다. **drifting stream을 다루는 방법은 대체로 prequential evaluation이 더 적합**하고, concept drift를 직접 다루지 않는 방법은 holdout test set을 더 자주 사용한다. 즉 평가 프로토콜 자체가 방법의 문제 설정과 맞아야 한다는 점을 강조한다.
 

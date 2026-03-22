@@ -33,17 +33,17 @@ CondInst는 크게 두 부분으로 구성됩니다.
 
 detector는 **FCOS**를 기반으로 하며, FPN feature map인 ${P_3, P_4, P_5, P_6, P_7}$ 위에서 클래스, centerness, box, 그리고 controller 출력을 예측합니다. 저자들이 FCOS를 택한 이유는 구조가 단순하고 anchor-free라서 파라미터와 계산량을 줄이기 쉽기 때문입니다.
 
-한편 mask branch는 별도의 shared feature map $\mathbf{F}\_{mask}$를 생성합니다. 이 feature map은 모든 instance가 공유하지만, 각 instance마다 detector가 생성한 서로 다른 동적 파라미터를 사용해 서로 다른 mask head가 적용됩니다. 즉, 입력 feature는 공유되지만, **필터가 instance마다 다릅니다**.
+한편 mask branch는 별도의 shared feature map $\mathbf{F}_{mask}$를 생성합니다. 이 feature map은 모든 instance가 공유하지만, 각 instance마다 detector가 생성한 서로 다른 동적 파라미터를 사용해 서로 다른 mask head가 적용됩니다. 즉, 입력 feature는 공유되지만, **필터가 instance마다 다릅니다**.
 
 ### 3.2 Instance-Aware Dynamic Mask Head
 
-CondInst의 중심은 **controller sub-network**입니다. detector가 어떤 위치 $(x, y)$에서 instance를 예측하면, controller는 그 instance에 대한 mask head 파라미터 $\boldsymbol{\theta}\_{x,y}$를 생성합니다. 이 파라미터는 고정된 네트워크를 쓰는 대신, 그 객체에 맞는 **조건부 네트워크**를 즉석에서 구성합니다. 논문은 Fig. 3 설명에서 classification head가 클래스 확률 $\boldsymbol{p}\_{x,y}$를 예측하고, controller가 같은 위치에서 mask head 필터 파라미터 $\boldsymbol{\theta}\_{x,y}$를 생성한다고 설명합니다.  
+CondInst의 중심은 **controller sub-network**입니다. detector가 어떤 위치 $(x, y)$에서 instance를 예측하면, controller는 그 instance에 대한 mask head 파라미터 $\boldsymbol{\theta}_{x,y}$를 생성합니다. 이 파라미터는 고정된 네트워크를 쓰는 대신, 그 객체에 맞는 **조건부 네트워크**를 즉석에서 구성합니다. 논문은 Fig. 3 설명에서 classification head가 클래스 확률 $\boldsymbol{p}_{x,y}$를 예측하고, controller가 같은 위치에서 mask head 필터 파라미터 $\boldsymbol{\theta}_{x,y}$를 생성한다고 설명합니다.  
 
 이때 중요한 점은 mask head가 매우 작다는 것입니다. abstract에 따르면 예시 구성은 **3개의 convolution layer, 각 8 channels** 수준입니다. 일반적인 Mask R-CNN mask head가 여러 개의 $3\times3$, 256-channel convolution을 쓰는 것과 비교하면 매우 가볍습니다. 저자들은 이것이 가능한 이유를 “이 작은 네트워크가 모든 객체를 다 분할할 필요가 없고, 단 하나의 target instance만 예측하면 되기 때문”이라고 설명합니다. 즉, 학습 난도가 크게 낮아집니다.  
 
 ### 3.3 Relative Coordinates의 역할
 
-논문은 단순히 dynamic filters만으로 끝내지 않고, mask feature $\mathbf{F}\_{mask}$에 **relative coordinates**를 concat한 $\tilde{\mathbf{F}}\_{mask}$를 입력으로 사용합니다. 이 상대 좌표는 feature map의 각 위치가 현재 예측 중인 instance 중심점으로부터 얼마나 떨어져 있는지를 나타냅니다. 논문은 이것이 strong cue라고 직접 말하며, 실험에서도 중요함을 보였다고 설명합니다.  
+논문은 단순히 dynamic filters만으로 끝내지 않고, mask feature $\mathbf{F}_{mask}$에 **relative coordinates**를 concat한 $\tilde{\mathbf{F}}_{mask}$를 입력으로 사용합니다. 이 상대 좌표는 feature map의 각 위치가 현재 예측 중인 instance 중심점으로부터 얼마나 떨어져 있는지를 나타냅니다. 논문은 이것이 strong cue라고 직접 말하며, 실험에서도 중요함을 보였다고 설명합니다.  
 
 이 설계는 매우 중요합니다. FCN이 비슷하게 생긴 두 사람 A와 B를 구분하지 못하는 이유는 appearance만으로는 “누가 foreground인가”를 결정하기 어렵기 때문입니다. Relative coordinates는 지금 예측 중인 객체가 어느 위치를 기준으로 하는지를 제공해, 동적 필터가 shape과 position을 더 안정적으로 활용할 수 있게 만듭니다. 논문은 relative coordinates만 써도 **31.3% mask AP**를 얻는다고 하며, 이것이 generated filters가 appearance뿐 아니라 shape과 relative position도 강하게 encode하고 있음을 보여준다고 해석합니다.
 

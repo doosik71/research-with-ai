@@ -32,11 +32,11 @@ Deep Fair SVDD의 학습 파이프라인은 세 단계로 구성된다. 첫째, 
 
 Deep SVDD의 손실 함수는 다음과 같다.
 
-$$\min_{\theta} \frac{1}{M} \sum_{i=1}^{M} \| f(\mathbf{x}\_i; \theta) - \mathbf{c} \|^2 + \frac{\alpha}{2} \sum_{\ell=1}^{L} \|\theta^{\ell}\|^2$$
+$$\min_{\theta} \frac{1}{M} \sum_{i=1}^{M} \| f(\mathbf{x}_i; \theta) - \mathbf{c} \|^2 + \frac{\alpha}{2} \sum_{\ell=1}^{L} \|\theta^{\ell}\|^2$$
 
 Discriminator의 손실 함수는 다음과 같은 이진 교차 엔트로피이다.
 
-$$L_D = -\frac{1}{M} \sum_{i=1}^{M} (z_i \cdot \log(\hat{z}\_i) + (1 - z_i) \cdot \log(1 - \hat{z}\_i))$$
+$$L_D = -\frac{1}{M} \sum_{i=1}^{M} (z_i \cdot \log(\hat{z}_i) + (1 - z_i) \cdot \log(1 - \hat{z}_i))$$
 
 적대적 손실 함수는 다음과 같다.
 
@@ -62,7 +62,7 @@ $$\min\left(\frac{P(s(x) > t | z=1)}{P(s(x) > t | z=0)}, \frac{P(s(x) > t | z=0)
 
 둘째, 분포 거리 측정(Wasserstein-1 distance)은 이상 점수 분포 간의 차이를 측정한다.
 
-$$W(\mathbb{P}, \mathbb{Q}) = \inf_{\gamma \in \Pi(\mathbb{P}, \mathbb{Q})} \mathbb{E}\_{(x,y) \sim \gamma}[\|x - y\|]$$
+$$W(\mathbb{P}, \mathbb{Q}) = \inf_{\gamma \in \Pi(\mathbb{P}, \mathbb{Q})} \mathbb{E}_{(x,y) \sim \gamma}[\|x - y\|]$$
 
 ### 주요 결과
 

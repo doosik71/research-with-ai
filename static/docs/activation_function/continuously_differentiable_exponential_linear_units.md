@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 ELU(Exponential Linear Unit)가 가진 장점을 유지하면서도, 기존 ELU의 수학적 결함 하나를 제거하는 매우 짧고 집중된 논문이다. 저자는 기존 ELU가 $\alpha \neq 1$ 일 때 입력 $x$ 에 대해 **continuous는 맞지만 derivative가 $x=0$ 에서 불연속**이라는 점을 지적한다. 이는 activation을 해석하고 튜닝할 때 불편함을 만들고, 특히 큰 $\alpha$ 에서는 음의 작은 입력 근처에서 gradient가 커질 수 있어 학습 안정성을 해칠 수 있다. 이를 해결하기 위해 저자는 ELU를 재매개변수화한 **CELU(Continuously Differentiable ELU)** 를 제안한다. CELU는 모든 $\alpha$ 값에 대해 $C^1$ 연속이며, derivative가 bounded이고, linear function과 ReLU를 special case 또는 극한 형태로 포함하며, $\alpha$ 에 대해 scale-similar하다는 성질을 갖는다.  
+이 논문은 ELU(Exponential Linear Unit)가 가진 장점을 유지하면서도, 기존 ELU의 수학적 결함 하나를 제거하는 매우 짧고 집중된 논문이다. 저자는 기존 ELU가 $\alpha \neq 1$ 일 때 입력 $x$ 에 대해 **continuous는 맞지만 derivative가 $x=0$ 에서 불연속**이라는 점을 지적한다. 이는 activation을 해석하고 튜닝할 때 불편함을 만들고, 특히 큰 $\alpha$ 에서는 음의 작은 입력 근처에서 gradient가 커질 수 있어 학습 안정성을 해칠 수 있다. 이를 해결하기 위해 저자는 ELU를 재매개변수화한 **CELU(Continuously Differentiable ELU)**를 제안한다. CELU는 모든 $\alpha$ 값에 대해 $C^1$ 연속이며, derivative가 bounded이고, linear function과 ReLU를 special case 또는 극한 형태로 포함하며, $\alpha$ 에 대해 scale-similar하다는 성질을 갖는다.  
 
 이 문제가 중요한 이유는 activation function이 단지 경험적 성능뿐 아니라 optimization dynamics, gradient stability, 해석 가능성에도 큰 영향을 주기 때문이다. ELU는 mean activation을 0 근처로 유지하고 vanishing gradient 문제를 완화하는 장점 때문에 널리 관심을 받았지만, 저자는 그 parametrization 자체가 더 잘 정리될 수 있다고 본다. 즉, 이 논문은 “새 activation을 완전히 새로 만들자”가 아니라, **기존에 이미 유용한 ELU를 더 수학적으로 깔끔하고 튜닝하기 쉬운 형태로 다시 쓰자**는 문제의식을 가진다.
 

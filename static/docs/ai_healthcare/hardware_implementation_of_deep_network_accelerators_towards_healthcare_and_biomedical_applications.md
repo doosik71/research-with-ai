@@ -27,7 +27,7 @@
 
 ### 3.1 DL 계산량과 하드웨어 병목
 
-논문은 먼저 왜 DL이 하드웨어적으로 어려운지를 설명한다. 3~4쪽에서 MLP, CNN, RNN, LSTM의 기본 구조를 요약하고, 특히 **backpropagation과 VMM(Vector-Matrix Multiplication), MAC(Multiply-Accumulate)** 가 지배적인 연산이라는 점을 강조한다. 4쪽 Table I은 AlexNet, ResNet-18/50, VGG-19, OpenPose, MobileNet의 weight 수와 MAC 수를 제시하는데, 예를 들어 VGG-19는 1장 이미지당 22B MAC, 25 FPS 기준 550B MAC이 필요하다고 정리한다. 이 표의 목적은 단순 스펙 나열이 아니라, **DL accelerator가 왜 메모리 접근 감소와 MAC 병렬화를 동시에 노려야 하는지**를 보여주는 데 있다.
+논문은 먼저 왜 DL이 하드웨어적으로 어려운지를 설명한다. 3~4쪽에서 MLP, CNN, RNN, LSTM의 기본 구조를 요약하고, 특히 **backpropagation과 VMM(Vector-Matrix Multiplication), MAC(Multiply-Accumulate)**가 지배적인 연산이라는 점을 강조한다. 4쪽 Table I은 AlexNet, ResNet-18/50, VGG-19, OpenPose, MobileNet의 weight 수와 MAC 수를 제시하는데, 예를 들어 VGG-19는 1장 이미지당 22B MAC, 25 FPS 기준 550B MAC이 필요하다고 정리한다. 이 표의 목적은 단순 스펙 나열이 아니라, **DL accelerator가 왜 메모리 접근 감소와 MAC 병렬화를 동시에 노려야 하는지**를 보여주는 데 있다.
 
 ### 3.2 CMOS 기반 DL accelerator
 
@@ -62,7 +62,7 @@ SNN 부분은 이 논문의 “보완재” 관점을 이해하는 데 중요하
 
 ### 3.6 Patient-specific model tuning
 
-17~18쪽의 patient-specific tuning 섹션은 의료 응용 관점에서 중요한 부가 논의다. 저자들은 환자 간 variability가 크기 때문에, 하나의 범용 모델을 그대로 배치하기보다 **transfer learning을 이용해 patient-specific tuning**하는 것이 중요하다고 본다. 이때 tuning은 **온라인(on-chip)** 으로도 가능하지만 더 많은 메모리와 버퍼가 필요하고, **오프라인(off-chip)** 으로도 가능하지만 환자 데이터의 원격 저장과 개인정보 이슈가 생긴다. 따라서 의료 하드웨어는 단순 추론 칩이 아니라, 장기적으로는 **개인화 가능한 adaptive inference/learning system**이어야 한다는 시사점을 준다.
+17~18쪽의 patient-specific tuning 섹션은 의료 응용 관점에서 중요한 부가 논의다. 저자들은 환자 간 variability가 크기 때문에, 하나의 범용 모델을 그대로 배치하기보다 **transfer learning을 이용해 patient-specific tuning**하는 것이 중요하다고 본다. 이때 tuning은 **온라인(on-chip)**으로도 가능하지만 더 많은 메모리와 버퍼가 필요하고, **오프라인(off-chip)**으로도 가능하지만 환자 데이터의 원격 저장과 개인정보 이슈가 생긴다. 따라서 의료 하드웨어는 단순 추론 칩이 아니라, 장기적으로는 **개인화 가능한 adaptive inference/learning system**이어야 한다는 시사점을 준다.
 
 ## 4. Experiments and Findings
 
@@ -71,7 +71,7 @@ SNN 부분은 이 논문의 “보완재” 관점을 이해하는 데 중요하
 * Myo armband에서 얻은 **EMG**
 * event-based camera의 **DVS** 또는 conventional camera의 **APS frame**
 
-총 5개 제스처, 21명(남 12, 여 9), 3회 세션으로 수집되었고, 평가는 **3-fold cross validation**으로 이루어진다. 비교 지표는 정확도뿐 아니라 **inference energy, inference time, Energy-Delay Product(EDP)** 이다. 이 설정 자체가 논문의 관심이 accuracy 하나가 아니라 **실제 edge deployment 효율**에 있음을 보여준다.
+총 5개 제스처, 21명(남 12, 여 9), 3회 세션으로 수집되었고, 평가는 **3-fold cross validation**으로 이루어진다. 비교 지표는 정확도뿐 아니라 **inference energy, inference time, Energy-Delay Product(EDP)**이다. 이 설정 자체가 논문의 관심이 accuracy 하나가 아니라 **실제 edge deployment 효율**에 있음을 보여준다.
 
 가장 중요한 결과는 16쪽 **Table V**에 있다. 여기서 Loihi, ODIN+MorphIC, embedded GPU(Jetson Nano), FPGA, memristive implementation이 비교된다. 대표적으로 다음과 같은 결과가 보고된다.
 

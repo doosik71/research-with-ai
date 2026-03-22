@@ -16,9 +16,9 @@
 
 이 논문의 핵심 아이디어는 **“계속 학습에 유리한 representation을 meta-learning으로 직접 학습하자”** 는 것이다. 저자들은 단순히 sparse representation을 강제하거나, weight regularization으로 중요한 파라미터를 보호하거나, 과거 샘플을 replay하는 방식만으로는 충분하지 않다고 본다. 대신, 실제 온라인 업데이트가 일어났을 때 그 업데이트가 미래 성능에 어떤 영향을 주는지를 메타 수준에서 최적화해야 한다고 주장한다.
 
-이를 위해 제안한 것이 **OML (Online-aware Meta-Learning)** 이다. OML은 representation learning network(RLN)와 prediction learning network(PLN)를 분리하고, inner loop에서는 **PLN만 온라인 SGD로 업데이트**한다. 그런 다음, 이렇게 실제 온라인 학습을 흉내 낸 뒤의 성능이 좋아지도록 RLN의 파라미터를 meta-update한다. 즉, representation은 “한 번의 SGD 업데이트가 최대한 덜 망가뜨리고, 동시에 새로운 정보는 더 빨리 받아들이도록” 학습된다.
+이를 위해 제안한 것이 **OML (Online-aware Meta-Learning)**이다. OML은 representation learning network(RLN)와 prediction learning network(PLN)를 분리하고, inner loop에서는 **PLN만 온라인 SGD로 업데이트**한다. 그런 다음, 이렇게 실제 온라인 학습을 흉내 낸 뒤의 성능이 좋아지도록 RLN의 파라미터를 meta-update한다. 즉, representation은 “한 번의 SGD 업데이트가 최대한 덜 망가뜨리고, 동시에 새로운 정보는 더 빨리 받아들이도록” 학습된다.
 
-기존 gradient-based meta-learning, 특히 MAML과의 차별점은 분명하다. 일반적인 MAML류는 빠른 적응을 위해 **초기화(initialization)** 를 학습하는 데 집중한다. 하지만 이 논문은 단순 초기화만으로는 catastrophic interference를 다루기 어렵다고 실험적으로 주장한다. OML은 초기화보다 한 단계 더 들어가, **입력을 어떤 feature space로 바꾸어 놓으면 이후의 온라인 업데이트가 서로 덜 충돌하는지**를 학습한다. 논문은 이를 직관적으로 설명하기 위해, 서로 다른 데이터 분포에 대한 해 공간(solution manifold)이 representation에 따라 평행하거나 직교에 가까워질 수 있으며, 이런 구조가 online update의 positive generalization 혹은 non-interference를 만든다고 해석한다.
+기존 gradient-based meta-learning, 특히 MAML과의 차별점은 분명하다. 일반적인 MAML류는 빠른 적응을 위해 **초기화(initialization)**를 학습하는 데 집중한다. 하지만 이 논문은 단순 초기화만으로는 catastrophic interference를 다루기 어렵다고 실험적으로 주장한다. OML은 초기화보다 한 단계 더 들어가, **입력을 어떤 feature space로 바꾸어 놓으면 이후의 온라인 업데이트가 서로 덜 충돌하는지**를 학습한다. 논문은 이를 직관적으로 설명하기 위해, 서로 다른 데이터 분포에 대한 해 공간(solution manifold)이 representation에 따라 평행하거나 직교에 가까워질 수 있으며, 이런 구조가 online update의 positive generalization 혹은 non-interference를 만든다고 해석한다.
 
 흥미로운 점은 OML이 sparsity를 직접 규제하지 않는데도, 결과적으로 **자연스럽고 instance-sparse한 표현**을 학습한다는 것이다. 즉, 저자들의 메시지는 “sparsity를 목표로 삼은 것이 아니라, interference를 줄이는 representation을 직접 최적화했더니 sparsity가 emergent property로 나타났다”에 가깝다.
 
@@ -33,7 +33,7 @@ $$
 로 주어지며, 입력 $X_t$는 서로 상관된 시계열적 구조를 가질 수 있지만, 타깃 $Y_t$는 현재 입력 $X_t$에만 의존한다고 가정한다. 전체 목표는 predictor $f_{W,\theta}$가 장기적으로 작은 예측 오차를 갖도록 하는 것이다. 논문은 이를 다음 기대 손실로 정의한다.
 
 $$
-\mathcal{L}\_{CLP}(W,\theta)
+\mathcal{L}_{CLP}(W,\theta)
 \mathrel{\overset{\tiny def}{=}}
 \mathbb{E}[\ell(f*{W,\theta}(X),Y)] =
 \int\left[\int \ell(f_{W,\theta}(x),y)p(y|x)dy\right]\mu(x)dx
@@ -62,12 +62,12 @@ $$
 OML은 여러 CLP 문제 $\mathcal{T}_i \sim p(\mathcal{T})$ 위에서 학습된다. 각 문제마다 trajectory $\mathcal{S}_k^j$를 샘플링하고, 그 trajectory를 따라 online SGD를 수행한 뒤, 그 결과 파라미터가 CLP 손실을 얼마나 잘 줄였는지를 평가한다. 논문에 제시된 메타 목적은 다음과 같다.
 
 $$
-\min_{W,\theta}\sum_{\mathcal{T}\_i \sim p(\mathcal{T})}\text{OML}(W,\theta)
+\min_{W,\theta}\sum_{\mathcal{T}_i \sim p(\mathcal{T})}\text{OML}(W,\theta)
 \mathrel{\overset{\tiny def}{=}}
-\sum*{\mathcal{T}\_i \sim p(\mathcal{T})}
-\sum*{\mathcal{S}_k^j \sim p(\mathcal{S}_k|\mathcal{T}\_i)}
+\sum*{\mathcal{T}_i \sim p(\mathcal{T})}
+\sum*{\mathcal{S}_k^j \sim p(\mathcal{S}_k|\mathcal{T}_i)}
 \left[
-\mathcal{L}\_{CLP_i}\big(U(W,\theta,\mathcal{S}_k^j)\big)
+\mathcal{L}_{CLP_i}\big(U(W,\theta,\mathcal{S}_k^j)\big)
 \right]
 $$
 

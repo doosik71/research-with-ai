@@ -4,7 +4,7 @@
 
 이 논문은 **Healthcare 5.0 환경에서 AI/ML과 IoT 기반 personalized healthcare service를 어떻게 더 신뢰성 있게(reliable), 복원력 있게(resilient), 그리고 진정한 의미에서 개인화된(personalized) 형태로 설계할 것인가**를 다루는 서베이 논문이다. 저자들은 기존 personalized healthcare가 대체로 특정 질환, 특정 장치, 특정 환경에만 초점을 맞추는 경향이 있어, 실제 환자가 동시에 지니는 여러 상호연관된 건강 상태를 충분히 반영하지 못한다고 본다. 이 때문에 잘못된 진단이나 부적절한 제어가 발생할 수 있으며, 장기적 건강성과 지속가능성에도 문제가 생긴다는 것이 논문의 문제의식이다.  
 
-이를 해결하기 위해 논문은 **CPHS(Comprehensive Personalised Healthcare Services)** 라는 개념을 중심에 둔다. CPHS는 단일 건강 조건만 따로 맞춤화하는 것이 아니라, 서로 영향을 주고받는 여러 건강 조건을 함께 고려해 최적화하는 서비스다. 논문은 이를 위해 (1) Healthcare 5.0의 배경과 personalized healthcare의 재정의, (2) Things–Communication–Application의 3계층 HIoT 참조 아키텍처, (3) 계층별 reliability·resilience·personalization 요구사항과 기존 AI/비AI 접근의 장단점, (4) IoT 계층별 보안 위협, (5) 이를 종합한 제안 방법론을 순서대로 정리한다.  
+이를 해결하기 위해 논문은 **CPHS(Comprehensive Personalised Healthcare Services)**라는 개념을 중심에 둔다. CPHS는 단일 건강 조건만 따로 맞춤화하는 것이 아니라, 서로 영향을 주고받는 여러 건강 조건을 함께 고려해 최적화하는 서비스다. 논문은 이를 위해 (1) Healthcare 5.0의 배경과 personalized healthcare의 재정의, (2) Things–Communication–Application의 3계층 HIoT 참조 아키텍처, (3) 계층별 reliability·resilience·personalization 요구사항과 기존 AI/비AI 접근의 장단점, (4) IoT 계층별 보안 위협, (5) 이를 종합한 제안 방법론을 순서대로 정리한다.  
 
 ## 2. Core Idea
 

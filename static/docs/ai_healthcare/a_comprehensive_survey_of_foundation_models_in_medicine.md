@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 의료 분야에서의 **Foundation Models(FMs)** 를 포괄적으로 정리한 survey paper다. 저자들은 기존 의료 AI 설문 논문들이 대개 특정 modality나 특정 계열 모델에만 집중해 왔고, 특히 **LLM, vision, graph, biology, omics, audio, protein** 등을 아우르는 통합 taxonomy가 부족하다고 지적한다. 이에 따라 본 논문은 의료 영역에서의 FMs를 역사적 맥락, 핵심 학습 전략, 대표 모델군, 의료 특화 모델, 실제 응용 분야, 기회 요인, 한계와 미래 방향까지 한 흐름으로 정리하는 것을 목표로 한다.  
+이 논문은 의료 분야에서의 **Foundation Models(FMs)**를 포괄적으로 정리한 survey paper다. 저자들은 기존 의료 AI 설문 논문들이 대개 특정 modality나 특정 계열 모델에만 집중해 왔고, 특히 **LLM, vision, graph, biology, omics, audio, protein** 등을 아우르는 통합 taxonomy가 부족하다고 지적한다. 이에 따라 본 논문은 의료 영역에서의 FMs를 역사적 맥락, 핵심 학습 전략, 대표 모델군, 의료 특화 모델, 실제 응용 분야, 기회 요인, 한계와 미래 방향까지 한 흐름으로 정리하는 것을 목표로 한다.  
 
 연구 문제는 “의료 분야에서 foundation model을 어떻게 이해하고 분류할 것인가”에 가깝다. 단일 모델을 제안하는 논문이 아니라, 의료 AI 전반에서 FMs가 어떤 방식으로 발전해 왔고, 어떤 데이터·학습 방식·응용 시나리오와 연결되는지 정리한다. 특히 일반-purpose FMs와 의료 특화 FMs를 구분하고, 임상 텍스트, 의료 영상, graph learning, biology/omics 등 이질적인 영역을 한 프레임에서 묶어 설명하려는 점이 중요하다.
 
@@ -37,7 +37,7 @@
 
 ### 3.2 Foundation Model의 정의와 배경
 
-논문은 foundation model을 대규모 데이터로 사전학습된 후 다양한 downstream task에 적응 가능한 대형 모델로 설명한다. 이때 핵심 enabling factor로 **training data, base model, transfer learning, scale** 를 든다. 또 전통적인 지도학습과 달리 많은 FMs가 **self-supervised learning(SSL)** 에 기반하며, 사전학습 과제가 데이터 자체로부터 만들어진다고 설명한다.
+논문은 foundation model을 대규모 데이터로 사전학습된 후 다양한 downstream task에 적응 가능한 대형 모델로 설명한다. 이때 핵심 enabling factor로 **training data, base model, transfer learning, scale** 를 든다. 또 전통적인 지도학습과 달리 많은 FMs가 **self-supervised learning(SSL)**에 기반하며, 사전학습 과제가 데이터 자체로부터 만들어진다고 설명한다.
 
 배경 설명에서 특히 강조하는 요소는 다음이다.
 

@@ -10,7 +10,7 @@
 
 핵심 아이디어는 **“객체 이름”이 아니라 “객체가 무엇을 할 수 있는가”를 planning의 중심 표현으로 삼자**는 것이다. AutoGPT+P는 scene을 object-affordance-pair의 집합으로 표현하고, 이로부터 planning에 필요한 action 가능성과 substitution 가능성을 추론한다. 예를 들어 knife는 cutting, grasping, stirring 같은 affordance를 가진다. 이런 표현을 사용하면 planner가 특정 object identity에 덜 묶이고, **같은 affordance를 공유하는 다른 객체로 대체**하는 reasoning이 가능해진다.  
 
-논문의 novelty는 세 가지 층위에 있다. 첫째, **Object Affordance Mapping (OAM)** 을 ChatGPT로 자동 생성해 object class와 affordance를 연결한다. 둘째, 장면에서 감지된 객체와 OAM을 결합해 **affordance-based symbolic scene representation**을 만든다. 셋째, LLM을 planner 자체로 쓰기보다, **tool selection**과 **goal generation/correction**에 활용하고, 실제 plan 생성은 classical planner가 수행하도록 하는 hybrid 구성을 택한다. 저자들은 이를 통해 LLM의 번역/도구선택 능력은 활용하고, 약한 논리 추론은 planner와 외부 checker로 보완한다.
+논문의 novelty는 세 가지 층위에 있다. 첫째, **Object Affordance Mapping (OAM)**을 ChatGPT로 자동 생성해 object class와 affordance를 연결한다. 둘째, 장면에서 감지된 객체와 OAM을 결합해 **affordance-based symbolic scene representation**을 만든다. 셋째, LLM을 planner 자체로 쓰기보다, **tool selection**과 **goal generation/correction**에 활용하고, 실제 plan 생성은 classical planner가 수행하도록 하는 hybrid 구성을 택한다. 저자들은 이를 통해 LLM의 번역/도구선택 능력은 활용하고, 약한 논리 추론은 planner와 외부 checker로 보완한다.
 
 ## 3. Detailed Method Explanation
 
@@ -37,7 +37,7 @@ $$
 
 ### 3.3 Object detection과 OAM
 
-Object Affordance Detection은 두 단계다. 먼저 object detector가 scene에서 객체들을 찾는다. 이후 **Object Affordance Mapping (OAM)** 이 object class를 대응하는 affordance 집합으로 매핑한다. 저자들은 이 OAM을 ChatGPT로 자동 생성한다고 설명한다. 즉, 각 object class에 대해 사람이 직접 affordance 테이블을 수작업으로 만들지 않고, LLM을 사용해 자동으로 매핑을 구축한다. 논문 contribution에도 “automatic object-affordance mapping using ChatGPT”가 명시돼 있다.
+Object Affordance Detection은 두 단계다. 먼저 object detector가 scene에서 객체들을 찾는다. 이후 **Object Affordance Mapping (OAM)**이 object class를 대응하는 affordance 집합으로 매핑한다. 저자들은 이 OAM을 ChatGPT로 자동 생성한다고 설명한다. 즉, 각 object class에 대해 사람이 직접 affordance 테이블을 수작업으로 만들지 않고, LLM을 사용해 자동으로 매핑을 구축한다. 논문 contribution에도 “automatic object-affordance mapping using ChatGPT”가 명시돼 있다.
 
 이 방식은 장점과 한계를 동시에 가진다. 장점은 새로운 everyday objects에 대해 빠르게 affordance dictionary를 넓힐 수 있다는 점이다. 단순 수작업 ontology보다 확장성이 좋다. 반면 정확도는 OAM 품질에 의존하며, 저자들도 후반부에서 probabilistic OAM으로 확장해야 한다고 말한다. 즉, 현재는 deterministic symbolic mapping이지만, 미래에는 confidence-aware representation이 필요하다고 본다.
 

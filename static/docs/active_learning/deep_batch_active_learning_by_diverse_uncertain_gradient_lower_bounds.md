@@ -4,7 +4,7 @@
 
 이 논문은 deep neural network를 사용하는 **batch active learning** 문제를 다룬다. 핵심 질문은 간단하다. “라벨링 예산이 제한된 상황에서, unlabeled pool에서 어떤 샘플들을 한 번에 골라야 가장 효율적으로 성능을 올릴 수 있는가?” 저자들은 기존 방법들이 대체로 **uncertainty만 보거나**, 혹은 **diversity만 보는** 식으로 설계되어 있어서 실제 batch selection에서는 한쪽이 쉽게 무너진다고 지적한다. uncertainty만 따르면 서로 거의 비슷한 샘플을 한 배치에 여러 개 뽑기 쉽고, diversity만 따르면 모델에 별로 도움이 안 되는 샘플을 고를 수 있다.  
 
-이를 해결하기 위해 제안된 방법이 **BADGE (Batch Active learning by Diverse Gradient Embeddings)** 이다. BADGE는 각 unlabeled sample을 “hallucinated gradient” 공간에 임베딩한 뒤, 그 gradient의 **크기(magnitude)** 로 uncertainty를 반영하고, **방향 및 거리(directional spread / distance)** 로 diversity를 반영한다. 그리고 이 임베딩들 위에서 **k-means++ initialization** 을 이용해 한 배치를 고른다. 저자들의 주장은 분명하다. BADGE는 uncertainty와 diversity를 동시에 반영하면서도, 별도의 hand-tuned hyperparameter 없이 실전적으로 잘 작동한다는 것이다.  
+이를 해결하기 위해 제안된 방법이 **BADGE (Batch Active learning by Diverse Gradient Embeddings)**이다. BADGE는 각 unlabeled sample을 “hallucinated gradient” 공간에 임베딩한 뒤, 그 gradient의 **크기(magnitude)**로 uncertainty를 반영하고, **방향 및 거리(directional spread / distance)**로 diversity를 반영한다. 그리고 이 임베딩들 위에서 **k-means++ initialization** 을 이용해 한 배치를 고른다. 저자들의 주장은 분명하다. BADGE는 uncertainty와 diversity를 동시에 반영하면서도, 별도의 hand-tuned hyperparameter 없이 실전적으로 잘 작동한다는 것이다.  
 
 논문의 실질적 기여는 단순히 “새 acquisition score 하나 만들었다”가 아니다. 오히려 **batch active learning에서 uncertainty–diversity trade-off를 gradient embedding 하나로 묶었다**는 점이 중요하다. 초록과 서론에 따르면, BADGE는 다양한 architecture, batch size, dataset에서 기존 강한 baseline들과 비교해 대체로 같거나 더 좋은 성능을 보이며, 실제 현업 active learning에서 쓸 만한 general-purpose option을 목표로 한다.  
 

@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 LLM 기반 multi-agent 시스템이 단순한 대화형 협업은 수행할 수 있지만, 더 복잡한 문제에서는 agent들을 순진하게 연결할 때 발생하는 cascading hallucination과 논리 불일치 때문에 일관되고 정확한 결과를 내기 어렵다는 문제를 다룬다. 저자들은 이를 해결하기 위해 **MetaGPT**라는 multi-agent collaborative framework를 제안하며, 핵심 아이디어는 실제 인간 조직의 **SOP(Standardized Operating Procedures)** 를 agent 협업 구조에 내재화하는 것이다. 즉, agent 간 자유 대화에 기대기보다, 역할 분담·산출물 형식·handover 절차를 명확히 정의해 복잡한 software engineering task를 분해하고 관리하는 프레임워크를 만든다. 논문은 이 접근이 HumanEval, MBPP, SoftwareDev 벤치마크에서 더 높은 code generation 품질과 실행 가능성을 만든다고 주장한다.  
+이 논문은 LLM 기반 multi-agent 시스템이 단순한 대화형 협업은 수행할 수 있지만, 더 복잡한 문제에서는 agent들을 순진하게 연결할 때 발생하는 cascading hallucination과 논리 불일치 때문에 일관되고 정확한 결과를 내기 어렵다는 문제를 다룬다. 저자들은 이를 해결하기 위해 **MetaGPT**라는 multi-agent collaborative framework를 제안하며, 핵심 아이디어는 실제 인간 조직의 **SOP(Standardized Operating Procedures)**를 agent 협업 구조에 내재화하는 것이다. 즉, agent 간 자유 대화에 기대기보다, 역할 분담·산출물 형식·handover 절차를 명확히 정의해 복잡한 software engineering task를 분해하고 관리하는 프레임워크를 만든다. 논문은 이 접근이 HumanEval, MBPP, SoftwareDev 벤치마크에서 더 높은 code generation 품질과 실행 가능성을 만든다고 주장한다.  
 
 이 문제가 중요한 이유는, 단일 LLM의 chain-of-thought나 단순 role-play만으로는 실제 개발 업무처럼 여러 단계의 분석, 설계, 구현, 테스트가 필요한 과제를 안정적으로 처리하기 어렵기 때문이다. 특히 software engineering에서는 요구사항 문서(PRD), 설계 산출물, 인터페이스 정의, 테스트 케이스처럼 **중간 구조화 산출물** 이 중요하며, 논문은 바로 이 지점을 multi-agent 시스템 설계의 핵심으로 끌어온다.
 
@@ -70,7 +70,7 @@ MetaGPT는 agent 간 직접 1:1로 계속 묻고 답하는 대신, 전역 **mess
 논문에서 명시적으로 제시한 핵심 수식은 Pass@k 평가식이다.
 
 $$
-\operatorname{Pass}@k=\mathbb{E}\_{\text{Problems}}\left[1-\frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
+\operatorname{Pass}@k=\mathbb{E}_{\text{Problems}}\left[1-\frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
 $$
 
 여기서 $n$은 생성한 전체 후보 수, $c$는 그중 정답 코드 수, $k$는 상위 $k$개를 선택하는 경우를 뜻한다. 직관적으로는 “생성된 후보 중 적어도 하나가 정답일 확률”의 기대값이다. 이 논문은 주로 Pass@1을 강조하며, 한 번의 생성만으로 정답을 맞히는 비율을 보고한다. 즉, MetaGPT의 목적은 단순히 여러 후보 중 하나가 맞는 시스템이 아니라, **처음부터 더 일관되고 실행 가능한 코드를 생성하는 것**에 가깝다.

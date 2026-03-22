@@ -62,9 +62,9 @@ DRÆM은 실제 이상치의 외관을 현실적으로 반영할 필요 없이, 
 
 증강된 훈련 이미지 $I_a$는 다음과 같이 정의된다:
 
-$$I_a = \overline{M}\_a \odot I + (1 - \beta)(M_a \odot I) + \beta(M_a \odot A)$$
+$$I_a = \overline{M}_a \odot I + (1 - \beta)(M_a \odot I) + \beta(M_a \odot A)$$
 
-여기서 $\overline{M}\_a$는 이상치 마스크의 역이고, $\odot$는 요소별 곱셈 연산이며, $\beta$는 블렌딩의 불투명도 매개변수이다.
+여기서 $\overline{M}_a$는 이상치 마스크의 역이고, $\odot$는 요소별 곱셈 연산이며, $\beta$는 블렌딩의 불투명도 매개변수이다.
 
 ### 이미지 수준 이상치 점수 추정
 

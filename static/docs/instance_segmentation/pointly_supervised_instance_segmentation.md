@@ -14,7 +14,7 @@
 
 > **full mask 전체를 그리지 말고, bounding box 안의 랜덤 포인트 몇 개만 object/background로 분류하게 하자.**
 
-즉 각 객체에 대해 bounding box를 먼저 얻고, 그 안에서 $N$개의 랜덤 point를 샘플링한 뒤 annotator는 각 점이 object인지 background인지만 표시합니다. 저자들은 이 annotation을 $\mathcal{P}\_N$이라 부릅니다. 중요한 것은 점 위치를 사람이 직접 클릭하게 하지 않고 **무작위 샘플링**한다는 점입니다. 이 방식은 사람의 클릭 편향을 줄이고, 기존 full-mask 데이터셋으로도 쉽게 simulation할 수 있어 대규모 실험과 ablation이 가능합니다.
+즉 각 객체에 대해 bounding box를 먼저 얻고, 그 안에서 $N$개의 랜덤 point를 샘플링한 뒤 annotator는 각 점이 object인지 background인지만 표시합니다. 저자들은 이 annotation을 $\mathcal{P}_N$이라 부릅니다. 중요한 것은 점 위치를 사람이 직접 클릭하게 하지 않고 **무작위 샘플링**한다는 점입니다. 이 방식은 사람의 클릭 편향을 줄이고, 기존 full-mask 데이터셋으로도 쉽게 simulation할 수 있어 대규모 실험과 ablation이 가능합니다.
 
 이 아이디어의 진짜 강점은 annotation form 그 자체보다, 이것이 **기존 instance segmentation 모델의 학습 파이프라인과 잘 맞는다**는 데 있습니다. Mask R-CNN이나 CondInst는 본질적으로 regular grid 위에서 mask logits를 예측하므로, ground-truth point 위치에서 예측값을 bilinear interpolation으로 읽어오면 그대로 point-level cross-entropy loss를 줄 수 있습니다. 다시 말해, 이 논문은 새로운 복잡한 latent constraint나 pseudo-mask generation보다, **기존 per-pixel mask supervision을 point supervision으로 자연스럽게 축소**한 것이 핵심입니다.
 
@@ -22,7 +22,7 @@
 
 ## 3. Detailed Method Explanation
 
-### 3.1 Annotation format: $\mathcal{P}\_N$
+### 3.1 Annotation format: $\mathcal{P}_N$
 
 논문이 제안하는 annotation format은 bounding box와 내부 랜덤 포인트 라벨들의 집합입니다. 각 객체의 bounding box 안에서 $N$개의 random point location을 생성하고, annotator는 각 점을 object 또는 background로 이진 분류합니다. 저자들이 point click이 아니라 random point classification을 선택한 이유는 크게 두 가지입니다.
 
@@ -30,7 +30,7 @@
 
 ### 3.2 Annotation time와 품질
 
-논문은 실제 annotation tool을 만들어 COCO와 LVIS의 100개 객체를 대상으로 시간과 품질을 측정했습니다. 결과적으로 **점 하나 분류에 평균 0.9초**, bounding box 7초를 합치면 객체당 10개 점 supervision인 $\mathcal{P}\_{10}$의 총 시간은
+논문은 실제 annotation tool을 만들어 COCO와 LVIS의 100개 객체를 대상으로 시간과 품질을 측정했습니다. 결과적으로 **점 하나 분류에 평균 0.9초**, bounding box 7초를 합치면 객체당 10개 점 supervision인 $\mathcal{P}_{10}$의 총 시간은
 
 $$
 7 + 10 \cdot 0.9 = 16 \text{ seconds}
@@ -46,7 +46,7 @@ $$
 
 ### 3.4 Point-based data augmentation
 
-저자들은 point supervision에서는 supervision 자체가 sparse하므로, 긴 training schedule이나 큰 backbone에서 overfitting이 생길 수 있다고 봅니다. 이를 완화하기 위해 매우 단순한 augmentation을 제안합니다. 매 iteration마다 사용 가능한 point 전부를 쓰지 않고, 절반만 무작위로 subsample합니다. 예를 들어 $\mathcal{P}\_{10}$이면 매 iteration에 5개 점만 씁니다. 직관적으로는 sparse label set의 조합 다양성을 늘리는 효과입니다. 논문은 특히 high-capacity ResNeXt 계열에서 이 방법이 더 도움이 된다고 보고합니다.  
+저자들은 point supervision에서는 supervision 자체가 sparse하므로, 긴 training schedule이나 큰 backbone에서 overfitting이 생길 수 있다고 봅니다. 이를 완화하기 위해 매우 단순한 augmentation을 제안합니다. 매 iteration마다 사용 가능한 point 전부를 쓰지 않고, 절반만 무작위로 subsample합니다. 예를 들어 $\mathcal{P}_{10}$이면 매 iteration에 5개 점만 씁니다. 직관적으로는 sparse label set의 조합 다양성을 늘리는 효과입니다. 논문은 특히 high-capacity ResNeXt 계열에서 이 방법이 더 도움이 된다고 보고합니다.  
 
 ### 3.5 Why PointRend struggles and Implicit PointRend
 
@@ -67,15 +67,15 @@ Implicit PointRend의 장점은 두 가지입니다.
 
 ### 4.2 Number of points
 
-COCO ablation에서 가장 중요한 관찰은 **point 수가 늘수록 성능은 빠르게 증가하지만, 수십 개 이상에서는 diminishing returns가 나타난다**는 점입니다. 특히 Mask R-CNN + ResNet-50-FPN 기준으로 $\mathcal{P}\_{10}$만으로 **36.1 AP**를 달성합니다. 이는 full mask supervision의 **37.2 AP** 대비 약 **97%** 수준입니다. 또 20 points는 10 points보다 약 **0.3 AP**만 더 좋지만 annotation 시간은 2배 가까이 듭니다. 그래서 저자들은 $\mathcal{P}\_{10}$을 실용적인 sweet spot으로 채택합니다.
+COCO ablation에서 가장 중요한 관찰은 **point 수가 늘수록 성능은 빠르게 증가하지만, 수십 개 이상에서는 diminishing returns가 나타난다**는 점입니다. 특히 Mask R-CNN + ResNet-50-FPN 기준으로 $\mathcal{P}_{10}$만으로 **36.1 AP**를 달성합니다. 이는 full mask supervision의 **37.2 AP** 대비 약 **97%** 수준입니다. 또 20 points는 10 points보다 약 **0.3 AP**만 더 좋지만 annotation 시간은 2배 가까이 듭니다. 그래서 저자들은 $\mathcal{P}_{10}$을 실용적인 sweet spot으로 채택합니다.
 
 ### 4.3 Main results across datasets
 
-논문이 가장 강하게 내세우는 결과는 Mask R-CNN이 $\mathcal{P}\_{10}$만으로도 여러 데이터셋에서 full supervision 성능의 94%–98%를 달성한다는 점입니다. 구체적으로 본문 표에서는:
+논문이 가장 강하게 내세우는 결과는 Mask R-CNN이 $\mathcal{P}_{10}$만으로도 여러 데이터셋에서 full supervision 성능의 94%–98%를 달성한다는 점입니다. 구체적으로 본문 표에서는:
 
-* COCO val2017: full mask **37.2 AP**, $\mathcal{P}\_{10}$ **36.1 AP** → **97%**
-* PASCAL VOC val: full mask **66.3 AP50**, $\mathcal{P}\_{10}$ **64.2 AP50** → **97%**
-* Cityscapes val: full mask **32.7 AP**, $\mathcal{P}\_{10}$ **30.7 AP** → **94%**
+* COCO val2017: full mask **37.2 AP**, $\mathcal{P}_{10}$ **36.1 AP** → **97%**
+* PASCAL VOC val: full mask **66.3 AP50**, $\mathcal{P}_{10}$ **64.2 AP50** → **97%**
+* Cityscapes val: full mask **32.7 AP**, $\mathcal{P}_{10}$ **30.7 AP** → **94%**
 
 로 보고됩니다. 논문 abstract는 LVIS도 포함해 전체 범위를 94%–98%라고 요약합니다.  
 

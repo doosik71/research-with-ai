@@ -1,6 +1,6 @@
 # SOLO: A Simple Framework for Instance Segmentation
 
-이 논문은 instance segmentation을 기존의 **top-down(detect-then-segment)** 또는 **bottom-up(grouping/embedding)** 관점이 아니라, **위치(location) 기반의 직접 분할 문제**로 다시 정의합니다. 저자들은 이미지 안의 대부분의 인스턴스가 서로 **중심 위치가 다르거나 크기가 다르다**는 관찰에서 출발해, 각 객체를 “어느 grid cell에 속한 인스턴스인가”라는 **instance category**로 분류할 수 있다고 봅니다. 이를 바탕으로 제안한 **SOLO (Segmenting Objects by Locations)** 는 bounding box, anchor, pixel embedding grouping 없이도 입력 이미지를 바로 **semantic category + instance mask**로 매핑하는 단순한 fully convolutional framework입니다. 논문은 Vanilla SOLO, Decoupled SOLO, Dynamic SOLO(SOLOv2)라는 변형들을 제시하고, Matrix NMS까지 포함해 COCO에서 속도와 정확도 모두에서 강한 결과를 보고합니다.
+이 논문은 instance segmentation을 기존의 **top-down(detect-then-segment)** 또는 **bottom-up(grouping/embedding)** 관점이 아니라, **위치(location) 기반의 직접 분할 문제**로 다시 정의합니다. 저자들은 이미지 안의 대부분의 인스턴스가 서로 **중심 위치가 다르거나 크기가 다르다**는 관찰에서 출발해, 각 객체를 “어느 grid cell에 속한 인스턴스인가”라는 **instance category**로 분류할 수 있다고 봅니다. 이를 바탕으로 제안한 **SOLO (Segmenting Objects by Locations)**는 bounding box, anchor, pixel embedding grouping 없이도 입력 이미지를 바로 **semantic category + instance mask**로 매핑하는 단순한 fully convolutional framework입니다. 논문은 Vanilla SOLO, Decoupled SOLO, Dynamic SOLO(SOLOv2)라는 변형들을 제시하고, Matrix NMS까지 포함해 COCO에서 속도와 정확도 모두에서 강한 결과를 보고합니다.
 
 ## 1. Paper Overview
 

@@ -46,10 +46,10 @@ math: mathjax
 - 핵심은 task loss와 representation regularization을
 함께 최적화하는 것이다.
   $$
-  \mathcal{L}\_t
+  \mathcal{L}_t
   =
-  \frac{1}{|\mathcal{D}\_t|}
-  \sum_{(x,y)\in\mathcal{D}\_t}\ell(f_{\theta}(x), y)
+  \frac{1}{|\mathcal{D}_t|}
+  \sum_{(x,y)\in\mathcal{D}_t}\ell(f_{\theta}(x), y)
   - \lambda \lVert \nabla_{\theta} \phi(x) \rVert_2^2
   $$
 - 여기서:

@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 Transformer의 두 핵심 구성요소인 **FFN(Feed-Forward Network)** 과 **SAN(Self-Attention Network)** 을 “key-value memory” 관점에서 다시 해석하면서, 그 차이를 만들어내는 본질적 요인이 **activation function**, 즉 ReLU와 Softmax의 차이에 있다고 주장한다. 기존 연구는 FFN과 메모리 네트워크가 형식적으로 유사하다는 점은 밝혔지만, FFN은 ReLU를 쓰고 메모리/attention은 Softmax를 쓰기 때문에 두 모듈이 실제로 완전히 동일하다고 보기 어렵다는 문제의식에서 출발한다. 저자들은 이 차이를 이론·실험적으로 분석해, **Softmax에 추가적인 layer normalization을 붙이면 FFN과 key-value memory가 사실상 동등해질 수 있다**고 보인다. 또한 slot 수가 많아질수록 ReLU가 Softmax보다 더 유리하며, 이 성질을 self-attention까지 확장한 **ReLUFormer**를 제안해 긴 시퀀스 번역에서 Transformer보다 더 나은 성능을 보였다고 보고한다.
+이 논문은 Transformer의 두 핵심 구성요소인 **FFN(Feed-Forward Network)**과 **SAN(Self-Attention Network)**을 “key-value memory” 관점에서 다시 해석하면서, 그 차이를 만들어내는 본질적 요인이 **activation function**, 즉 ReLU와 Softmax의 차이에 있다고 주장한다. 기존 연구는 FFN과 메모리 네트워크가 형식적으로 유사하다는 점은 밝혔지만, FFN은 ReLU를 쓰고 메모리/attention은 Softmax를 쓰기 때문에 두 모듈이 실제로 완전히 동일하다고 보기 어렵다는 문제의식에서 출발한다. 저자들은 이 차이를 이론·실험적으로 분석해, **Softmax에 추가적인 layer normalization을 붙이면 FFN과 key-value memory가 사실상 동등해질 수 있다**고 보인다. 또한 slot 수가 많아질수록 ReLU가 Softmax보다 더 유리하며, 이 성질을 self-attention까지 확장한 **ReLUFormer**를 제안해 긴 시퀀스 번역에서 Transformer보다 더 나은 성능을 보였다고 보고한다.
 
 이 문제가 중요한 이유는, Transformer 내부의 FFN과 attention을 단순히 “다른 블록”으로 보는 대신 **모두 메모리 연산의 변형**으로 통합해 이해할 수 있게 해 주기 때문이다. 특히 긴 입력에서 Softmax attention이 왜 비효율적일 수 있는지, FFN의 ReLU가 왜 큰 hidden dimension에서 강한지, 그리고 activation choice가 모델의 표현력과 안정성에 어떤 영향을 미치는지 설명하려는 시도라는 점에서 의미가 있다.  
 
@@ -44,7 +44,7 @@ Softmax는 모든 element를 합이 1이 되도록 정규화하므로, 출력값
 
 ### 3.3 FFN과 key-value memory를 연결하는 방법
 
-Softmax가 성능이 떨어지는 주된 이유가 분산 축소와 과도한 집중화라면, 이를 보정하면 FFN과 key-value memory는 더 가까워질 수 있다. 저자들은 바로 이 지점에서 **Softmax 뒤에 layer normalization(LN)** 을 추가한다. 그러면 작은 분산 문제와 과도한 집중화가 상당 부분 완화되고, Softmax 기반 FFN이 ReLU 기반 FFN과 비슷한 성능을 낼 수 있다고 주장한다. 즉, 논문의 중요한 결론 하나는 다음과 같다.
+Softmax가 성능이 떨어지는 주된 이유가 분산 축소와 과도한 집중화라면, 이를 보정하면 FFN과 key-value memory는 더 가까워질 수 있다. 저자들은 바로 이 지점에서 **Softmax 뒤에 layer normalization(LN)**을 추가한다. 그러면 작은 분산 문제와 과도한 집중화가 상당 부분 완화되고, Softmax 기반 FFN이 ReLU 기반 FFN과 비슷한 성능을 낼 수 있다고 주장한다. 즉, 논문의 중요한 결론 하나는 다음과 같다.
 
 $$
 H=\mathrm{LN}(\mathrm{Softmax}(XK^T)V)

@@ -14,7 +14,7 @@
 
 이 둘을 가능하게 만드는 공통 기반은 **nonparametric bootstrap**이다. bootstrap을 이용하면 classifier 내부를 수정하지 않고도, 다양한 estimator에 대해 uncertainty나 expected benefit을 근사할 수 있다. 저자들은 이것이 세 가지 장점을 준다고 말한다. 첫째, 많은 분류기들에 폭넓게 적용 가능해 **generality**를 확보한다. 둘째, classifier를 완전한 black box처럼 다룰 수 있다. 셋째, bootstrap 계산은 서로 독립적이어서 **병렬화가 쉽다**. 즉, bootstrap은 이 논문에서 단순 통계 도구가 아니라, 시스템 요구사항을 만족시키는 핵심 메커니즘이다.
 
-또 하나의 중요한 구성요소는 **PBA (Partitioning Based Allocation)** 다. crowd label은 노이즈가 있기 때문에, 보통 같은 질문을 여러 worker에게 중복으로 묻는다. 그런데 모든 항목에 같은 redundancy를 주면 비효율적이다. PBA는 unlabeled items를 crowd 입장에서의 난이도에 따라 partition한 뒤, 각 partition마다 다른 redundancy를 할당한다. 즉, 어려운 항목에는 더 많은 중복 질문을, 쉬운 항목에는 적은 중복을 배정해 예산을 더 효율적으로 쓴다.
+또 하나의 중요한 구성요소는 **PBA (Partitioning Based Allocation)**다. crowd label은 노이즈가 있기 때문에, 보통 같은 질문을 여러 worker에게 중복으로 묻는다. 그런데 모든 항목에 같은 redundancy를 주면 비효율적이다. PBA는 unlabeled items를 crowd 입장에서의 난이도에 따라 partition한 뒤, 각 partition마다 다른 redundancy를 할당한다. 즉, 어려운 항목에는 더 많은 중복 질문을, 쉬운 항목에는 적은 중복을 배정해 예산을 더 효율적으로 쓴다.
 
 ## 3. Detailed Method Explanation
 

@@ -28,7 +28,7 @@ $$
 \mathrm{GELU}(x)=x\Phi(x)
 $$
 
-여기서 $\Phi(x)$ 는 표준 정규분포의 누적분포함수(CDF)다. 이 식의 직관은 입력을 ReLU처럼 hard-threshold로 자르지 않고, **입력의 크기에 따라 부드럽게 가중(weighting)** 한다는 것이다. 큰 양수는 거의 그대로 통과하고, 큰 음수는 강하게 억제되며, 0 근처에서는 연속적으로 변화한다.
+여기서 $\Phi(x)$ 는 표준 정규분포의 누적분포함수(CDF)다. 이 식의 직관은 입력을 ReLU처럼 hard-threshold로 자르지 않고, **입력의 크기에 따라 부드럽게 가중(weighting)**한다는 것이다. 큰 양수는 거의 그대로 통과하고, 큰 음수는 강하게 억제되며, 0 근처에서는 연속적으로 변화한다.
 
 이 논문은 바로 이 GELU의 성질을 deep learning 관점에서 다시 해석한다. 특히 smoothness와 differentiability는 ReLU와의 가장 직접적인 차이점이다. ReLU는 구현이 단순하고 계산 효율이 좋지만 0에서 미분 불가능하고, 음수 영역 전체를 일괄적으로 죽인다. 반면 GELU는 훨씬 부드러운 transition을 제공하므로, gradient flow와 optimization stability 측면에서 장점이 있을 수 있다. 초록과 서론에서 강조되는 이 논문의 출발점도 바로 여기에 있다.  
 

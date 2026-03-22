@@ -1,6 +1,6 @@
 # Batch Active Learning via Coordinated Matching
 
-이 논문은 **batch active learning** 에서 가장 중요한 난제인 “한 번에 여러 개의 샘플을 선택할 때, informativeness와 diversity를 어떻게 동시에 만족시킬 것인가”를 다룬다. 저자들은 기존 sequential active learning 정책이 대체로 더 example-efficient하다는 점에 주목하고, batch 방법을 처음부터 새로 설계하기보다 **좋은 sequential policy가 $k$ 단계 동안 보일 행동을 모사하는 batch 선택**을 만들자는 관점을 제안한다. 이를 위해 Monte Carlo simulation으로 sequential policy의 $k$-step 선택 분포를 추정하고, 그 분포를 가장 잘 근사하는 $k$개 샘플을 고르는 문제를 **Bounded Coordinated Matching (BCM)** 으로 정식화한다. BCM은 NP-hard이지만, 논문은 이를 위해 **supermodular minimization 기반 greedy 알고리즘**을 제안하고 근사 보장을 제공한다. 실험적으로도 8개 UCI 이진 분류 데이터셋에서 기존 batch active learning baseline보다 일관되게 강한 성능을 보였다고 보고한다.
+이 논문은 **batch active learning** 에서 가장 중요한 난제인 “한 번에 여러 개의 샘플을 선택할 때, informativeness와 diversity를 어떻게 동시에 만족시킬 것인가”를 다룬다. 저자들은 기존 sequential active learning 정책이 대체로 더 example-efficient하다는 점에 주목하고, batch 방법을 처음부터 새로 설계하기보다 **좋은 sequential policy가 $k$ 단계 동안 보일 행동을 모사하는 batch 선택**을 만들자는 관점을 제안한다. 이를 위해 Monte Carlo simulation으로 sequential policy의 $k$-step 선택 분포를 추정하고, 그 분포를 가장 잘 근사하는 $k$개 샘플을 고르는 문제를 **Bounded Coordinated Matching (BCM)**으로 정식화한다. BCM은 NP-hard이지만, 논문은 이를 위해 **supermodular minimization 기반 greedy 알고리즘**을 제안하고 근사 보장을 제공한다. 실험적으로도 8개 UCI 이진 분류 데이터셋에서 기존 batch active learning baseline보다 일관되게 강한 성능을 보였다고 보고한다.
 
 ## 1. Paper Overview
 
@@ -12,7 +12,7 @@
 
 논문의 핵심 아이디어는 **simulation matching** 이다. 구체적으로는, 어떤 sequential active learning 정책 $\pi$ 가 현재 labeled set $D_l$ 와 unlabeled pool $D_u$ 에서 앞으로 $k$번 연속 선택을 한다고 생각하자. 이때 매 단계에서 아직 관측되지 않은 라벨이 이후 선택에 영향을 미치므로, 실제로는 $\pi$ 가 만들어 내는 $k$개 샘플 집합은 확률변수다. 논문은 이를 $S_\pi^k$ 로 놓고, 이 분포를 직접 최적화하기보다 Monte Carlo로 샘플링한 뒤, 그 샘플 집합 분포를 잘 근사하는 batch를 고른다.
 
-여기서 novelty는 단순 시뮬레이션 자체가 아니라, “잘 근사한다”를 **coordinated matching** 이라는 조합 최적화 문제로 정식화했다는 데 있다. 저자들은 일반적인 i.i.d. mixture model이 아니라, **각 mixture component가 정확히 하나의 점을 생성하도록 강제하는 $k$-Matching Mixture Model (k-MMM)** 을 도입한다. 이 구조는 batch 내부 샘플들 간의 의존성을 부분적으로 반영하여, 동일한 component에서 중복 샘플이 몰리는 현상을 줄여 준다. 결과적으로 기존의 uncertainty-only selection보다 batch diversity를 자연스럽게 반영할 수 있다.
+여기서 novelty는 단순 시뮬레이션 자체가 아니라, “잘 근사한다”를 **coordinated matching** 이라는 조합 최적화 문제로 정식화했다는 데 있다. 저자들은 일반적인 i.i.d. mixture model이 아니라, **각 mixture component가 정확히 하나의 점을 생성하도록 강제하는 $k$-Matching Mixture Model (k-MMM)**을 도입한다. 이 구조는 batch 내부 샘플들 간의 의존성을 부분적으로 반영하여, 동일한 component에서 중복 샘플이 몰리는 현상을 줄여 준다. 결과적으로 기존의 uncertainty-only selection보다 batch diversity를 자연스럽게 반영할 수 있다.
 
 즉 이 논문의 핵심 기여는 다음 세 줄로 요약된다.
 
@@ -61,7 +61,7 @@ $$
 \arg\min_{\mu\in U^k}\sum_{i=1}^N \min_{m\in M}\sum_{j=1}^k d_\Sigma(x_{ij},\mu_{m(j)})
 $$
 
-이 식이 바로 **Bounded Coordinated Matching (BCM)** 이다. 직관적으로는, 각 simulation sample set $S_i$ 와 candidate batch $\mu$ 사이의 minimum-cost matching을 계산하고, 그 총합이 가장 작은 $\mu$ 를 찾는 문제다. 결국 batch $\mu$ 가 simulation trajectories 전체를 얼마나 잘 대표하는지를 matching cost로 측정하는 셈이다.
+이 식이 바로 **Bounded Coordinated Matching (BCM)**이다. 직관적으로는, 각 simulation sample set $S_i$ 와 candidate batch $\mu$ 사이의 minimum-cost matching을 계산하고, 그 총합이 가장 작은 $\mu$ 를 찾는 문제다. 결국 batch $\mu$ 가 simulation trajectories 전체를 얼마나 잘 대표하는지를 matching cost로 측정하는 셈이다.
 
 ### 3.4 BCM의 성질과 greedy 최적화
 
@@ -141,6 +141,6 @@ $$
 
 ## 6. Conclusion
 
-이 논문은 batch active learning에서 redundancy 문제를 해결하기 위해, 좋은 sequential policy의 $k$-step 행동을 Monte Carlo simulation으로 추정하고 이를 가장 잘 근사하는 batch를 선택하는 **simulation matching** 접근을 제안했다. 이를 위해 $k$-Matching Mixture Model과 **Bounded Coordinated Matching (BCM)** 이라는 새 조합 최적화 문제를 도입했고, BCM이 NP-hard임을 보이면서도 supermodular minimization 기반 greedy 근사 알고리즘과 가속화 기법을 제공했다. 실험에서는 8개 UCI 데이터셋에서 Fisher Information, Maximum Uncertain, Random보다 일관되게 우수한 batch 성능을 보였고, 많은 경우 sequential policy에 근접하는 성능까지 달성했다.
+이 논문은 batch active learning에서 redundancy 문제를 해결하기 위해, 좋은 sequential policy의 $k$-step 행동을 Monte Carlo simulation으로 추정하고 이를 가장 잘 근사하는 batch를 선택하는 **simulation matching** 접근을 제안했다. 이를 위해 $k$-Matching Mixture Model과 **Bounded Coordinated Matching (BCM)**이라는 새 조합 최적화 문제를 도입했고, BCM이 NP-hard임을 보이면서도 supermodular minimization 기반 greedy 근사 알고리즘과 가속화 기법을 제공했다. 실험에서는 8개 UCI 데이터셋에서 Fisher Information, Maximum Uncertain, Random보다 일관되게 우수한 batch 성능을 보였고, 많은 경우 sequential policy에 근접하는 성능까지 달성했다.
 
 실무적 의미도 분명하다. 이 논문은 batch active learning에서 흔히 말하는 “uncertainty + diversity”를 직접 설계하는 대신, **좋은 sequential rule을 얼마나 잘 imitation할 수 있는가**를 중심 문제로 삼는다. 그래서 이 논문은 단순 성능 개선 논문이 아니라, batch active learning을 바라보는 또 하나의 기본 프레임을 제시한 논문으로 볼 수 있다.

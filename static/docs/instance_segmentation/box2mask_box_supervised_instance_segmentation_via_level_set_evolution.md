@@ -1,6 +1,6 @@
 # Box2Mask: Box-supervised Instance Segmentation via Level-set Evolution
 
-이 논문은 **bounding box annotation만으로도 fully supervised instance segmentation에 가까운 mask 품질을 낼 수 있는가**라는 문제를 다룬다. 기존 box-supervised instance segmentation은 대체로 pseudo mask 생성이나 pixel-pair affinity modeling에 의존했는데, 저자들은 이런 방식이 복잡한 배경이나 유사한 외관의 인접 객체 때문에 쉽게 noise에 오염된다고 본다. 이를 해결하기 위해 이 논문은 고전적인 **level-set evolution**, 특히 **Chan-Vese energy**를 딥러닝 프레임워크 안에 통합한 **Box2Mask**를 제안한다. 핵심은 네트워크가 직접 정답 mask를 강하게 맞추는 대신, 각 인스턴스의 mask map을 level-set function으로 보고 **bounding box 내부에서 energy minimization을 반복하며 경계를 점진적으로 진화시키도록 학습**하는 것이다. 또한 이전 conference 버전에서 더 확장되어, CNN 기반 프레임워크뿐 아니라 **transformer-based framework**, **box-level bipartite matching**, 그리고 **local consistency module (LCM)** 까지 포함한다. 논문은 COCO, Pascal VOC, iSAID, LiTS, scene text 데이터셋에서 SOTA를 보고하며, 특히 Swin-L backbone에서는 COCO에서 **42.4% AP**를 달성해 fully supervised 방법과도 경쟁 가능하다고 주장한다.  
+이 논문은 **bounding box annotation만으로도 fully supervised instance segmentation에 가까운 mask 품질을 낼 수 있는가**라는 문제를 다룬다. 기존 box-supervised instance segmentation은 대체로 pseudo mask 생성이나 pixel-pair affinity modeling에 의존했는데, 저자들은 이런 방식이 복잡한 배경이나 유사한 외관의 인접 객체 때문에 쉽게 noise에 오염된다고 본다. 이를 해결하기 위해 이 논문은 고전적인 **level-set evolution**, 특히 **Chan-Vese energy**를 딥러닝 프레임워크 안에 통합한 **Box2Mask**를 제안한다. 핵심은 네트워크가 직접 정답 mask를 강하게 맞추는 대신, 각 인스턴스의 mask map을 level-set function으로 보고 **bounding box 내부에서 energy minimization을 반복하며 경계를 점진적으로 진화시키도록 학습**하는 것이다. 또한 이전 conference 버전에서 더 확장되어, CNN 기반 프레임워크뿐 아니라 **transformer-based framework**, **box-level bipartite matching**, 그리고 **local consistency module (LCM)**까지 포함한다. 논문은 COCO, Pascal VOC, iSAID, LiTS, scene text 데이터셋에서 SOTA를 보고하며, 특히 Swin-L backbone에서는 COCO에서 **42.4% AP**를 달성해 fully supervised 방법과도 경쟁 가능하다고 주장한다.  
 
 ## 1. Paper Overview
 
@@ -16,7 +16,7 @@
 
 저자들은 고전적인 **Chan-Vese level-set model**을 딥네트워크 안에 녹여, 네트워크가 각 인스턴스에 대해 **연속적인 level-set function의 시퀀스**를 학습하도록 만든다. 여기서 중요한 점은 level-set evolution이 단순 후처리가 아니라, **fully differentiable energy function**을 통해 end-to-end 학습 안에 포함된다는 것이다. 즉 Box2Mask는 weak supervision에서 흔한 “좋은 pseudo mask를 만든 뒤 그걸 정답처럼 쓰는” 접근과 다르다. 대신 **경계가 어떻게 점진적으로 수렴해야 하는지 자체를 학습**한다.
 
-또 하나의 핵심은 **입력 이미지의 low-level 정보와 네트워크의 high-level deep feature를 함께 사용**한다는 점이다. 논문은 기존 level-set 기반 딥러닝 방법들이 대부분 fully supervised였고, 심지어 일부는 원본 이미지의 low-level feature를 충분히 활용하지 못했다고 본다. Box2Mask는 원본 이미지와 deep feature를 함께 energy term에 반영해 더 robust한 curve evolution을 유도한다. 여기에 neighborhood 안에서 local affinity consistency를 강화하는 **LCM(Local Consistency Module)** 까지 넣어, region intensity inhomogeneity 문제도 완화한다.
+또 하나의 핵심은 **입력 이미지의 low-level 정보와 네트워크의 high-level deep feature를 함께 사용**한다는 점이다. 논문은 기존 level-set 기반 딥러닝 방법들이 대부분 fully supervised였고, 심지어 일부는 원본 이미지의 low-level feature를 충분히 활용하지 못했다고 본다. Box2Mask는 원본 이미지와 deep feature를 함께 energy term에 반영해 더 robust한 curve evolution을 유도한다. 여기에 neighborhood 안에서 local affinity consistency를 강화하는 **LCM(Local Consistency Module)**까지 넣어, region intensity inhomogeneity 문제도 완화한다.
 
 ## 3. Detailed Method Explanation
 

@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 당시 언어모델링의 주류였던 RNN/LSTM 중심 접근에 정면으로 도전한다. 저자들은 language modeling의 성공이 흔히 “무한 문맥(unbounded context)”을 다룰 수 있는 recurrent structure 덕분이라고 여겨졌지만, 실제로는 **유한 문맥(finite context)** 만으로도 충분히 강한 성능을 낼 수 있으며, 그 경우 **stacked temporal convolution** 으로 더 효율적이고 병렬화 가능한 모델을 만들 수 있다고 주장한다. 이를 위해 저자들은 recurrent connection 대신 **gated convolutional network (GCNN)** 를 제안하고, 특히 간단한 gating mechanism인 **GLU (Gated Linear Unit)** 가 기존 gated tanh 계열보다 더 잘 작동함을 보인다. 결과적으로 이 모델은 **WikiText-103에서 당시 SOTA**, **Google Billion Word에서 강력한 경쟁 성능**, 그리고 **recurrent baseline 대비 문장 scoring latency를 한 자릿수 이상 감소**시키는 효율을 보고한다.  
+이 논문은 당시 언어모델링의 주류였던 RNN/LSTM 중심 접근에 정면으로 도전한다. 저자들은 language modeling의 성공이 흔히 “무한 문맥(unbounded context)”을 다룰 수 있는 recurrent structure 덕분이라고 여겨졌지만, 실제로는 **유한 문맥(finite context)**만으로도 충분히 강한 성능을 낼 수 있으며, 그 경우 **stacked temporal convolution** 으로 더 효율적이고 병렬화 가능한 모델을 만들 수 있다고 주장한다. 이를 위해 저자들은 recurrent connection 대신 **gated convolutional network (GCNN)**를 제안하고, 특히 간단한 gating mechanism인 **GLU (Gated Linear Unit)**가 기존 gated tanh 계열보다 더 잘 작동함을 보인다. 결과적으로 이 모델은 **WikiText-103에서 당시 SOTA**, **Google Billion Word에서 강력한 경쟁 성능**, 그리고 **recurrent baseline 대비 문장 scoring latency를 한 자릿수 이상 감소**시키는 효율을 보고한다.  
 
 이 문제가 중요한 이유는 언어모델링이 단순 benchmark가 아니라, 음성인식과 기계번역 같은 핵심 NLP 시스템의 기반이기 때문이다. 저자들이 던지는 질문은 매우 본질적이다. “정말로 recurrence가 언어모델링에 필수적인가?” 이 논문은 그 답을 “반드시 그렇지는 않다”로 제시한다. 즉, 충분히 깊은 convolution과 적절한 gating을 쓰면 long-range dependency가 있는 언어모델링에서도 recurrent model과 경쟁하거나 능가할 수 있다는 것이다. 특히 modern hardware에서 병렬화가 중요한 상황을 생각하면, 이 주장은 실용적 의미가 매우 크다.  
 

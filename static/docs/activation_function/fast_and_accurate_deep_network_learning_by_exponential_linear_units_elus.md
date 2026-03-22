@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 deep neural network의 학습 속도와 일반화 성능을 동시에 개선할 수 있는 새로운 activation function인 **ELU (Exponential Linear Unit)** 를 제안한다. 저자들의 문제의식은 명확하다. ReLU는 양수 영역에서 gradient가 1이어서 vanishing gradient를 완화하는 장점이 있지만, 출력이 항상 비음수이기 때문에 activation mean이 0보다 커지고, 이것이 다음 층에 **bias shift** 를 유발해 학습을 느리게 만들 수 있다. 저자들은 이 문제를 줄이기 위해, 양수 구간에서는 ReLU처럼 선형이고 음수 구간에서는 지수적으로 포화되는 ELU를 제안한다. ELU는 평균 activation을 0에 더 가깝게 밀어 주고, 그 결과 표준 gradient가 natural gradient에 더 가까워져 더 빠른 학습이 가능하다고 주장한다.  
+이 논문은 deep neural network의 학습 속도와 일반화 성능을 동시에 개선할 수 있는 새로운 activation function인 **ELU (Exponential Linear Unit)**를 제안한다. 저자들의 문제의식은 명확하다. ReLU는 양수 영역에서 gradient가 1이어서 vanishing gradient를 완화하는 장점이 있지만, 출력이 항상 비음수이기 때문에 activation mean이 0보다 커지고, 이것이 다음 층에 **bias shift** 를 유발해 학습을 느리게 만들 수 있다. 저자들은 이 문제를 줄이기 위해, 양수 구간에서는 ReLU처럼 선형이고 음수 구간에서는 지수적으로 포화되는 ELU를 제안한다. ELU는 평균 activation을 0에 더 가깝게 밀어 주고, 그 결과 표준 gradient가 natural gradient에 더 가까워져 더 빠른 학습이 가능하다고 주장한다.  
 
 이 논문이 중요한 이유는 단순히 “새 activation 하나”를 제안한 것이 아니라, **왜 activation mean을 0 근처로 가져가는 것이 학습을 빠르게 하는가**를 bias shift와 natural gradient 관점에서 이론적으로 설명하려 했기 때문이다. 또한 batch normalization이 막 주목받던 시기에, ELU가 activation 자체의 설계만으로도 비슷한 효과 일부를 더 낮은 계산 복잡도로 제공할 수 있다고 주장했다는 점에서 의미가 크다. 실험적으로도 ELU는 CIFAR-100에서 ReLU+BN을 능가하고, CIFAR-10 top 성능권과 ImageNet single-model single-crop 10% 미만 오류율을 보고한다.
 
@@ -109,7 +109,7 @@ ImageNet에서는 15-layer CNN을 설계해 ELU와 ReLU를 비교한다. 논문 
 
 ## 6. Conclusion
 
-이 논문은 deep network learning을 빠르고 정확하게 만들기 위한 activation function으로 **ELU (Exponential Linear Unit)** 를 제안했다. ELU는 양수 구간에서는 ReLU처럼 작동해 vanishing gradient를 완화하고, 음수 구간에서는 지수적으로 포화되는 음수 출력을 제공해 activation mean을 0 근처로 이동시키고 bias shift를 줄인다. 논문은 이를 natural gradient 관점에서 해석하며, ELU가 표준 gradient를 더 좋은 update 방향으로 유도한다고 주장한다.
+이 논문은 deep network learning을 빠르고 정확하게 만들기 위한 activation function으로 **ELU (Exponential Linear Unit)**를 제안했다. ELU는 양수 구간에서는 ReLU처럼 작동해 vanishing gradient를 완화하고, 음수 구간에서는 지수적으로 포화되는 음수 출력을 제공해 activation mean을 0 근처로 이동시키고 bias shift를 줄인다. 논문은 이를 natural gradient 관점에서 해석하며, ELU가 표준 gradient를 더 좋은 update 방향으로 유도한다고 주장한다.
 
 실험적으로는 MNIST에서 더 빠른 learning behavior와 낮은 reconstruction error를, CIFAR-100에서는 ReLU+BN보다 우수한 성능을, CIFAR-10에서는 top 성능권 결과를, ImageNet에서는 single-model single-crop 10% 미만 classification error를 보고했다. 특히 **BN이 ReLU/LReLU에는 도움이 되지만 ELU에는 거의 추가 이득이 없었다**는 결과는 이 논문의 핵심 메시지를 잘 뒷받침한다.
 

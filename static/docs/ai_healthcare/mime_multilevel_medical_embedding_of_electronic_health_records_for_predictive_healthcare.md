@@ -12,9 +12,9 @@
 
 MiME의 중심 아이디어는 매우 명확합니다.
 
-첫째, EHR를 단순한 방문 시퀀스가 아니라 **다층 구조(multilevel structure)** 로 본다는 점입니다. 환자 기록은 방문들의 시퀀스이고, 각 방문 안에는 여러 진단 객체가 있으며, 각 진단 객체는 다시 대응되는 치료 코드 집합을 가집니다. 즉, “진단과 처치가 어떤 국소 구조를 이루는가”를 representation의 기본 단위로 삼습니다.
+첫째, EHR를 단순한 방문 시퀀스가 아니라 **다층 구조(multilevel structure)**로 본다는 점입니다. 환자 기록은 방문들의 시퀀스이고, 각 방문 안에는 여러 진단 객체가 있으며, 각 진단 객체는 다시 대응되는 치료 코드 집합을 가집니다. 즉, “진단과 처치가 어떤 국소 구조를 이루는가”를 representation의 기본 단위로 삼습니다.
 
-둘째, 이 구조를 표현으로만 쓰는 것이 아니라, **보조 예측 과제(auxiliary prediction tasks)** 와 함께 학습한다는 점입니다. 저자들은 진단 객체 표현 $\mathbf{o}^{(t)}\_i$ 로부터 해당 diagnosis code 자체와 연결된 treatment code들을 예측하게 만듭니다. 이 auxiliary task는 외부 라벨이 필요 없고, EHR 안에 내재된 구조를 그대로 supervision으로 활용합니다. 즉, main task만으로 representation을 간접적으로 배우는 것이 아니라, “이 진단 객체 표현은 적어도 자기 diagnosis와 treatment를 설명할 수 있어야 한다”는 구조적 제약을 넣습니다.  
+둘째, 이 구조를 표현으로만 쓰는 것이 아니라, **보조 예측 과제(auxiliary prediction tasks)**와 함께 학습한다는 점입니다. 저자들은 진단 객체 표현 $\mathbf{o}^{(t)}_i$ 로부터 해당 diagnosis code 자체와 연결된 treatment code들을 예측하게 만듭니다. 이 auxiliary task는 외부 라벨이 필요 없고, EHR 안에 내재된 구조를 그대로 supervision으로 활용합니다. 즉, main task만으로 representation을 간접적으로 배우는 것이 아니라, “이 진단 객체 표현은 적어도 자기 diagnosis와 treatment를 설명할 수 있어야 한다”는 구조적 제약을 넣습니다.  
 
 셋째, novelty는 “의료 ontology를 외부에서 주입하는 대신, EHR 내부의 diagnosis-treatment coupling을 구조적으로 모델링한다”는 데 있습니다. 기존 방법 중 Med2Vec은 co-occurrence 중심, GRAM은 external knowledge 중심인데, MiME는 **inherent EHR structure** 자체를 supervision과 representation 양쪽에 모두 사용합니다.  
 
@@ -22,7 +22,7 @@ MiME의 중심 아이디어는 매우 명확합니다.
 
 ### 3.1 데이터 표현 단위
 
-논문은 한 환자의 $t$번째 방문을 $\mathcal{V}^{(t)}$ 로 두고, 그 안에 여러 diagnosis object $\mathcal{O}^{(t)}\_i$ 가 있다고 정의합니다. 각 diagnosis object는 하나의 diagnosis code $d_i^{(t)}$ 와, 그 진단에 연결된 treatment code 집합 $\mathcal{M}\_i^{(t)}$ 를 가집니다. 치료 코드는 medication과 procedure를 포함합니다. 방문 표현은 $\mathbf{v}^{(t)}$, 진단 객체 표현은 $\mathbf{o}^{(t)}\_i$ 로 표기됩니다. 또한 auxiliary prediction은 $p(d_i^{(t)}|\mathbf{o}^{(t)}\_i)$ 및 $p(m*{i,j}^{(t)}|\mathbf{o}^{(t)}\_i)$ 형태로 정의됩니다.
+논문은 한 환자의 $t$번째 방문을 $\mathcal{V}^{(t)}$ 로 두고, 그 안에 여러 diagnosis object $\mathcal{O}^{(t)}_i$ 가 있다고 정의합니다. 각 diagnosis object는 하나의 diagnosis code $d_i^{(t)}$ 와, 그 진단에 연결된 treatment code 집합 $\mathcal{M}_i^{(t)}$ 를 가집니다. 치료 코드는 medication과 procedure를 포함합니다. 방문 표현은 $\mathbf{v}^{(t)}$, 진단 객체 표현은 $\mathbf{o}^{(t)}_i$ 로 표기됩니다. 또한 auxiliary prediction은 $p(d_i^{(t)}|\mathbf{o}^{(t)}_i)$ 및 $p(m*{i,j}^{(t)}|\mathbf{o}^{(t)}_i)$ 형태로 정의됩니다.
 
 이 정의 자체가 중요합니다. MiME는 “방문 안의 코드들”을 곧바로 합치는 대신, **진단 객체라는 중간 표현 단위** 를 둠으로써 diagnosis-specific treatment relation을 보존합니다.
 
@@ -37,10 +37,10 @@ MiME의 중심 아이디어는 매우 명확합니다.
 논문에서 비교적 선명하게 드러나는 수식은 interaction 함수입니다.
 
 $$
-g(d_i, m_{i,j}) = \sigma(\mathbf{W}\_m r(d_i)) \odot r(m*{i,j})
+g(d_i, m_{i,j}) = \sigma(\mathbf{W}_m r(d_i)) \odot r(m*{i,j})
 $$
 
-여기서 $r(d_i)$ 와 $r(m_{i,j})$ 는 각각 diagnosis code와 treatment code의 embedding이고, $\sigma(\mathbf{W}\_m r(d_i))$ 는 diagnosis에 의해 조절되는 gate처럼 작동하며, treatment embedding과 element-wise product $\odot$ 로 결합됩니다. 저자들은 이 formulation이 bilinear pooling 계열 아이디어에서 영감을 받았다고 설명합니다.
+여기서 $r(d_i)$ 와 $r(m_{i,j})$ 는 각각 diagnosis code와 treatment code의 embedding이고, $\sigma(\mathbf{W}_m r(d_i))$ 는 diagnosis에 의해 조절되는 gate처럼 작동하며, treatment embedding과 element-wise product $\odot$ 로 결합됩니다. 저자들은 이 formulation이 bilinear pooling 계열 아이디어에서 영감을 받았다고 설명합니다.
 
 직관적으로 보면, 같은 treatment라도 어떤 diagnosis와 결합되느냐에 따라 의미가 달라집니다. 예를 들어 단순 co-occurrence만 쓰면 “acetaminophen이 fever와 같이 나왔다”와 “acetaminophen이 다른 diagnosis와 같이 나왔다”를 충분히 구분하지 못할 수 있는데, MiME는 diagnosis-conditioned gating을 통해 이 상호작용을 더 세밀하게 모델링합니다.
 
@@ -52,7 +52,7 @@ $$
 
 ### 3.5 Auxiliary task의 기능
 
-MiME의 중요한 축은 auxiliary task입니다. 진단 객체 표현 $\mathbf{o}^{(t)}\_i$ 로부터 해당 diagnosis code와 각 treatment code를 예측하게 함으로써, 표현이 main prediction task에만 편향되지 않도록 만듭니다. 저자들은 이를 통해 learned visit representation이 “target task에만 특화된 벡터”가 아니라, 보다 general-purpose한 구조적 지식을 담는다고 주장합니다.  
+MiME의 중요한 축은 auxiliary task입니다. 진단 객체 표현 $\mathbf{o}^{(t)}_i$ 로부터 해당 diagnosis code와 각 treatment code를 예측하게 함으로써, 표현이 main prediction task에만 편향되지 않도록 만듭니다. 저자들은 이를 통해 learned visit representation이 “target task에만 특화된 벡터”가 아니라, 보다 general-purpose한 구조적 지식을 담는다고 주장합니다.  
 
 이 설계는 의료 데이터처럼 label scarcity가 심한 환경에서 특히 의미가 있습니다. 본 과제 라벨이 부족해도, 방문 내부의 진단-처치 관계는 거의 항상 존재하기 때문에 self-supervision에 가까운 형태로 representation 품질을 높일 수 있습니다.
 

@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 activation function 설계를 사람이 손으로 만들기보다, **자동 탐색(search)** 으로 찾을 수 있는지에 대한 대표적인 연구다. 저자들은 ReLU가 여전히 가장 널리 쓰이지만, 대체 activation들의 성능 향상은 모델과 데이터셋에 따라 들쭉날쭉해서 널리 채택되지 못했다고 본다. 그래서 activation function 자체를 탐색 대상에 넣고, **작은 search space에서는 exhaustive search**, 큰 search space에서는 **RNN controller + reinforcement learning** 을 사용해 새로운 scalar activation들을 찾는다. 그 결과 가장 강력한 함수로 **Swish**, 즉 $f(x)=x\cdot \sigma(\beta x)$ 를 발견했고, 이 함수가 이미지 분류와 기계번역 등 여러 어려운 과제에서 ReLU를 일관되게 능가하거나 최소한 동등 이상이라고 주장한다. 특히 ImageNet에서는 Mobile NASNet-A에서 top-1 정확도 **0.9%**, Inception-ResNet-v2에서 **0.6%** 향상을 보고한다.
+이 논문은 activation function 설계를 사람이 손으로 만들기보다, **자동 탐색(search)**으로 찾을 수 있는지에 대한 대표적인 연구다. 저자들은 ReLU가 여전히 가장 널리 쓰이지만, 대체 activation들의 성능 향상은 모델과 데이터셋에 따라 들쭉날쭉해서 널리 채택되지 못했다고 본다. 그래서 activation function 자체를 탐색 대상에 넣고, **작은 search space에서는 exhaustive search**, 큰 search space에서는 **RNN controller + reinforcement learning** 을 사용해 새로운 scalar activation들을 찾는다. 그 결과 가장 강력한 함수로 **Swish**, 즉 $f(x)=x\cdot \sigma(\beta x)$ 를 발견했고, 이 함수가 이미지 분류와 기계번역 등 여러 어려운 과제에서 ReLU를 일관되게 능가하거나 최소한 동등 이상이라고 주장한다. 특히 ImageNet에서는 Mobile NASNet-A에서 top-1 정확도 **0.9%**, Inception-ResNet-v2에서 **0.6%** 향상을 보고한다.
 
 이 문제가 중요한 이유는 activation function이 단순한 부품이 아니라, **학습 동역학과 최종 성능에 직접적인 영향**을 주기 때문이다. 그런데 기존 activation들은 대부분 사람이 “좋을 것 같은 성질”을 기준으로 손으로 설계했다. 이 논문은 그 과정을 자동화해서, neural architecture search가 convolution cell을 찾듯이 **activation도 search로 발견할 수 있다**는 것을 보여 준다. 이 점 때문에 이 논문은 단순히 Swish를 제안한 논문이 아니라, activation 설계 자체를 **search problem** 으로 바꿔 놓은 논문으로 볼 수 있다.  
 
@@ -18,7 +18,7 @@ $$
 f(x)=x\cdot \sigma(\beta x)
 $$
 
-여기서 $\beta$ 는 상수일 수도 있고 학습 가능한 파라미터일 수도 있다. 특히 $\beta=1$ 인 경우를 저자들은 **Swish-1** 이라 부른다. 이 함수의 직관은 ReLU처럼 hard threshold로 자르는 대신, 입력을 sigmoid gate로 **부드럽게 조절(soft gating)** 하는 것이다. 즉, 큰 양수는 거의 그대로 통과하고, 큰 음수는 강하게 억제되지만, 0 근처에서는 매끄럽게 변화한다. 이 점이 논문이 발견한 가장 중요한 설계 원리다.  
+여기서 $\beta$ 는 상수일 수도 있고 학습 가능한 파라미터일 수도 있다. 특히 $\beta=1$ 인 경우를 저자들은 **Swish-1** 이라 부른다. 이 함수의 직관은 ReLU처럼 hard threshold로 자르는 대신, 입력을 sigmoid gate로 **부드럽게 조절(soft gating)**하는 것이다. 즉, 큰 양수는 거의 그대로 통과하고, 큰 음수는 강하게 억제되지만, 0 근처에서는 매끄럽게 변화한다. 이 점이 논문이 발견한 가장 중요한 설계 원리다.  
 
 ## 3. Detailed Method Explanation
 

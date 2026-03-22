@@ -34,10 +34,10 @@
 논문이 요약한 전체 예측 구조는 다음과 같다.
 
 $$
-P(y \mid \boldsymbol{u}\_{1:n}) = P\left(\mathrm{nnet}\_y\left(\mathrm{pool}{\mathrm{LSTM}(\boldsymbol{u}\_{1:n})}\right)\right)
+P(y \mid \boldsymbol{u}_{1:n}) = P\left(\mathrm{nnet}_y\left(\mathrm{pool}{\mathrm{LSTM}(\boldsymbol{u}_{1:n})}\right)\right)
 $$
 
-여기서 $\boldsymbol{u}\_{1:n}$은 admission sequence, LSTM은 각 시점의 illness state를 추적하는 동적 메모리, `pool`은 시간 축 집계, `nnet_y`는 최종 outcome predictor다. 즉, DeepCare는 **admission sequence → modified LSTM → temporal pooling → prediction network**라는 구조를 가진다.
+여기서 $\boldsymbol{u}_{1:n}$은 admission sequence, LSTM은 각 시점의 illness state를 추적하는 동적 메모리, `pool`은 시간 축 집계, `nnet_y`는 최종 outcome predictor다. 즉, DeepCare는 **admission sequence → modified LSTM → temporal pooling → prediction network**라는 구조를 가진다.
 
 ### 3.2 Admission 표현: sequence of sets를 vector로
 

@@ -43,10 +43,10 @@
 논문은 anomaly를 temporal, intermetric, temporal-intermetric anomaly로 나누고, 특히 temporal anomaly 안에서도 여러 유형을 구분한다. 예시로 global anomaly는 전체 시계열 관점에서 극단적으로 벗어난 점이며, 논문은 이를 다음처럼 설명한다.
 
 $$
-|x_t - \hat{x}\_t| > threshold
+|x_t - \hat{x}_t| > threshold
 $$
 
-여기서 $\hat{x}\_t$는 모델이 기대한 정상값이다. 즉 실제값과 기대값의 차이가 threshold보다 크면 anomaly로 간주한다. 이 식은 forecasting-based 방법의 기본 직관과도 맞닿아 있다.
+여기서 $\hat{x}_t$는 모델이 기대한 정상값이다. 즉 실제값과 기대값의 차이가 threshold보다 크면 anomaly로 간주한다. 이 식은 forecasting-based 방법의 기본 직관과도 맞닿아 있다.
 
 논문은 contextual anomaly도 설명한다. 이 경우 어떤 값이 전체적으로는 정상처럼 보여도, 특정 지역적 맥락에서는 이상일 수 있다. 즉 anomaly 기준은 global threshold가 아니라 neighborhood context에 따라 달라진다. 이는 TSAD에서 단순 z-score나 global cutoff가 자주 실패하는 이유를 잘 보여준다.
 

@@ -46,7 +46,7 @@ $$\hat{x} = f_d(\hat{z}; \theta_d)$$
 
 테스트 시, 재구성 품질을 측정하기 위해 $\ell_2$ 놈 기반 평균 제곱 오차(MSE)를 사용한다:
 
-$$e = \|x - \hat{x}\|\_2^2$$
+$$e = \|x - \hat{x}\|_2^2$$
 
 이 오차가 이상치 탐지의 기준으로 사용된다.
 
@@ -54,9 +54,9 @@ $$e = \|x - \hat{x}\|\_2^2$$
 
 #### 메모리 기반 표현
 
-메모리는 행렬 $M \in \mathbb{R}^{N \times C}$로 정의되며, $N$개의 고정 차원 $C$의 실数値 벡터를 포함한다. 각 행 $\mathbf{m}\_i$는 메모리 항목이다. 주어진 쿼리(인코딩) $\mathbf{z} \in \mathbb{R}^C$에 대해, 메모리 네트워크는 다음과 같이 표현을 얻는다:
+메모리는 행렬 $M \in \mathbb{R}^{N \times C}$로 정의되며, $N$개의 고정 차원 $C$의 실数値 벡터를 포함한다. 각 행 $\mathbf{m}_i$는 메모리 항목이다. 주어진 쿼리(인코딩) $\mathbf{z} \in \mathbb{R}^C$에 대해, 메모리 네트워크는 다음과 같이 표현을 얻는다:
 
-$$\hat{z} = \mathbf{w} M = \sum_{i=1}^{N} w_i \mathbf{m}\_i$$
+$$\hat{z} = \mathbf{w} M = \sum_{i=1}^{N} w_i \mathbf{m}_i$$
 
 여기서 $\mathbf{w}$는 가중치 벡터이고, $w_i$는 $i$번째 메모리 항목의 중요도를 나타낸다.
 
@@ -64,33 +64,33 @@ $$\hat{z} = \mathbf{w} M = \sum_{i=1}^{N} w_i \mathbf{m}\_i$$
 
 코사인 유사도로 메모리 항목과 쿼리 간의 유사도를 계산한다:
 
-$$d(\mathbf{z}, \mathbf{m}\_i) = \frac{\mathbf{z} \mathbf{m}\_i^T}{\|\mathbf{z}\| \|\mathbf{m}\_i\|}$$
+$$d(\mathbf{z}, \mathbf{m}_i) = \frac{\mathbf{z} \mathbf{m}_i^T}{\|\mathbf{z}\| \|\mathbf{m}_i\|}$$
 
 어드레싱 가중치는 다음과 같이 softmax 연산으로 계산된다:
 
-$$w_i = \frac{\exp(d(\mathbf{z}, \mathbf{m}\_i))}{\sum_{j=1}^{N} \exp(d(\mathbf{z}, \mathbf{m}\_j))}$$
+$$w_i = \frac{\exp(d(\mathbf{z}, \mathbf{m}_i))}{\sum_{j=1}^{N} \exp(d(\mathbf{z}, \mathbf{m}_j))}$$
 
 #### 스파스 어드레싱을 위한 Hard Shrinkage
 
 비정상 샘플이 복잡한 메모리 항목 조합으로 잘 재구성되는 것을 방지하기 위해, 하드 수축 연산을 적용하여 어드레싱 가중치의 스파스성을 촉진한다:
 
-$$\widehat{w}\_i = h(w_i; \lambda) = \begin{cases} w_i & \text{if } w_i > \lambda \\ 0 & \text{otherwise} \end{cases}$$
+$$\widehat{w}_i = h(w_i; \lambda) = \begin{cases} w_i & \text{if } w_i > \lambda \\ 0 & \text{otherwise} \end{cases}$$
 
 이는 ReLU 활성화 함수를 사용하여 미분 가능하게 구현된다:
 
-$$\widehat{w}\_i = \frac{\max(w_i - \lambda, 0) \cdot w_i}{|w_i - \lambda| + \epsilon}$$
+$$\widehat{w}_i = \frac{\max(w_i - \lambda, 0) \cdot w_i}{|w_i - \lambda| + \epsilon}$$
 
 실제로 $\lambda$를 $[1/N, 3/N]$ 구간 내 값으로 설정하면 좋은 결과를 얻을 수 있다.
 
 ### 훈련
 
-훈련 데이터 $\{x^t\}\_{t=1}^T$가 주어졌을 때, 재구성 오차를 최소화한다:
+훈련 데이터 $\{x^t\}_{t=1}^T$가 주어졌을 때, 재구성 오차를 최소화한다:
 
-$$R(x^t, \hat{x}^t) = \|x^t - \hat{x}^t\|\_2^2$$
+$$R(x^t, \hat{x}^t) = \|x^t - \hat{x}^t\|_2^2$$
 
 추가로 어드레싱 가중치의 스파스성을 촉진하기 위해 엔트로피 정규화를 최소화한다:
 
-$$E(\widehat{\mathbf{w}}^t) = \sum_{i=1}^{T} -\widehat{w}\_i \cdot \log(\widehat{w}\_i)$$
+$$E(\widehat{\mathbf{w}}^t) = \sum_{i=1}^{T} -\widehat{w}_i \cdot \log(\widehat{w}_i)$$
 
 전체 훈련 목적 함수는 다음과 같다:
 

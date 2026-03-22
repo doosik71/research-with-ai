@@ -53,8 +53,8 @@ math: mathjax
 
 - 기본 목적 함수는 일반적인 VAE와 같다.
   $$
-  \mathcal{L}\_{\mathrm{VAE}}
-  = \mathbb{E}\_{q_{\phi}(z \mid x)}[-\log p_{\theta}(x \mid z)]
+  \mathcal{L}_{\mathrm{VAE}}
+  = \mathbb{E}_{q_{\phi}(z \mid x)}[-\log p_{\theta}(x \mid z)]
   + \mathrm{KL}(q_{\phi}(z \mid x) \parallel p(z))
   $$
 - 의미:
@@ -83,7 +83,7 @@ math: mathjax
 - 변화 감지에는 VAE reconstruction error 분포의 차이를 사용한다.
 - 논문은 Welch's t-test를 적용한다.
   $$
-  t = \frac{\bar{x}\_1 - \bar{x}\_2} {\sqrt{(s_1^2 + s_2^2)/N}}
+  t = \frac{\bar{x}_1 - \bar{x}_2} {\sqrt{(s_1^2 + s_2^2)/N}}
   $$
 - 해석:
   - 현재 VAE가 새 환경을 잘 설명하지 못하면 reconstruction error 평균이 달라진다.

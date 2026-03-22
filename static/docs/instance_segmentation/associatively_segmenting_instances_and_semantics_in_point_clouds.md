@@ -4,7 +4,7 @@
 
 ## 1. Paper Overview
 
-이 논문의 핵심 문제는 3D 실내 장면 point cloud를 해석할 때, 각 점이 **무엇인지(semantic label)** 와 **어느 개체에 속하는지(instance id)** 를 동시에 정확히 추론하는 것입니다. 기존 연구는 대체로 두 과제를 별도로 다뤘고, 특히 3D에서는 두 작업을 **연관적으로(associatively)** 푸는 시도가 거의 없었다고 논문은 설명합니다. 자율주행, AR, 실내 장면 이해처럼 실제 응용에서는 “벽/의자/테이블” 같은 semantic 정보와 “의자 1, 의자 2” 같은 instance 정보가 함께 필요하므로, 두 작업을 따로 푸는 것은 비효율적일 수 있습니다.
+이 논문의 핵심 문제는 3D 실내 장면 point cloud를 해석할 때, 각 점이 **무엇인지(semantic label)**와 **어느 개체에 속하는지(instance id)**를 동시에 정확히 추론하는 것입니다. 기존 연구는 대체로 두 과제를 별도로 다뤘고, 특히 3D에서는 두 작업을 **연관적으로(associatively)** 푸는 시도가 거의 없었다고 논문은 설명합니다. 자율주행, AR, 실내 장면 이해처럼 실제 응용에서는 “벽/의자/테이블” 같은 semantic 정보와 “의자 1, 의자 2” 같은 instance 정보가 함께 필요하므로, 두 작업을 따로 푸는 것은 비효율적일 수 있습니다.
 
 저자들은 단순한 step-wise 방식도 검토합니다. 예를 들어 semantic segmentation을 먼저 한 뒤 class별로 instance를 나누거나, 반대로 instance를 먼저 찾은 뒤 각 instance를 분류하는 접근입니다. 하지만 이런 구조는 앞단의 오류가 뒷단으로 그대로 전파되는 문제가 있습니다. 논문은 이를 피하기 위해, 두 작업을 병렬 분기 구조에서 같이 학습시키되 서로의 정보를 soft하게 주고받는 방향으로 설계합니다.
 
@@ -114,4 +114,4 @@ ShapeNet에서는 “진짜” instance GT가 아니라 SGPN이 생성한 annota
 
 이 논문은 3D point cloud에서 instance segmentation과 semantic segmentation을 **서로 독립된 과제**가 아니라 **상호 보완적인 과제**로 보고, 이를 실제 네트워크 설계에 녹인 ASIS를 제안합니다. baseline은 shared encoder와 두 개의 병렬 branch로 구성되고, ASIS는 여기에 semantic-aware instance embedding과 instance-fused semantic feature를 추가합니다. 결과적으로 S3DIS에서 instance segmentation SOTA를 넘기고 semantic segmentation도 개선했으며, ShapeNet part segmentation에도 긍정적 효과를 보였습니다.
 
-실무적으로는 “장면을 class와 object 단위로 동시에 이해해야 하는 3D perception”에 잘 맞는 아이디어입니다. 연구적으로는 multi-task learning을 넘어, **task 간 구조적 일관성(structural consistency)** 을 이용하는 설계의 좋은 예시라고 볼 수 있습니다. 특히 후속 3D panoptic segmentation, joint embedding, cross-task feature interaction 연구를 이해할 때 중요한 출발점이 되는 논문입니다.
+실무적으로는 “장면을 class와 object 단위로 동시에 이해해야 하는 3D perception”에 잘 맞는 아이디어입니다. 연구적으로는 multi-task learning을 넘어, **task 간 구조적 일관성(structural consistency)**을 이용하는 설계의 좋은 예시라고 볼 수 있습니다. 특히 후속 3D panoptic segmentation, joint embedding, cross-task feature interaction 연구를 이해할 때 중요한 출발점이 되는 논문입니다.

@@ -52,15 +52,15 @@
 
 그 위에 여러 변형이 추가된다.
 
-**Stacked Autoencoder (SAE)** 는 여러 autoencoder를 층층이 쌓아 deep representation을 학습한다. greedy layer-wise pretraining을 통해 더 높은 표현력을 얻는 구조로 설명된다. 의료영상에서는 Alzheimer’s disease 분류, hippocampus segmentation, lesion classification, organ detection, right ventricle segmentation 등에 적용된 사례가 Table 2에 정리되어 있다.
+**Stacked Autoencoder (SAE)**는 여러 autoencoder를 층층이 쌓아 deep representation을 학습한다. greedy layer-wise pretraining을 통해 더 높은 표현력을 얻는 구조로 설명된다. 의료영상에서는 Alzheimer’s disease 분류, hippocampus segmentation, lesion classification, organ detection, right ventricle segmentation 등에 적용된 사례가 Table 2에 정리되어 있다.
 
-**Denoising Autoencoder (DAE)** 는 입력을 일부러 오염시킨 뒤 원래 clean input을 복원하도록 학습한다. 이렇게 하면 trivial identity mapping을 피하고, 노이즈에 강한 표현을 얻을 수 있다. 논문은 corrupted input을 hidden representation으로 보낸 뒤 reconstruction loss를 clean input 기준으로 최소화한다고 설명한다. stacked denoising autoencoder(SDAE)는 이 아이디어를 deep network로 확장한 것이다.
+**Denoising Autoencoder (DAE)**는 입력을 일부러 오염시킨 뒤 원래 clean input을 복원하도록 학습한다. 이렇게 하면 trivial identity mapping을 피하고, 노이즈에 강한 표현을 얻을 수 있다. 논문은 corrupted input을 hidden representation으로 보낸 뒤 reconstruction loss를 clean input 기준으로 최소화한다고 설명한다. stacked denoising autoencoder(SDAE)는 이 아이디어를 deep network로 확장한 것이다.
 
-**Sparse Autoencoder** 는 hidden unit가 대부분 비활성 상태를 유지하도록 sparsity constraint를 추가한 모델이다. 논문은 hidden neuron 평균 활성도를 낮게 유지하도록 Kullback-Leibler divergence penalty를 cost function에 넣는 방식을 설명한다. 이는 과적합을 줄이고 복잡도를 제어하는 regularization 역할도 한다. 수식적으로는 hidden activation 평균을 $\hat{\rho}\_j$로 두고, 목표 sparsity $\rho$와의 KL divergence를 페널티로 더한다.
+**Sparse Autoencoder** 는 hidden unit가 대부분 비활성 상태를 유지하도록 sparsity constraint를 추가한 모델이다. 논문은 hidden neuron 평균 활성도를 낮게 유지하도록 Kullback-Leibler divergence penalty를 cost function에 넣는 방식을 설명한다. 이는 과적합을 줄이고 복잡도를 제어하는 regularization 역할도 한다. 수식적으로는 hidden activation 평균을 $\hat{\rho}_j$로 두고, 목표 sparsity $\rho$와의 KL divergence를 페널티로 더한다.
 
-**Convolutional Autoencoder (CAE)** 는 fully connected 구조 대신 convolution/deconvolution을 사용해 이미지의 지역 구조를 보존하면서 특징을 학습한다. 논문은 stacked AE의 layer-wise pretraining 부담을 줄이고, image local structure를 더 잘 반영할 수 있다는 점을 강조한다. 의료영상에서는 fMRI modeling, AD/MCI/HC classification, nucleus detection 등에 적용 사례가 제시된다.
+**Convolutional Autoencoder (CAE)**는 fully connected 구조 대신 convolution/deconvolution을 사용해 이미지의 지역 구조를 보존하면서 특징을 학습한다. 논문은 stacked AE의 layer-wise pretraining 부담을 줄이고, image local structure를 더 잘 반영할 수 있다는 점을 강조한다. 의료영상에서는 fMRI modeling, AD/MCI/HC classification, nucleus detection 등에 적용 사례가 제시된다.
 
-**Variational Autoencoder (VAE)** 는 generative model로 소개된다. 논문은 probabilistic encoder $q_\phi(z|x)$와 generative model $p_\theta(x,z)$를 사용해 latent variable model을 학습하며, variational lower bound와 SGVB/AEVB 같은 최적화 아이디어를 쓴다고 설명한다. 즉 VAE는 단순 압축기보다, latent variable distribution을 명시적으로 모델링하는 deep generative model이다.
+**Variational Autoencoder (VAE)**는 generative model로 소개된다. 논문은 probabilistic encoder $q_\phi(z|x)$와 generative model $p_\theta(x,z)$를 사용해 latent variable model을 학습하며, variational lower bound와 SGVB/AEVB 같은 최적화 아이디어를 쓴다고 설명한다. 즉 VAE는 단순 압축기보다, latent variable distribution을 명시적으로 모델링하는 deep generative model이다.
 
 **Contractive Autoencoder** 는 입력의 작은 변화에 representation이 과도하게 반응하지 않도록 Jacobian norm regularization을 추가하는 방식이다. 논문은 objective에 activation의 Jacobian에 대한 Frobenius norm penalty를 더한다고 설명한다. 저자들은 DAE가 reconstruction robustness를 강조하는 반면, contractive AE는 representation robustness를 더 직접적으로 장려한다고 설명한다.
 
@@ -92,9 +92,9 @@ $$
 \min_G \max_D V(G,D)
 ====================
 
-\mathbb{E}\_{x \sim p*{data}}[\log D(x)]
+\mathbb{E}_{x \sim p*{data}}[\log D(x)]
 +
-\mathbb{E}\_{z \sim p_z}[\log(1-D(G(z)))]
+\mathbb{E}_{z \sim p_z}[\log(1-D(G(z)))]
 $$
 
 이 구조는 두 네트워크가 적대적으로 경쟁하면서 generator가 점점 더 realistic sample을 생성하도록 학습된다고 설명된다.

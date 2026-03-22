@@ -10,7 +10,7 @@
 
 이 논문의 핵심 아이디어는 activation function을 하나의 보편적 정답으로 보지 않고, **taxonomy + benchmark + application constraints**의 세 축으로 이해하자는 것이다.
 
-첫째, activation function을 **고정형(fixed), 적응형(adaptive), 비표준(non-standard)** 으로 나누고, 다시 응용 관점에서는 **real-valued, complex-valued, quantized** activation으로 구분한다. 저자들은 이 분류가 기존의 단순한 함수 나열보다 실제 문제 해결에 더 도움이 된다고 본다.
+첫째, activation function을 **고정형(fixed), 적응형(adaptive), 비표준(non-standard)**으로 나누고, 다시 응용 관점에서는 **real-valued, complex-valued, quantized** activation으로 구분한다. 저자들은 이 분류가 기존의 단순한 함수 나열보다 실제 문제 해결에 더 도움이 된다고 본다.
 
 둘째, classification에서는 다양한 activation을 실제 CNN 백본인 **MobileNet과 VGG16** 위에서 비교해, 단순 문헌 요약이 아니라 일정 수준의 실험적 비교를 제공한다.
 

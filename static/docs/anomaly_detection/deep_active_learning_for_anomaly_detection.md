@@ -46,11 +46,11 @@ $$l = f_{\text{enc}}(x + \epsilon), \quad \epsilon \sim \mathcal{N}(0, \varphi)$
 
 $$\hat{x} = f_{\text{dec}}(l)$$
 
-$$\mathcal{L}\_{\text{DAE}} = \|x - \hat{x}\|\_2^2$$
+$$\mathcal{L}_{\text{DAE}} = \|x - \hat{x}\|_2^2$$
 
 이상 점수는 재구성 오류로 정의된다:
 
-$$s_{\text{DAE}}(x) = \|x - \hat{x}\|\_2^2$$
+$$s_{\text{DAE}}(x) = \|x - \hat{x}\|_2^2$$
 
 DAE에 UAI 레이어를 부착한 $DAE_{\text{uai}}$는 다음과 같이 정의된다:
 
@@ -62,11 +62,11 @@ $$s_{\text{DAE-uai}}(x) = \text{uai}([l_{\text{DAE}}; s_{\text{DAE}}])$$
 
 두 번째 기본 모델은 분류기를 학습시킨 MLP이다. 인스턴스의 클래스 레이블을 다른 특성에서 예측하도록 학습하며, 데이터 포인트의 크로스 엔트로피가 이상 점수의 추정치로 사용된다:
 
-$$\widehat{x}\_y = f_{\text{Class}}(x_x)$$
+$$\widehat{x}_y = f_{\text{Class}}(x_x)$$
 
-$$\mathcal{L}\_{\text{Class}} = H(x_y, \widehat{x}\_y) = \text{cross\_entropy}(x_y, \widehat{x}\_y)$$
+$$\mathcal{L}_{\text{Class}} = H(x_y, \widehat{x}_y) = \text{cross\_entropy}(x_y, \widehat{x}_y)$$
 
-$$s_{\text{Class}}(x) = H(x_y, \widehat{x}\_y)$$
+$$s_{\text{Class}}(x) = H(x_y, \widehat{x}_y)$$
 
 이 모델에서 마지막 숨겨진 레이어($h_{p-1}$)가 잠재 표현으로 사용된다.
 
@@ -74,11 +74,11 @@ $$s_{\text{Class}}(x) = H(x_y, \widehat{x}\_y)$$
 
 UAInets를 학습하는 전체 손실 함수는 다음과 같다:
 
-$$\mathcal{L}\_{\text{uai}} = \mathbf{1} \cdot H(y, s_{\text{uai}}(x))$$
+$$\mathcal{L}_{\text{uai}} = \mathbf{1} \cdot H(y, s_{\text{uai}}(x))$$
 
-$$\mathcal{L}\_{\text{full}} = \mathcal{L}\_{\text{uai}} + \mathcal{L}\_{\text{base}}$$
+$$\mathcal{L}_{\text{full}} = \mathcal{L}_{\text{uai}} + \mathcal{L}_{\text{base}}$$
 
-여기서 $\mathbf{1}$은 이미 능동적으로 레이블된 인스턴스에 대해 값이 1이고 레이블이 없는 인스턴스에 대해 0인 지시 함수이다. $\mathcal{L}\_{\text{base}}$는 기본 네트워크의 손실 함수로, $\mathcal{L}\_{\text{DAE}}$ 또는 $\mathcal{L}\_{\text{Class}}$이다.
+여기서 $\mathbf{1}$은 이미 능동적으로 레이블된 인스턴스에 대해 값이 1이고 레이블이 없는 인스턴스에 대해 0인 지시 함수이다. $\mathcal{L}_{\text{base}}$는 기본 네트워크의 손실 함수로, $\mathcal{L}_{\text{DAE}}$ 또는 $\mathcal{L}_{\text{Class}}$이다.
 
 ### 3.6 능동 이상 감지 알고리즘
 

@@ -52,7 +52,7 @@ $$
 SDA는 구조적으로 feedforward network와 유사하지만, prediction loss 대신 **입력 복원(reconstruction)**을 목표로 한다. decoder 쪽의 복원식은 다음과 같이 정리된다.
 
 $$
-\mathbf{Z}^{(l)} = s^{(l)}\left((\mathbf{W}^{(l)})^T \mathbf{Z}^{(l+1)} + \mathbf{b}\_d^{(l)}\right)
+\mathbf{Z}^{(l)} = s^{(l)}\left((\mathbf{W}^{(l)})^T \mathbf{Z}^{(l+1)} + \mathbf{b}_d^{(l)}\right)
 $$
 
 그리고 encoder 최상단 표현을 얻은 뒤, 그 위에 logistic prediction layer를 추가해 실제 예측 task를 푼다. Denoising을 사용한다는 것은 일부 입력을 훼손한 뒤 원래 입력을 복원하도록 학습한다는 뜻이며, 이는 noisy clinical data에 대해 보다 robust한 feature를 학습하기 위한 장치다.

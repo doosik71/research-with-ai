@@ -57,7 +57,7 @@ $x_T \sim \mathcal{N}(0, I)$
 
 ### 3.3 Latent Diffusion Model과 Compression Model
 
-논문은 의료영상처럼 2D보다 큰 3D 고해상도 데이터에서 vanilla diffusion을 직접 돌리는 것이 비효율적이라는 점을 의식해 **Latent Diffusion Model(LDM)** 을 지원한다. LDM은 픽셀 공간이 아니라 compression model이 학습한 latent space에서 diffusion을 수행하므로, 훨씬 더 큰 2D/3D 데이터를 다룰 수 있다.
+논문은 의료영상처럼 2D보다 큰 3D 고해상도 데이터에서 vanilla diffusion을 직접 돌리는 것이 비효율적이라는 점을 의식해 **Latent Diffusion Model(LDM)**을 지원한다. LDM은 픽셀 공간이 아니라 compression model이 학습한 latent space에서 diffusion을 수행하므로, 훨씬 더 큰 2D/3D 데이터를 다룰 수 있다.
 
 이를 위해 프레임워크는 두 종류의 compression model을 제공한다.
 

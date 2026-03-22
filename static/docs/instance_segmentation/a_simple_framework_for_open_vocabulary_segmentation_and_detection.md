@@ -1,6 +1,6 @@
 # A Simple Framework for Open-Vocabulary Segmentation and Detection
 
-이 논문은 **OpenSeeD**라는 단일 프레임워크로, 서로 다른 supervision granularity를 가진 **segmentation 데이터와 detection 데이터를 함께 학습해** 하나의 **open-vocabulary segmentation/detection 모델**을 만들 수 있는지를 다룬다. 핵심 문제는 두 가지다. 첫째, detection과 segmentation은 **어휘(vocabulary)** 와 **annotation granularity** 가 다르다. 둘째, segmentation은 foreground object뿐 아니라 background stuff도 다뤄야 하지만 detection은 거의 foreground만 다룬다. 저자들은 이 간극을 메우기 위해 **공유 semantic space**, **foreground/background decoupled decoding**, **conditioned mask decoding**을 결합한 간단한 encoder-decoder 구조를 제안한다. 그 결과 OpenSeeD는 joint pretraining만으로 open-vocabulary instance/panoptic segmentation과 detection 모두에서 강한 zero-shot transfer를 보이고, downstream fine-tuning에서도 COCO/ADE20K/Cityscapes 등에서 새로운 성능을 달성했다고 주장한다.  
+이 논문은 **OpenSeeD**라는 단일 프레임워크로, 서로 다른 supervision granularity를 가진 **segmentation 데이터와 detection 데이터를 함께 학습해** 하나의 **open-vocabulary segmentation/detection 모델**을 만들 수 있는지를 다룬다. 핵심 문제는 두 가지다. 첫째, detection과 segmentation은 **어휘(vocabulary)**와 **annotation granularity** 가 다르다. 둘째, segmentation은 foreground object뿐 아니라 background stuff도 다뤄야 하지만 detection은 거의 foreground만 다룬다. 저자들은 이 간극을 메우기 위해 **공유 semantic space**, **foreground/background decoupled decoding**, **conditioned mask decoding**을 결합한 간단한 encoder-decoder 구조를 제안한다. 그 결과 OpenSeeD는 joint pretraining만으로 open-vocabulary instance/panoptic segmentation과 detection 모두에서 강한 zero-shot transfer를 보이고, downstream fine-tuning에서도 COCO/ADE20K/Cityscapes 등에서 새로운 성능을 달성했다고 주장한다.  
 
 ## 1. Paper Overview
 
@@ -34,7 +34,7 @@ $$
 
 ### 3.2 Shared semantic space
 
-모델은 segmentation dataset $\mathcal{D}\_m = {I_i, (\mathbf{c}\_i, \mathbf{m}\_i)}$ 와 detection dataset $\mathcal{D}\_b = {I_j, (\mathbf{c}\_j, \mathbf{b}\_j)}$ 를 함께 사용한다. 여기서 $\mathbf{c}$ 는 이미지 내 visual concepts, $\mathbf{m}$ 은 mask, $\mathbf{b}$ 는 box다. 전체 vocabulary $\mathcal{V}={c_1,\dots,c_K}$ 를 text encoder로 인코딩해 text feature를 만들고, image encoder가 만든 visual token과 정렬한다. 이 설계는 detection과 segmentation의 label space를 하나의 의미 공간으로 묶는 역할을 한다.
+모델은 segmentation dataset $\mathcal{D}_m = {I_i, (\mathbf{c}_i, \mathbf{m}_i)}$ 와 detection dataset $\mathcal{D}_b = {I_j, (\mathbf{c}_j, \mathbf{b}_j)}$ 를 함께 사용한다. 여기서 $\mathbf{c}$ 는 이미지 내 visual concepts, $\mathbf{m}$ 은 mask, $\mathbf{b}$ 는 box다. 전체 vocabulary $\mathcal{V}={c_1,\dots,c_K}$ 를 text encoder로 인코딩해 text feature를 만들고, image encoder가 만든 visual token과 정렬한다. 이 설계는 detection과 segmentation의 label space를 하나의 의미 공간으로 묶는 역할을 한다.
 
 ### 3.3 Decoupled foreground/background decoding
 

@@ -56,25 +56,25 @@ $$f_{global} = \text{Dropout}(\text{Dense}(\mathcal{F}(\mathbf{x})))$$
 
 LFM 모듈은 Target Attention 메커니즘을 활용하여 지역 주파수 정보를 추출한다. LFM의 주요 동기는 GFM이 전체 윈도우의 평균 주파수 정보를 추출하기 때문에 마지막 포인트에 대한 집중이 부족하다는 것이다. 특히 시스템 서비스의 변화로 인한 개념 드리프트(Concept Drift)가 발생할 때 이 문제가 두드러진다. Target Attention은 전체 윈도우의 주파수 정보를 캡처하면서도 최신 시간 포인트에 더 많은 집중을 할 수 있게 해준다.
 
-LFM은 전체 윈도우를 슬라이딩하여 여러 개의 작은 윈도우 $\mathbf{x}\_{sw}$를 얻고, 각 작은 윈도우에 FFT와 주파수 정보 추출을 적용한다. 가장 최근의 작은 윈도우는 쿼리(Query) $Q$로 사용되며, 나머지 작은 윈도우들은 키(Key) $K$와 값(Value) $V$로 사용된다. 마지막으로 선형 레이어와 드롭아웃을 적용하여 지역 주파수 정보를 학습한다.
+LFM은 전체 윈도우를 슬라이딩하여 여러 개의 작은 윈도우 $\mathbf{x}_{sw}$를 얻고, 각 작은 윈도우에 FFT와 주파수 정보 추출을 적용한다. 가장 최근의 작은 윈도우는 쿼리(Query) $Q$로 사용되며, 나머지 작은 윈도우들은 키(Key) $K$와 값(Value) $V$로 사용된다. 마지막으로 선형 레이어와 드롭아웃을 적용하여 지역 주파수 정보를 학습한다.
 
 지역 주파수 정보 $f_{local} \in \mathbb{R}^{1 \times d}$는 다음 방정식으로 계산된다:
 
-$$\mathbf{x}\_{sw} = \text{SlidingWindow}(\mathbf{x})$$
+$$\mathbf{x}_{sw} = \text{SlidingWindow}(\mathbf{x})$$
 
-$$Q = \text{Select}(\text{Dense}(\mathcal{F}(\mathbf{x}\_{sw})))$$
+$$Q = \text{Select}(\text{Dense}(\mathcal{F}(\mathbf{x}_{sw})))$$
 
-$$K, V = \text{Dense}(\mathcal{F}(\mathbf{x}\_{sw}))$$
+$$K, V = \text{Dense}(\mathcal{F}(\mathbf{x}_{sw}))$$
 
 $$f_{local} = \text{Dropout}(\text{FeedForward}(\sigma(Q \cdot K^{\top}) \cdot V))$$
 
-여기서 $\mathbf{x}\_{sw} \in \mathbb{R}^{n \times k}$는 원본 윈도우에서 추출된 작은 윈도우들의 집합이고, $k$는 작은 윈도우의 차원, $n$은 작은 윈도우의 개수이다. $\sigma$는 softmax 함수이다.
+여기서 $\mathbf{x}_{sw} \in \mathbb{R}^{n \times k}$는 원본 윈도우에서 추출된 작은 윈도우들의 집합이고, $k$는 작은 윈도우의 차원, $n$은 작은 윈도우의 개수이다. $\sigma$는 softmax 함수이다.
 
 ### 학습 목표: CM-ELBO
 
 FCVAE의 학습은 CVAE 기반 수정 증거 하한(Conditional VAE-based Modified Evidence Lower Bound, CM-ELBO)을 최대화하여 수행된다. CM-ELBO는 DONUT에서 제안된 M-ELBO를 CVAE에 적용한 것으로, 다음과 같이 정의된다:
 
-$$\mathcal{L} = \mathbb{E}\_{q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})}\left[\sum_{w=1}^{W}\alpha_w \log p_{\theta}(x_w|\mathbf{z}, \mathbf{c}) + \beta \log p_{\theta}(\mathbf{z}) - \log q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})\right]$$
+$$\mathcal{L} = \mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})}\left[\sum_{w=1}^{W}\alpha_w \log p_{\theta}(x_w|\mathbf{z}, \mathbf{c}) + \beta \log p_{\theta}(\mathbf{z}) - \log q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})\right]$$
 
 여기서 $\alpha_w$는 가중치로, $x_w$가 비정상 또는 결측이 아니면 1, 그렇지 않으면 0이다. $\beta = (\sum_{w=1}^{W}\alpha_w)/W$이다. $\mathbf{c}$는 조건으로, GFM과 LFM에서 추출된 전역 및 지역 주파수 정보이다.
 
@@ -86,7 +86,7 @@ $$\mathcal{L} = \mathbb{E}\_{q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})}\left[\
 
 테스트 단계에서 FCVAE는 재구성 확률(Reconstruction Probability)을 이상치 점수로 사용한다:
 
-$$\text{AnomalyScore} = -\mathbb{E}\_{q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})}[\log p_{\theta}(\mathbf{x}|\mathbf{z}, \mathbf{c})]$$
+$$\text{AnomalyScore} = -\mathbb{E}_{q_{\phi}(\mathbf{z}|\mathbf{x}, \mathbf{c})}[\log p_{\theta}(\mathbf{x}|\mathbf{z}, \mathbf{c})]$$
 
 이 점수가 높을수록 해당 포인트가 이상치일 가능성이 높다. 또한 결측치의 영향을 완화하기 위해 Markov Chain Monte Carlo(MCMC) 기반 결측치 보간 알고리즘을 적용한다.
 

@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 **의료 데이터 분석에서 probabilistic machine learning이 왜 중요한가**를 체계적으로 설명하는 서베이 논문이다. 저자들은 의료 데이터가 단순히 예측 정확도만으로 다뤄질 수 있는 대상이 아니라, 본질적으로 **불확실성(uncertainty), 누락(missingness), 검열(censoring), 분포 변화(data shift)** 를 동반하는 관측 데이터라고 본다. 따라서 단일 점추정(point estimate)만 내놓는 deterministic model보다, 결과의 분포와 불확실성을 함께 표현하는 probabilistic model이 의료 의사결정에 더 적합하다고 주장한다. 특히 이 논문은 예측 모델 단계에서의 calibration과 missing data 문제뿐 아니라, latent variable을 이용한 phenotyping, clinical use case를 위한 generative model, treatment planning을 위한 reinforcement learning까지 probabilistic 관점을 확장해 설명한다.  
+이 논문은 **의료 데이터 분석에서 probabilistic machine learning이 왜 중요한가**를 체계적으로 설명하는 서베이 논문이다. 저자들은 의료 데이터가 단순히 예측 정확도만으로 다뤄질 수 있는 대상이 아니라, 본질적으로 **불확실성(uncertainty), 누락(missingness), 검열(censoring), 분포 변화(data shift)**를 동반하는 관측 데이터라고 본다. 따라서 단일 점추정(point estimate)만 내놓는 deterministic model보다, 결과의 분포와 불확실성을 함께 표현하는 probabilistic model이 의료 의사결정에 더 적합하다고 주장한다. 특히 이 논문은 예측 모델 단계에서의 calibration과 missing data 문제뿐 아니라, latent variable을 이용한 phenotyping, clinical use case를 위한 generative model, treatment planning을 위한 reinforcement learning까지 probabilistic 관점을 확장해 설명한다.  
 
 이 문제가 중요한 이유는 의료에서 “평균적으로 맞는 예측”만으로는 충분하지 않기 때문이다. 논문 서두의 예처럼, 같은 평균 생존시간을 갖는 두 환자군이라도 분산이 다르면 환자와 의료진의 계획은 완전히 달라질 수 있다. 즉 의료에서는 “무엇이 가장 가능성 높은가?”뿐 아니라 “얼마나 불확실한가?”, “어떤 경우들이 가능한가?”가 중요하다. 저자들은 probabilistic model이 이러한 정보를 제공함으로써 환자 상담, 치료 계획, 모델 유지보수, 의료 AI의 신뢰성 향상에 기여한다고 본다.
 
@@ -21,13 +21,13 @@
 논문은 가장 먼저 deterministic model과 probabilistic model의 차이를 수식으로 설명한다. deterministic model은 $g_\theta(\mathbf{x})$처럼 입력 feature $\mathbf{x}$를 받아 응답 $y$의 예측값을 내놓는 함수이며, 예를 들어 squared error를 최소화하여 학습할 수 있다.
 
 $$
-\mathbb{E}\_{\mathbf{x}, y \sim F}\left[\left(g*\theta(\mathbf{x}) - y\right)^2\right]
+\mathbb{E}_{\mathbf{x}, y \sim F}\left[\left(g*\theta(\mathbf{x}) - y\right)^2\right]
 $$
 
 이 경우 잘 학습된 모델은 대체로 $y$의 기대값에 가까운 값을 준다. 하지만 응답 분포 자체는 표현하지 못한다. 반면 probabilistic model은 $p_\theta(y \mid \mathbf{x})$처럼 **조건부 확률분포 자체**를 학습하며, 로그우도를 최대화하는 식으로 학습할 수 있다.
 
 $$
-\mathbb{E}\_{\mathbf{x}, y \sim F}\left[\log p*\theta(y \mid \mathbf{x})\right]
+\mathbb{E}_{\mathbf{x}, y \sim F}\left[\log p*\theta(y \mid \mathbf{x})\right]
 $$
 
 이렇게 학습된 모델은 평균값뿐 아니라 분산과 다른 통계량까지 제공할 수 있다. 논문이 강조하는 핵심은 의료에서 바로 이 차이가 임상적 의미를 만든다는 점이다. 예측 평균이 같더라도 분산이 다르면 의사결정은 달라진다.

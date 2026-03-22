@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 ReLU 네트워크에서 잘 알려진 **dying ReLU** 현상을 경험적 직관이 아니라 **이론적으로 분석**하려는 논문이다. 저자들은 dying ReLU를 “일부 뉴런이 0만 출력하는 문제”보다 더 강한 형태로 다룬다. 즉, 네트워크 전체가 상수 함수로 붕괴하는 **dying ReLU neural network**를 정의하고, 대칭적인 초기화(symmetric initialization)를 쓰는 깊은 ReLU 네트워크는 깊이가 충분히 커질수록 높은 확률로 결국 죽게 된다는 점을 엄밀히 보인다. 이어서 이를 완화하기 위해 **RAI(Randomized Asymmetric Initialization)** 라는 새로운 초기화 방법을 제안하고, 이론과 수치 실험으로 효과를 검증한다.  
+이 논문은 ReLU 네트워크에서 잘 알려진 **dying ReLU** 현상을 경험적 직관이 아니라 **이론적으로 분석**하려는 논문이다. 저자들은 dying ReLU를 “일부 뉴런이 0만 출력하는 문제”보다 더 강한 형태로 다룬다. 즉, 네트워크 전체가 상수 함수로 붕괴하는 **dying ReLU neural network**를 정의하고, 대칭적인 초기화(symmetric initialization)를 쓰는 깊은 ReLU 네트워크는 깊이가 충분히 커질수록 높은 확률로 결국 죽게 된다는 점을 엄밀히 보인다. 이어서 이를 완화하기 위해 **RAI(Randomized Asymmetric Initialization)**라는 새로운 초기화 방법을 제안하고, 이론과 수치 실험으로 효과를 검증한다.  
 
 이 문제가 중요한 이유는 분명하다. ReLU는 단순하고 강력하지만, 깊은 네트워크에서는 gradient가 사라지며 학습 자체가 붕괴할 수 있다. 기존 해결책은 activation 수정, batch normalization 같은 추가 기법, 혹은 구조 변경이 많았는데, 이 논문은 가장 단순한 개입인 **초기화만 바꾸는 방법**에 집중한다. 특히 “왜 아주 깊은 ReLU 네트워크는 구조적으로 학습이 어려운가”를 확률적 관점에서 설명하고, deep-and-narrow 네트워크를 실제로 살릴 수 있는 초기화 규칙을 제시한다는 점이 핵심 공헌이다.  
 
@@ -108,6 +108,6 @@ $$
 
 ## 6. Conclusion
 
-이 논문은 dying ReLU를 단순한 경험적 현상이 아니라 **깊은 ReLU 네트워크에서 확률적으로 필연적인 현상**으로 분석했다. symmetric initialization 하에서는 depth가 충분히 커질수록 네트워크가 born dead 혹은 fully dead 상태로 갈 확률이 증가하며, 특히 deep-and-narrow regime에서 문제가 심각하다는 점을 이론적으로 보였다. 이를 해결하기 위해 제안한 **RAI(Randomized Asymmetric Initialization)** 는 의도적으로 작은 비대칭성을 주입해 dying probability를 크게 낮추며, second moment analysis를 통해 exploding gradient도 함께 제어한다.  
+이 논문은 dying ReLU를 단순한 경험적 현상이 아니라 **깊은 ReLU 네트워크에서 확률적으로 필연적인 현상**으로 분석했다. symmetric initialization 하에서는 depth가 충분히 커질수록 네트워크가 born dead 혹은 fully dead 상태로 갈 확률이 증가하며, 특히 deep-and-narrow regime에서 문제가 심각하다는 점을 이론적으로 보였다. 이를 해결하기 위해 제안한 **RAI(Randomized Asymmetric Initialization)**는 의도적으로 작은 비대칭성을 주입해 dying probability를 크게 낮추며, second moment analysis를 통해 exploding gradient도 함께 제어한다.  
 
 실험적으로도 RAI는 여러 함수 근사 문제에서 He initialization 대비 collapse 확률을 크게 낮췄고, MNIST의 깊고 좁은 네트워크에서는 더 나은 test accuracy를 보였다. 따라서 이 논문은 “왜 깊은 ReLU 네트워크가 죽는가?”에 대한 이론적 답과 “그럼 어떻게 초기화해야 하는가?”에 대한 실용적 답을 함께 준 논문으로 볼 수 있다.

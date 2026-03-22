@@ -26,7 +26,7 @@
 
 ### 3.1 EHR 데이터의 구조와 표현 문제
 
-저자들이 가장 먼저 강조하는 것은 EHR 데이터의 **이질성(heterogeneity)** 이다. 2~3쪽 설명에 따르면 EHR는 ICD, CPT, LOINC, RxNorm 같은 여러 코드 체계를 포함하며, 기관별 차이도 크다. 예를 들어 3쪽 Table II는 ICD-10, CPT, LOINC, RxNorm의 코드 수와 예시를 보여준다. 이런 현실은 모델링의 첫 단계가 “무슨 모델을 쓸까”가 아니라 **어떻게 코드를 표현하고 정렬할까**가 된다는 뜻이다. 이 문제의식이 뒤에서 concept representation과 patient representation 연구로 이어진다.
+저자들이 가장 먼저 강조하는 것은 EHR 데이터의 **이질성(heterogeneity)**이다. 2~3쪽 설명에 따르면 EHR는 ICD, CPT, LOINC, RxNorm 같은 여러 코드 체계를 포함하며, 기관별 차이도 크다. 예를 들어 3쪽 Table II는 ICD-10, CPT, LOINC, RxNorm의 코드 수와 예시를 보여준다. 이런 현실은 모델링의 첫 단계가 “무슨 모델을 쓸까”가 아니라 **어떻게 코드를 표현하고 정렬할까**가 된다는 뜻이다. 이 문제의식이 뒤에서 concept representation과 patient representation 연구로 이어진다.
 
 ### 3.2 딥러닝 아키텍처 개요
 

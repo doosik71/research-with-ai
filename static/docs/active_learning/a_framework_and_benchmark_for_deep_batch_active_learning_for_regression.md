@@ -16,7 +16,7 @@
 
 이 프레임워크는 Gaussian process 근사나 Laplace approximation에 기반한 **Bayesian 계열**뿐 아니라, diversity/geometric 관점의 **비베이지안 방법**도 함께 포괄한다. 저자들의 주장은, 많은 기존 BMAL/BMDAL 알고리즘이 사실상 이 세 요소의 다른 조합으로 재해석될 수 있다는 것이다. 이렇게 보면 서로 다른 방법들을 공정하게 비교하고, 새 조합을 설계하기가 쉬워진다.  
 
-이 틀 위에서 논문이 추가로 제안하는 novelty는 두 가지다. 첫째, 새 selection method인 **LCMD**를 도입한다. 둘째, 흔히 쓰는 last-layer feature 대신 **finite-width neural tangent kernel (NTK)** 를 base kernel로 쓰고, 여기에 **sketching**을 적용해 계산량을 줄인다. 저자들에 따르면 LCMD는 RMSE와 MAE에서 기존 최고 수준을 넘어섰고, NTK는 대부분 선택 방법에서 정확도를 높이며, sketching은 이 정확도를 거의 유지하면서 시간 비용을 줄인다.  
+이 틀 위에서 논문이 추가로 제안하는 novelty는 두 가지다. 첫째, 새 selection method인 **LCMD**를 도입한다. 둘째, 흔히 쓰는 last-layer feature 대신 **finite-width neural tangent kernel (NTK)**를 base kernel로 쓰고, 여기에 **sketching**을 적용해 계산량을 줄인다. 저자들에 따르면 LCMD는 RMSE와 MAE에서 기존 최고 수준을 넘어섰고, NTK는 대부분 선택 방법에서 정확도를 높이며, sketching은 이 정확도를 거의 유지하면서 시간 비용을 줄인다.  
 
 ## 3. Detailed Method Explanation
 

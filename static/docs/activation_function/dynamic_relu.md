@@ -145,6 +145,6 @@ A/B/C 세 변형에 대한 결과도 논문의 중요한 기여다.
 
 ## 6. Conclusion
 
-이 논문은 입력마다 동일하게 작동하는 static rectifier의 한계를 지적하고, 입력 전체의 global context로 activation 파라미터를 생성하는 **Dynamic ReLU (DY-ReLU)** 를 제안했다. DY-ReLU는 입력 의존적인 piecewise linear activation으로, 기존 네트워크의 깊이와 너비를 늘리지 않으면서도 표현력을 높인다. 또한 DY-ReLU-A/B/C라는 세 가지 변형을 통해 spatial, channel 차원의 공유 방식을 달리 설계했고, 이미지 분류와 keypoint detection에서 서로 다른 최적 선택이 있음을 보였다.  
+이 논문은 입력마다 동일하게 작동하는 static rectifier의 한계를 지적하고, 입력 전체의 global context로 activation 파라미터를 생성하는 **Dynamic ReLU (DY-ReLU)**를 제안했다. DY-ReLU는 입력 의존적인 piecewise linear activation으로, 기존 네트워크의 깊이와 너비를 늘리지 않으면서도 표현력을 높인다. 또한 DY-ReLU-A/B/C라는 세 가지 변형을 통해 spatial, channel 차원의 공유 방식을 달리 설계했고, 이미지 분류와 keypoint detection에서 서로 다른 최적 선택이 있음을 보였다.  
 
 실험적으로는 ResNet, MobileNetV2, MobileNetV3에서 일관된 성능 향상을 달성했으며, 특히 MobileNetV2에서 ImageNet top-1이 **72.0%에서 76.2%** 로 증가하고 COCO keypoint detection에서도 **3.5 AP** 향상을 기록했다. 계산량 증가는 약 **5%** 수준으로 작다. 따라서 이 논문은 lightweight CNN의 표현력 향상을 위해 **activation을 dynamic하게 만드는 것**이 매우 효과적일 수 있음을 보여 준 대표적인 작업으로 볼 수 있다.  

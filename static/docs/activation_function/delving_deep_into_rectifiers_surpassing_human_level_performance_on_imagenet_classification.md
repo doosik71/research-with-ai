@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 deep CNN의 성능 향상을 위해 두 가지를 동시에 다룬다. 첫째는 기존 ReLU를 일반화한 **PReLU (Parametric ReLU)** 를 제안하는 것이고, 둘째는 **rectifier 비선형성을 고려한 initialization 방법**을 이론적으로 유도하는 것이다. 저자들의 문제의식은 분명하다. ReLU가 딥러닝 성공의 핵심 요소임에도, 당시 많은 연구가 네트워크 깊이·너비·구조에는 집중했지만 정작 **rectifier의 성질 자체**와, 그것이 매우 깊은 네트워크 학습에 미치는 영향은 충분히 분석하지 않았다는 것이다. 논문은 이 두 축을 통해 더 깊거나 더 넓은 CNN을 scratch부터 안정적으로 학습시키고, 결국 ImageNet 2012에서 top-5 test error 4.94%를 달성해 당시 보고된 인간 성능 5.1%를 처음 넘어섰다고 주장한다.
+이 논문은 deep CNN의 성능 향상을 위해 두 가지를 동시에 다룬다. 첫째는 기존 ReLU를 일반화한 **PReLU (Parametric ReLU)**를 제안하는 것이고, 둘째는 **rectifier 비선형성을 고려한 initialization 방법**을 이론적으로 유도하는 것이다. 저자들의 문제의식은 분명하다. ReLU가 딥러닝 성공의 핵심 요소임에도, 당시 많은 연구가 네트워크 깊이·너비·구조에는 집중했지만 정작 **rectifier의 성질 자체**와, 그것이 매우 깊은 네트워크 학습에 미치는 영향은 충분히 분석하지 않았다는 것이다. 논문은 이 두 축을 통해 더 깊거나 더 넓은 CNN을 scratch부터 안정적으로 학습시키고, 결국 ImageNet 2012에서 top-5 test error 4.94%를 달성해 당시 보고된 인간 성능 5.1%를 처음 넘어섰다고 주장한다.
 
 이 문제가 중요한 이유는 activation과 initialization이 단순 구현 디테일이 아니라, 학습 가능 깊이와 최종 성능을 직접 제한하기 때문이다. 깊은 rectifier network는 theoretically powerful하지만, 초기화가 맞지 않으면 gradient가 layer를 지나며 점점 사라지거나 커져 학습이 멈춘다. 저자들은 이 문제를 구조적 트릭이 아니라 **rectifier의 forward/backward variance propagation** 관점에서 분석하고, 그에 맞는 원리 기반 초기화를 제시한다. 이 점 때문에 이 논문은 단순히 PReLU를 소개한 논문이 아니라, 이후 널리 알려진 **He initialization**의 출발점으로도 중요하다.  
 

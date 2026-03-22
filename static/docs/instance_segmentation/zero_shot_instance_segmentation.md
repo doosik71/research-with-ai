@@ -1,6 +1,6 @@
 # Zero-Shot Instance Segmentation
 
-이 논문은 **학습 때는 seen class만 사용하고, 테스트 때는 seen + unseen class의 인스턴스를 모두 검출·분할하는 새로운 과제**인 **Zero-Shot Instance Segmentation (ZSI)** 를 정식으로 제안합니다. 저자들은 기존 zero-shot classification, zero-shot detection, zero-shot semantic segmentation이 각각 한계가 있다고 보고, **“unseen 객체를 개별 인스턴스 단위로 정확히 segmentation”** 해야 하는 더 어려운 문제를 정의합니다. 이를 위해 **Zero-shot Detector**, **Semantic Mask Head (SMH)**, **Background Aware RPN (BA-RPN)**, **Synchronized Background Strategy (Sync-bg)** 로 이루어진 end-to-end 프레임워크를 제안하고, COCO 기반 새 benchmark도 함께 제공합니다.  
+이 논문은 **학습 때는 seen class만 사용하고, 테스트 때는 seen + unseen class의 인스턴스를 모두 검출·분할하는 새로운 과제**인 **Zero-Shot Instance Segmentation (ZSI)**를 정식으로 제안합니다. 저자들은 기존 zero-shot classification, zero-shot detection, zero-shot semantic segmentation이 각각 한계가 있다고 보고, **“unseen 객체를 개별 인스턴스 단위로 정확히 segmentation”** 해야 하는 더 어려운 문제를 정의합니다. 이를 위해 **Zero-shot Detector**, **Semantic Mask Head (SMH)**, **Background Aware RPN (BA-RPN)**, **Synchronized Background Strategy (Sync-bg)**로 이루어진 end-to-end 프레임워크를 제안하고, COCO 기반 새 benchmark도 함께 제공합니다.  
 
 ## 1. Paper Overview
 
@@ -34,7 +34,7 @@ Zero-shot Detector는 proposal visual feature를 semantic word-vector 공간과 
 
 ### 3.4 Semantic Mask Head (SMH)
 
-SMH는 논문의 segmentation 핵심입니다. 이 모듈도 encoder-decoder 구조이며, 학습 중에는 encoder가 visual feature를 semantic word-vector로 인코딩하고, decoder가 다시 visual feature를 복원하도록 하여 reconstruction loss $\mathcal{L}\_R$를 사용합니다. 테스트 때는 decoder를 제거하고 encoder만 사용합니다. 이후 seen/unseen word-vector를 고정 convolution처럼 사용해 **pixel-by-pixel convolution**을 수행함으로써 seen과 unseen class의 instance segmentation 결과를 얻습니다. 즉 mask prediction을 semantic space에서 수행하는 구조입니다.
+SMH는 논문의 segmentation 핵심입니다. 이 모듈도 encoder-decoder 구조이며, 학습 중에는 encoder가 visual feature를 semantic word-vector로 인코딩하고, decoder가 다시 visual feature를 복원하도록 하여 reconstruction loss $\mathcal{L}_R$를 사용합니다. 테스트 때는 decoder를 제거하고 encoder만 사용합니다. 이후 seen/unseen word-vector를 고정 convolution처럼 사용해 **pixel-by-pixel convolution**을 수행함으로써 seen과 unseen class의 instance segmentation 결과를 얻습니다. 즉 mask prediction을 semantic space에서 수행하는 구조입니다.
 
 이 설계의 장점은 명확합니다. unseen class mask head를 직접 학습하는 대신, seen class에서 배운 visual-semantic alignment를 mask prediction으로 전이할 수 있기 때문입니다. 다만 논문이 제시한 방식은 semantic word-vector 품질에 강하게 의존합니다. 이 점은 뒤 실험에서도 확인됩니다.
 

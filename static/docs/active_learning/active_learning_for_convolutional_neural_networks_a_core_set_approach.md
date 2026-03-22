@@ -47,7 +47,7 @@
 이론 bound를 computational하게 풀기 위해, 저자들은 선택 문제를 사실상 다음 형태로 바꾼다.
 
 $$
-\min_{\mathbf{s}^1}\max_i \min_{j\in \mathbf{s}^0 \cup \mathbf{s}^1}\Delta(\mathbf{x}\_i,\mathbf{x}\_j)
+\min_{\mathbf{s}^1}\max_i \min_{j\in \mathbf{s}^0 \cup \mathbf{s}^1}\Delta(\mathbf{x}_i,\mathbf{x}_j)
 $$
 
 즉, 모든 데이터 포인트가 선택된 포인트 집합으로부터 갖는 **최대 최근접 거리**를 최소화한다. 이것이 전형적인 **$k$-Center** 문제다. 직관적으로는, selected set이 feature space 전체를 고르게 덮도록 만드는 것이다.

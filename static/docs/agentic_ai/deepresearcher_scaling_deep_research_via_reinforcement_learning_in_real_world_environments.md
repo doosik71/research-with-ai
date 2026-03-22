@@ -48,7 +48,7 @@ $$
 \mathcal{J}(\theta)
 ===================
 
-\mathbb{E}\_{x \sim \mathcal{D}, {y_i}\_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
+\mathbb{E}_{x \sim \mathcal{D}, {y_i}_{i=1}^{G} \sim \pi_{\theta_{\text{old}}}(\cdot \mid x)}
 \frac{1}{G}\sum_{i=1}^{G}
 \left[
 \min\left(

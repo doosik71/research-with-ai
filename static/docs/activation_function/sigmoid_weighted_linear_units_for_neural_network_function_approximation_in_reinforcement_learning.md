@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 강화학습에서 neural network를 function approximator로 사용할 때, 어떤 activation function과 학습 방식이 실제로 더 잘 작동하는지를 다룬다. 저자들의 목표는 두 가지다. 첫째, **SiLU (sigmoid-weighted linear unit)** 와 그 도함수 기반 activation인 **dSiLU** 를 제안하는 것이다. 둘째, experience replay와 target network에 의존하는 DQN류 접근 대신, **on-policy 학습 + eligibility traces + softmax action selection** 같은 더 전통적인 조합도 충분히 경쟁력이 있을 수 있음을 보이는 것이다. 논문은 이 조합을 stochastic SZ-Tetris, 10×10 Tetris, Atari 2600에 적용해 강한 결과를 보고한다.  
+이 논문은 강화학습에서 neural network를 function approximator로 사용할 때, 어떤 activation function과 학습 방식이 실제로 더 잘 작동하는지를 다룬다. 저자들의 목표는 두 가지다. 첫째, **SiLU (sigmoid-weighted linear unit)**와 그 도함수 기반 activation인 **dSiLU** 를 제안하는 것이다. 둘째, experience replay와 target network에 의존하는 DQN류 접근 대신, **on-policy 학습 + eligibility traces + softmax action selection** 같은 더 전통적인 조합도 충분히 경쟁력이 있을 수 있음을 보이는 것이다. 논문은 이 조합을 stochastic SZ-Tetris, 10×10 Tetris, Atari 2600에 적용해 강한 결과를 보고한다.  
 
 이 문제가 중요한 이유는 명확하다. 당시 deep reinforcement learning의 표준은 DQN이었고, experience replay와 separate target network가 거의 필수 구성처럼 여겨졌다. 저자들은 여기에 도전해, **activation 선택과 on-policy 업데이트 구조만 바꿔도** 강한 성능을 낼 수 있다고 주장한다. 즉, 이 논문은 단순 activation proposal이 아니라, 강화학습에서 “어떤 activation이 value approximation에 잘 맞는가”와 “DQN류의 복잡한 안정화 장치가 꼭 필요한가”를 동시에 묻는 논문이다.  
 
@@ -26,12 +26,12 @@
 파라미터 업데이트는 일반적인 eligibility trace 기반 gradient descent 형태다.
 
 $$
-\boldsymbol{\theta}\_{t+1}
+\boldsymbol{\theta}_{t+1}
 =========================
 
-\boldsymbol{\theta}\_t
+\boldsymbol{\theta}_t
 +
-\alpha \delta_t \boldsymbol{e}\_t
+\alpha \delta_t \boldsymbol{e}_t
 $$
 
 TD($\lambda$)에서 TD error는

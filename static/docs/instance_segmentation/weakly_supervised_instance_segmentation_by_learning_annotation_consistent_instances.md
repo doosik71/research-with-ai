@@ -37,7 +37,7 @@
 논문의 핵심 첫 축은 conditional distribution이다. 이는 weak annotation이 주어진 상태에서 pseudo instance labels를 생성하는 분포다.
 
 $$
-\Pr_c(\mathbf{y}\mid \mathbf{x}, \mathbf{a}; \boldsymbol{\theta}\_c)
+\Pr_c(\mathbf{y}\mid \mathbf{x}, \mathbf{a}; \boldsymbol{\theta}_c)
 $$
 
 이 분포의 목적은 **annotation-consistent pseudo labels** 를 만들되, weak supervision의 애매함 때문에 가능한 여러 해를 모두 고려하는 것이다. 예를 들어 image-level label만 있으면 “person이 있다”는 정보는 있지만, 어떤 proposal이 진짜 person instance인지, 어디까지 foreground인지 여러 해석이 가능하다. 논문은 이 불확실성을 분포로 다룬다.
@@ -79,17 +79,17 @@ $$
 appendix snippet에 따르면 diversity 항은 예를 들어 prediction과 conditional 사이에 대해 다음 꼴로 정의된다.
 
 $$
-DIV_{\Delta}(\text{Pr}\_p,\text{Pr}\_c) =
-\frac{1}{K}\sum_{k=1}^{K}\sum_{\mathbf{y}\_p^{(i)}} \text{Pr}\_p(\mathbf{y}\_p^{(i)};\mathbf{\theta}\_p),\Delta(\mathbf{y}\_p^{(i)}, \mathbf{y}\_c^k)
+DIV_{\Delta}(\text{Pr}_p,\text{Pr}_c) =
+\frac{1}{K}\sum_{k=1}^{K}\sum_{\mathbf{y}_p^{(i)}} \text{Pr}_p(\mathbf{y}_p^{(i)};\mathbf{\theta}_p),\Delta(\mathbf{y}_p^{(i)}, \mathbf{y}_c^k)
 $$
 
 그리고 conditional network의 self-diversity는
 
 $$
-DIV_{\Delta}(\text{Pr}\_c,\text{Pr}\_c) =
+DIV_{\Delta}(\text{Pr}_c,\text{Pr}_c) =
 \frac{1}{K(K-1)}
 \sum_{\substack{k,k'=1\\\\k'\neq k}}^K
-\Delta(\mathbf{y}\_c^k,\mathbf{y}\_c^{k'})
+\Delta(\mathbf{y}_c^k,\mathbf{y}_c^{k'})
 $$
 
 처럼 정의된다. 이 self-diversity 항은 conditional network가 한 이미지에 대해 다양한 plausible pseudo labels를 내도록 유도한다.  
@@ -112,12 +112,12 @@ $$
 
 * **image-level annotations**
 
-  * $50.9%\ \mathrm{mAP}^{r}\_{0.5}$
-  * $28.5%\ \mathrm{mAP}^{r}\_{0.75}$
+  * $50.9%\ \mathrm{mAP}^{r}_{0.5}$
+  * $28.5%\ \mathrm{mAP}^{r}_{0.75}$
 
 * **bounding-box annotations**
 
-  * $32.1%\ \mathrm{mAP}^{r}\_{0.75}$
+  * $32.1%\ \mathrm{mAP}^{r}_{0.75}$
 
 그리고 abstract에서는 best baseline 대비 각각 **4.2% mAP$^r_{0.5}$**, **4.8% mAP$^r_{0.75}$** 향상을 강조한다. introduction에서는 bounding-box setting에서 SOTA 대비 **10% 이상** 향상이라고도 요약한다.
 
@@ -158,7 +158,7 @@ $$
 
 ### Limitations
 
-한계도 있다. 우선 이 방법은 **segmentation proposals(MCG)** 에 의존한다. 즉, proposal quality가 pseudo label quality의 상한을 결정할 가능성이 높다. proposal set 자체에 적절한 instance가 없으면 conditional distribution이 아무리 좋아도 좋은 sample을 만들기 어렵다. 이 부분은 논문의 표기와 method 설명에서 자연스럽게 드러난다.
+한계도 있다. 우선 이 방법은 **segmentation proposals(MCG)**에 의존한다. 즉, proposal quality가 pseudo label quality의 상한을 결정할 가능성이 높다. proposal set 자체에 적절한 instance가 없으면 conditional distribution이 아무리 좋아도 좋은 sample을 만들기 어렵다. 이 부분은 논문의 표기와 method 설명에서 자연스럽게 드러난다.
 
 또한 conditional distribution은 전역 제약을 포함한 non-factorizable 구조라 직접 모델링이 어렵고, 결국 Discrete Disco Nets 기반 샘플링과 근사 gradient 최적화에 의존한다. 이는 elegant하지만, optimization complexity와 구현 복잡성 측면에서는 단순 2-step보다 부담이 있다.  
 

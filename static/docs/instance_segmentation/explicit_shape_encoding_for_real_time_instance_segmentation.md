@@ -1,22 +1,22 @@
 # Explicit Shape Encoding for Real-Time Instance Segmentation
 
-이 논문은 instance segmentation이 object detection보다 훨씬 느린 근본 원인을 “객체마다 mask를 복원하기 위해 별도의 무거운 decoder/upsampling 과정을 반복해야 한다”는 점으로 보고, 이를 **짧은 shape vector 회귀 + 매우 가벼운 수치적 복원**으로 바꾸는 **ESE-Seg**를 제안합니다. 핵심은 객체의 모양을 implicit latent code가 아니라 **explicit shape encoding**으로 표현하고, 이를 bounding box처럼 detector가 직접 회귀하도록 만드는 것입니다. 저자들은 이를 위해 **Inner-center Radius (IR)** 라는 새로운 contour 기반 shape signature와 **Chebyshev polynomial fitting**을 도입하고, YOLOv3·Faster R-CNN·RetinaNet 같은 기존 detector 위에 결합합니다. 그 결과 Pascal VOC 2012에서는 Mask R-CNN보다 더 높은 $mAP^r@0.5$를 보이면서도 약 7배 빠르다고 주장합니다.  
+이 논문은 instance segmentation이 object detection보다 훨씬 느린 근본 원인을 “객체마다 mask를 복원하기 위해 별도의 무거운 decoder/upsampling 과정을 반복해야 한다”는 점으로 보고, 이를 **짧은 shape vector 회귀 + 매우 가벼운 수치적 복원**으로 바꾸는 **ESE-Seg**를 제안합니다. 핵심은 객체의 모양을 implicit latent code가 아니라 **explicit shape encoding**으로 표현하고, 이를 bounding box처럼 detector가 직접 회귀하도록 만드는 것입니다. 저자들은 이를 위해 **Inner-center Radius (IR)**라는 새로운 contour 기반 shape signature와 **Chebyshev polynomial fitting**을 도입하고, YOLOv3·Faster R-CNN·RetinaNet 같은 기존 detector 위에 결합합니다. 그 결과 Pascal VOC 2012에서는 Mask R-CNN보다 더 높은 $mAP^r@0.5$를 보이면서도 약 7배 빠르다고 주장합니다.  
 
 ## 1. Paper Overview
 
-이 논문이 다루는 문제는 **실시간에 가까운 instance segmentation**입니다. 일반적인 object detection은 각 객체를 4차원 box parameter로 회귀하면 되지만, instance segmentation은 box뿐 아니라 **픽셀 단위 모양(mask)** 까지 복원해야 합니다. 기존 top-down 방식들, 예를 들어 Mask R-CNN류는 RoI별로 mask branch를 통과시키는 구조라서 객체 수가 많아질수록 연산량이 빠르게 늘고, 결과적으로 detection 대비 속도가 크게 느려집니다. 논문은 이 병목을 구조적으로 제거하려고 합니다.
+이 논문이 다루는 문제는 **실시간에 가까운 instance segmentation**입니다. 일반적인 object detection은 각 객체를 4차원 box parameter로 회귀하면 되지만, instance segmentation은 box뿐 아니라 **픽셀 단위 모양(mask)**까지 복원해야 합니다. 기존 top-down 방식들, 예를 들어 Mask R-CNN류는 RoI별로 mask branch를 통과시키는 구조라서 객체 수가 많아질수록 연산량이 빠르게 늘고, 결과적으로 detection 대비 속도가 크게 느려집니다. 논문은 이 병목을 구조적으로 제거하려고 합니다.
 
 저자들의 관점은 단순합니다. “box를 짧은 벡터로 표현해 빠르게 복원할 수 있듯이, **shape도 짧은 벡터**로 표현할 수 있다면 instance segmentation도 detection에 가까운 속도로 실행될 수 있지 않을까?” 이 아이디어를 실현하기 위해, 물체 외곽선을 짧고 robust하며 복원 가능한 벡터로 바꾸는 명시적 표현을 설계합니다. 그리고 이 벡터를 detector가 bounding box와 함께 직접 예측하게 합니다. 즉, 이 논문은 segmentation을 “mask 생성” 문제라기보다 “**shape parameter regression**” 문제로 재정의한 셈입니다.
 
-이 문제가 중요한 이유는, 자율주행, 로봇 조작 같은 응용에서 instance segmentation은 정확도뿐 아니라 **지연 시간(latency)** 이 매우 중요하기 때문입니다. 논문은 기존의 모델 경량화 기법에 기대기보다, 더 근본적으로 **shape prediction mechanism 자체를 바꾸는 방식**으로 속도 문제를 해결하려고 합니다.
+이 문제가 중요한 이유는, 자율주행, 로봇 조작 같은 응용에서 instance segmentation은 정확도뿐 아니라 **지연 시간(latency)**이 매우 중요하기 때문입니다. 논문은 기존의 모델 경량화 기법에 기대기보다, 더 근본적으로 **shape prediction mechanism 자체를 바꾸는 방식**으로 속도 문제를 해결하려고 합니다.
 
 ## 2. Core Idea
 
 이 논문의 핵심 아이디어는 세 층으로 정리할 수 있습니다.
 
-첫째, **명시적 shape encoding(explicit shape encoding)** 입니다. 기존의 implicit 방식은 autoencoder 같은 네트워크가 latent vector를 mask로 복원해야 하므로, object마다 decoder forward가 필요합니다. 반면 ESE-Seg은 contour 기반 수학적 표현을 쓰므로 decoder network 자체가 필요 없습니다. shape 복원이 행렬 곱과 덧셈 같은 단순 tensor operation으로 이루어지기 때문에 병렬화가 쉽고 빠릅니다.
+첫째, **명시적 shape encoding(explicit shape encoding)**입니다. 기존의 implicit 방식은 autoencoder 같은 네트워크가 latent vector를 mask로 복원해야 하므로, object마다 decoder forward가 필요합니다. 반면 ESE-Seg은 contour 기반 수학적 표현을 쓰므로 decoder network 자체가 필요 없습니다. shape 복원이 행렬 곱과 덧셈 같은 단순 tensor operation으로 이루어지기 때문에 병렬화가 쉽고 빠릅니다.
 
-둘째, **Inner-center Radius (IR)** 입니다. 일반적인 centroid나 bounding-box center는 물체 내부에 항상 존재하지 않을 수 있습니다. 그래서 저자들은 contour로부터 가장 멀리 떨어진 내부 점을 **inner center**로 정의하고, 이 점을 원점으로 삼아 contour를 polar coordinate의 radius function $f(\theta)$ 로 표현합니다. 이것이 IR signature입니다. 이렇게 하면 translation-invariant하고, 정규화 후 scale-invariant한 shape signature를 얻을 수 있습니다.
+둘째, **Inner-center Radius (IR)**입니다. 일반적인 centroid나 bounding-box center는 물체 내부에 항상 존재하지 않을 수 있습니다. 그래서 저자들은 contour로부터 가장 멀리 떨어진 내부 점을 **inner center**로 정의하고, 이 점을 원점으로 삼아 contour를 polar coordinate의 radius function $f(\theta)$ 로 표현합니다. 이것이 IR signature입니다. 이렇게 하면 translation-invariant하고, 정규화 후 scale-invariant한 shape signature를 얻을 수 있습니다.
 
 셋째, **Chebyshev polynomial fitting** 입니다. 원래 IR 자체는 360개 샘플 같은 긴 벡터가 될 수 있는데, 그대로는 network가 회귀하기에 길고 노이즈에도 민감합니다. 그래서 저자들은 $f(\theta)$ 를 Chebyshev polynomial basis로 근사해, 적은 수의 계수만 남깁니다. 이 계수들이 최종적으로 detector가 예측해야 하는 **shape descriptor**가 됩니다. 즉, ESE-Seg은 “contour → IR function → polynomial coefficients”라는 압축을 통해 shape를 짧고 학습하기 쉬운 벡터로 바꿉니다.
 

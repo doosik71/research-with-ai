@@ -2,13 +2,13 @@
 
 ## 1. Paper Overview
 
-이 논문은 신경망의 activation function으로 **Gaussian Error Linear Unit (GELU)** 를 제안한다. 저자들은 ReLU가 입력의 부호(sign)에 따라 hard gating을 수행하는 반면, GELU는 입력을 단순히 통과시키거나 자르는 대신 **입력값의 크기에 따라 연속적으로 가중(weighting)** 한다고 설명한다. 수식으로는 GELU가 $x\Phi(x)$ 로 정의되며, 여기서 $\Phi(x)$ 는 표준 정규분포의 누적분포함수(CDF)이다. 논문의 핵심 주장은 GELU가 ReLU, ELU보다 더 자연스러운 확률적 해석을 가지면서도, 컴퓨터 비전·자연어처리·음성 과제 전반에서 더 나은 성능을 보였다는 점이다.  
+이 논문은 신경망의 activation function으로 **Gaussian Error Linear Unit (GELU)**를 제안한다. 저자들은 ReLU가 입력의 부호(sign)에 따라 hard gating을 수행하는 반면, GELU는 입력을 단순히 통과시키거나 자르는 대신 **입력값의 크기에 따라 연속적으로 가중(weighting)**한다고 설명한다. 수식으로는 GELU가 $x\Phi(x)$ 로 정의되며, 여기서 $\Phi(x)$ 는 표준 정규분포의 누적분포함수(CDF)이다. 논문의 핵심 주장은 GELU가 ReLU, ELU보다 더 자연스러운 확률적 해석을 가지면서도, 컴퓨터 비전·자연어처리·음성 과제 전반에서 더 나은 성능을 보였다는 점이다.  
 
 이 논문이 중요한 이유는 activation function을 단순한 비선형 함수가 아니라, **정보를 얼마나 통과시킬지 결정하는 soft stochastic gate** 로 다시 해석했다는 데 있다. ReLU는 $x>0$ 이면 모두 통과, 아니면 모두 차단하는 매우 거친 규칙을 쓰지만, GELU는 입력이 클수록 더 많이 통과시키고 작을수록 덜 통과시키는 방식을 취한다. 이 관점은 dropout류 regularization과 activation을 더 가깝게 연결한다는 점에서도 의미가 있다.
 
 ## 2. Core Idea
 
-GELU의 핵심 아이디어는 **입력 의존적 stochastic masking의 기대값(expected transformation)** 을 activation으로 사용하자는 것이다. 저자들은 neuron input $x$ 에 대해 Bernoulli mask $m \sim \text{Bernoulli}(\Phi(x))$ 를 곱하는 상황을 생각한다. 그러면 입력이 클수록 통과될 확률이 높고, 작을수록 0이 될 확률이 높아진다. 이 stochastic process의 기대값을 취하면 바로 GELU가 된다.
+GELU의 핵심 아이디어는 **입력 의존적 stochastic masking의 기대값(expected transformation)**을 activation으로 사용하자는 것이다. 저자들은 neuron input $x$ 에 대해 Bernoulli mask $m \sim \text{Bernoulli}(\Phi(x))$ 를 곱하는 상황을 생각한다. 그러면 입력이 클수록 통과될 확률이 높고, 작을수록 0이 될 확률이 높아진다. 이 stochastic process의 기대값을 취하면 바로 GELU가 된다.
 
 즉,
 
@@ -44,7 +44,7 @@ $$
 
 논문은 GELU를 단순한 smooth activation으로 소개하는 데 그치지 않고, **Adaptive Dropout의 기대값** 으로 해석한다. 구체적으로 입력 $x$ 를 Bernoulli mask로 살리거나 죽이되, 그 mask probability를 $\Phi(x)$ 로 두면 activation의 출력 기대값은 $x\Phi(x)$ 가 된다. 이 때문에 GELU는 stochastic regularization과 activation을 분리된 두 요소로 보기보다, 하나의 연속적 관점에서 이해하게 만든다.  
 
-이 해석은 ReLU와의 차이를 더 분명히 보여 준다. ReLU는 사실상 $x\mathbf{1}\_{x>0}$ 로 쓸 수 있어 sign-based gating이다. 반면 GELU는 입력이 얼마나 “유의미하게 큰지”에 따라 통과 비율이 달라진다. 그래서 작은 양수도 무조건 살리지 않고, 약한 음수도 완전히 버리지 않는다. 이는 noisy feature나 애매한 intermediate representation을 다룰 때 더 부드러운 inductive bias를 제공한다는 의미로 읽을 수 있다.
+이 해석은 ReLU와의 차이를 더 분명히 보여 준다. ReLU는 사실상 $x\mathbf{1}_{x>0}$ 로 쓸 수 있어 sign-based gating이다. 반면 GELU는 입력이 얼마나 “유의미하게 큰지”에 따라 통과 비율이 달라진다. 그래서 작은 양수도 무조건 살리지 않고, 약한 음수도 완전히 버리지 않는다. 이는 noisy feature나 애매한 intermediate representation을 다룰 때 더 부드러운 inductive bias를 제공한다는 의미로 읽을 수 있다.
 
 ### 3.3 근사식
 
@@ -136,7 +136,7 @@ CIFAR-10/100 section의 확장된 문서 조각에서는, GELU가 shallow CNN과
 
 ## 6. Conclusion
 
-이 논문은 **Gaussian Error Linear Unit (GELU)** 를 제안하며, 이를
+이 논문은 **Gaussian Error Linear Unit (GELU)**를 제안하며, 이를
 
 $$
 \text{GELU}(x)=x\Phi(x)

@@ -2,9 +2,9 @@
 
 ## 1. Paper Overview
 
-이 논문은 ELU와 유사한 장점을 가지면서도 계산량이 더 적은 새로운 activation function인 **ISRLU (Inverse Square Root Linear Unit)** 를 제안한다. 저자들의 문제의식은 분명하다. ReLU는 계산이 단순하고 양수 구간에서 gradient가 잘 흐르지만 음수 영역을 완전히 0으로 잘라 버린다. 반면 ELU는 음수 값을 허용해 mean activation을 0 근처로 끌어오고 bias shift를 줄여 학습을 빠르게 만들 수 있지만, 음수 구간에서 **exponential** 계산이 필요해 비용이 더 크다. 논문은 이 둘 사이에서, **ELU와 비슷한 곡선과 학습 특성을 유지하면서 inverse square root 기반으로 더 빠르게 계산되는 activation** 을 설계하려는 시도다.  
+이 논문은 ELU와 유사한 장점을 가지면서도 계산량이 더 적은 새로운 activation function인 **ISRLU (Inverse Square Root Linear Unit)**를 제안한다. 저자들의 문제의식은 분명하다. ReLU는 계산이 단순하고 양수 구간에서 gradient가 잘 흐르지만 음수 영역을 완전히 0으로 잘라 버린다. 반면 ELU는 음수 값을 허용해 mean activation을 0 근처로 끌어오고 bias shift를 줄여 학습을 빠르게 만들 수 있지만, 음수 구간에서 **exponential** 계산이 필요해 비용이 더 크다. 논문은 이 둘 사이에서, **ELU와 비슷한 곡선과 학습 특성을 유지하면서 inverse square root 기반으로 더 빠르게 계산되는 activation** 을 설계하려는 시도다.  
 
-초록에서 저자들은 ISRLU가 ELU보다 더 나은 performance를 보이면서도 비슷한 benefits를 가진다고 주장한다. 특히 음수 값을 통해 mean unit activation을 0에 가깝게 만들고, normal gradient를 unit natural gradient에 더 가깝게 가져가며, noise-robust deactivation state를 제공해 overfitting 위험도 줄일 수 있다고 설명한다. 또한 TensorFlow 실험에서 CNN에 대해 ReLU보다 **더 빠른 학습과 더 좋은 generalization** 을 보였다고 보고하며, RNN용으로는 계산이 더 단순한 **ISRU (Inverse Square Root Unit)** 도 함께 제안한다.
+초록에서 저자들은 ISRLU가 ELU보다 더 나은 performance를 보이면서도 비슷한 benefits를 가진다고 주장한다. 특히 음수 값을 통해 mean unit activation을 0에 가깝게 만들고, normal gradient를 unit natural gradient에 더 가깝게 가져가며, noise-robust deactivation state를 제공해 overfitting 위험도 줄일 수 있다고 설명한다. 또한 TensorFlow 실험에서 CNN에 대해 ReLU보다 **더 빠른 학습과 더 좋은 generalization** 을 보였다고 보고하며, RNN용으로는 계산이 더 단순한 **ISRU (Inverse Square Root Unit)**도 함께 제안한다.
 
 이 논문이 중요한 이유는 단순히 “새 activation 하나”를 제안한 것이 아니라, activation의 **학습 특성**과 **계산 복잡도**를 함께 보려 했기 때문이다. 특히 저자들은 CNN이 점점 작은 convolution filter와 효율적 convolution 알고리즘을 쓰게 되면서, activation 연산 자체의 상대적 비용이 더 중요해진다고 본다. 즉, ELU처럼 학습에는 좋지만 계산이 비싼 activation보다, 비슷한 학습 효과를 더 싼 수학 연산으로 구현하는 것이 점점 더 의미 있어진다는 문제의식을 가진다.  
 

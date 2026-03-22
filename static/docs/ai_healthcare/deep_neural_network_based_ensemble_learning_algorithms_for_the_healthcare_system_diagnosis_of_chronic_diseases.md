@@ -1,6 +1,6 @@
 # Deep Neural Network Based Ensemble learning Algorithms for the healthcare system (diagnosis of chronic diseases)
 
-이 논문은 만성질환 진단에서 단일 분류기보다 **ensemble learning**, 그중에서도 **neural network를 meta-learner로 사용하는 stacking 기반 하이브리드 모델**이 더 높은 성능을 낼 수 있는지를 다룬다. 저자들은 먼저 의료 분야에서 자주 쓰이는 전통적 분류 알고리즘들을 폭넓게 정리한 뒤, UCI의 diabetes, heart disease, breast cancer 데이터셋에 대해 기본 알고리즘과 ensemble 기법을 비교하고, 최종적으로 **DeepNN 기반 stacking/generalization 모델(논문 내 표기: DeepNN_SG)** 이 가장 높은 정확도를 기록했다고 주장한다. 1쪽 초록과 10쪽의 모델 개요에 따르면, 이 연구의 목표는 단순 문헌 정리가 아니라 실제로 **기본 분류기 + ensemble + neural network meta-learner** 조합을 구현해 만성질환 진단 성능을 높이는 것이다.
+이 논문은 만성질환 진단에서 단일 분류기보다 **ensemble learning**, 그중에서도 **neural network를 meta-learner로 사용하는 stacking 기반 하이브리드 모델**이 더 높은 성능을 낼 수 있는지를 다룬다. 저자들은 먼저 의료 분야에서 자주 쓰이는 전통적 분류 알고리즘들을 폭넓게 정리한 뒤, UCI의 diabetes, heart disease, breast cancer 데이터셋에 대해 기본 알고리즘과 ensemble 기법을 비교하고, 최종적으로 **DeepNN 기반 stacking/generalization 모델(논문 내 표기: DeepNN_SG)**이 가장 높은 정확도를 기록했다고 주장한다. 1쪽 초록과 10쪽의 모델 개요에 따르면, 이 연구의 목표는 단순 문헌 정리가 아니라 실제로 **기본 분류기 + ensemble + neural network meta-learner** 조합을 구현해 만성질환 진단 성능을 높이는 것이다.
 
 ## 1. Paper Overview
 

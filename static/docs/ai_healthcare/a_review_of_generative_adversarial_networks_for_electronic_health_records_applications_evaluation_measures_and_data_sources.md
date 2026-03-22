@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 Electronic Health Records(EHRs)용 synthetic data 생성에서 **Generative Adversarial Networks(GANs)** 가 어떤 역할을 해왔는지 정리한 종합 리뷰 논문이다. 저자들은 EHR가 clinical research와 point-of-care application에 매우 중요하지만, 개인정보 보호, 데이터 공유 제한, 결측, 불균형, 잡음, 이질성, 불규칙 샘플링 같은 문제 때문에 실제 활용이 어렵다고 본다. 이런 문제를 완화하기 위한 방법으로 deep generative model, 특히 GAN 기반 synthetic EHR 생성이 유망하다고 보고, 관련 연구들을 응용 목적, 평가 방식, 데이터셋 관점에서 체계적으로 정리한다.
+이 논문은 Electronic Health Records(EHRs)용 synthetic data 생성에서 **Generative Adversarial Networks(GANs)**가 어떤 역할을 해왔는지 정리한 종합 리뷰 논문이다. 저자들은 EHR가 clinical research와 point-of-care application에 매우 중요하지만, 개인정보 보호, 데이터 공유 제한, 결측, 불균형, 잡음, 이질성, 불규칙 샘플링 같은 문제 때문에 실제 활용이 어렵다고 본다. 이런 문제를 완화하기 위한 방법으로 deep generative model, 특히 GAN 기반 synthetic EHR 생성이 유망하다고 보고, 관련 연구들을 응용 목적, 평가 방식, 데이터셋 관점에서 체계적으로 정리한다.
 
 이 논문의 핵심 문제의식은 단순히 “GAN이 EHR를 생성할 수 있는가”가 아니다. 저자들은 실제로 더 중요한 질문을 세운다. 즉, **EHR용 GAN이 어떤 의료 문제를 해결하려고 했는가**, **생성된 데이터의 품질과 프라이버시를 무엇으로 평가해야 하는가**, **어떤 공개 데이터가 이 분야의 공통 벤치마크 역할을 할 수 있는가**를 함께 다룬다. 논문 초록과 서론에서 저자들은 이 리뷰가 GAN for structured EHRs, applications, evaluation, challenges를 함께 다루는 포괄적 개관이며, 특히 synthetic EHR 평가 지표를 넓게 분류해 제시한 첫 작업이라고 주장한다.  
 
@@ -46,9 +46,9 @@ $$
 \min_G \max_D V(D,G)
 ====================
 
-\mathbb{E}\_{\mathbf{x}}[\log D(\mathbf{x})]
+\mathbb{E}_{\mathbf{x}}[\log D(\mathbf{x})]
 +
-\mathbb{E}\_{\mathbf{z}}[\log(1 - D(G(\mathbf{z})))]
+\mathbb{E}_{\mathbf{z}}[\log(1 - D(G(\mathbf{z})))]
 $$
 
 비록 ar5iv 수식 렌더링이 약간 거칠지만, 의도는 고전적 GAN objective 그대로다. discriminator는 real을 잘 구분하려 하고, generator는 discriminator를 속이도록 학습된다.
@@ -86,7 +86,7 @@ $$
 
 이때 단일 metric으로는 충분하지 않으므로, 정량 평가를 데이터 측면별로 분류해 정리한다. 표 1의 DWS/LDS/JDS/IDRS/PP/DU/Qual 분류가 그것이다. 이 구조는 실무적으로도 의미가 크다. 예를 들어 marginal histogram만 비슷하면 DWS는 좋을 수 있지만, feature 간 상관구조가 깨지면 IDRS나 JDS는 나쁠 수 있다. 또한 분포는 비슷해도 privacy leakage가 크면 PP가 나쁘고, downstream prediction이 잘 안 되면 DU가 낮다. 논문은 이런 trade-off를 분해해서 봐야 한다고 말한다.  
 
-특히 **Data Utility** 평가에서 저자들은 **TSTR (Train on Synthetic, Test on Real)** 를 대표적 utility 평가로 소개한다. 이름 그대로 synthetic data로 학습한 모델을 held-out real data에서 테스트해 실제 활용 가능성을 본다. 저자들은 synthetic/real 양쪽 성능을 함께 보고 baseline을 비교해야 utility를 정확히 해석할 수 있다고 강조한다.  
+특히 **Data Utility** 평가에서 저자들은 **TSTR (Train on Synthetic, Test on Real)**를 대표적 utility 평가로 소개한다. 이름 그대로 synthetic data로 학습한 모델을 held-out real data에서 테스트해 실제 활용 가능성을 본다. 저자들은 synthetic/real 양쪽 성능을 함께 보고 baseline을 비교해야 utility를 정확히 해석할 수 있다고 강조한다.  
 
 #### 3.3.3 Privacy evaluation
 

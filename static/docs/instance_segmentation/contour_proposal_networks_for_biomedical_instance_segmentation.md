@@ -1,12 +1,12 @@
 # Contour Proposal Networks for Biomedical Instance Segmentation
 
-이 논문은 생의학 영상에서 자주 등장하는 **세포 인스턴스 분할(instance segmentation)** 문제를 다룬다. 특히 세포들이 서로 맞닿아 있거나 일부가 겹쳐 보이는 상황에서, 기존의 픽셀 단위 분할 방식이나 bounding-box 기반 접근이 객체의 실제 경계를 충분히 복원하지 못한다는 점을 문제로 제기한다. 저자들은 이를 해결하기 위해 **Contour Proposal Network(CPN)** 를 제안한다. CPN은 각 객체를 픽셀 격자 전체에서 조밀하게 마스크로 예측하는 대신, **단일 위치에서 객체의 닫힌 윤곽선(closed contour)을 직접 제안하는 sparse detection 방식**으로 인스턴스 분할을 수행한다. 핵심은 윤곽선을 **Fourier descriptor 기반의 고정 길이 표현**으로 회귀하고, 이를 다시 픽셀 공간의 contour로 복원한 뒤 refinement와 NMS를 적용하는 것이다. 논문은 이 방식이 **U-Net 및 Mask R-CNN보다 더 높은 인스턴스 분할 정확도**를 보이며, 일부 설정에서는 **실시간 수준의 추론 속도**도 가능하다고 주장한다.  
+이 논문은 생의학 영상에서 자주 등장하는 **세포 인스턴스 분할(instance segmentation)** 문제를 다룬다. 특히 세포들이 서로 맞닿아 있거나 일부가 겹쳐 보이는 상황에서, 기존의 픽셀 단위 분할 방식이나 bounding-box 기반 접근이 객체의 실제 경계를 충분히 복원하지 못한다는 점을 문제로 제기한다. 저자들은 이를 해결하기 위해 **Contour Proposal Network(CPN)**를 제안한다. CPN은 각 객체를 픽셀 격자 전체에서 조밀하게 마스크로 예측하는 대신, **단일 위치에서 객체의 닫힌 윤곽선(closed contour)을 직접 제안하는 sparse detection 방식**으로 인스턴스 분할을 수행한다. 핵심은 윤곽선을 **Fourier descriptor 기반의 고정 길이 표현**으로 회귀하고, 이를 다시 픽셀 공간의 contour로 복원한 뒤 refinement와 NMS를 적용하는 것이다. 논문은 이 방식이 **U-Net 및 Mask R-CNN보다 더 높은 인스턴스 분할 정확도**를 보이며, 일부 설정에서는 **실시간 수준의 추론 속도**도 가능하다고 주장한다.  
 
 ## 1. Paper Overview
 
 이 논문의 문제의식은 명확하다. 생의학 영상, 특히 현미경 기반 세포 영상에서는 semantic segmentation 수준의 픽셀 정확도는 이미 상당히 높아졌지만, 실제로 중요한 것은 **서로 붙어 있거나 겹친 세포를 올바르게 분리해 개별 객체로 복원하는 것**이다. 그런데 많은 기존 방법은 각 픽셀에 오직 하나의 인스턴스만 할당하거나, 객체 경계를 간접적으로만 다루기 때문에, 겹친 객체의 실제 형상을 충분히 표현하지 못한다. 그 결과 downstream task, 예를 들어 형태학적 세포 분석(morphological cell analysis) 같은 작업에서 오류가 누적될 수 있다. 논문은 바로 이 지점을 출발점으로 삼아, **객체의 경계와 형상을 명시적으로 모델링하는 인스턴스 분할 방식**이 필요하다고 주장한다.  
 
-또 하나의 중요한 배경은 **일반화 성능(generalization)** 이다. 생의학 영상은 실험실 조건, 샘플 차이, 염색 프로토콜, 스캐닝 방식에 따라 분포가 조금씩 달라진다. 저자들은 segmentation 모델이 단순히 하나의 데이터셋에서 잘 작동하는 것을 넘어, 이런 작은 변동과 서로 다른 세포 도메인에도 견고해야 한다고 본다. 따라서 이 논문은 단지 새로운 segmentation network를 제안하는 것이 아니라, **형상 표현을 더 구조적으로 설계하여 일반화까지 노리는 접근**이라고 볼 수 있다.
+또 하나의 중요한 배경은 **일반화 성능(generalization)**이다. 생의학 영상은 실험실 조건, 샘플 차이, 염색 프로토콜, 스캐닝 방식에 따라 분포가 조금씩 달라진다. 저자들은 segmentation 모델이 단순히 하나의 데이터셋에서 잘 작동하는 것을 넘어, 이런 작은 변동과 서로 다른 세포 도메인에도 견고해야 한다고 본다. 따라서 이 논문은 단지 새로운 segmentation network를 제안하는 것이 아니라, **형상 표현을 더 구조적으로 설계하여 일반화까지 노리는 접근**이라고 볼 수 있다.
 
 ## 2. Core Idea
 
@@ -121,4 +121,4 @@ CPN은 backbone, Fourier contour regression, local refinement, NMS라는 여러 
 
 ## 6. Conclusion
 
-이 논문은 생의학 인스턴스 분할을 위해 **Contour Proposal Network(CPN)** 라는 간결하지만 강한 프레임워크를 제안한다. CPN은 객체를 dense mask로 직접 그리는 대신, **단일 위치에서 Fourier descriptor 기반 contour를 제안하는 sparse detection 방식**을 사용한다. 이후 contour를 픽셀 공간으로 복원하고, local refinement와 NMS를 통해 최종 인스턴스를 얻는다. 이 접근은 겹치거나 맞닿은 세포를 더 자연스럽게 다루며, 형상 정보를 명시적으로 활용한다는 점에서 기존 U-Net, Mask R-CNN 류 방법과 구별된다. 논문은 실험적으로 CPN이 더 높은 정확도와 좋은 일반화 성능을 보이며, 일부 모델은 실시간 응용에도 적합하다고 주장한다. 전체적으로 이 논문의 진짜 가치는 단순한 새 네트워크 제안이 아니라, **instance segmentation을 contour proposal 문제로 재해석했다는 점**에 있다.  
+이 논문은 생의학 인스턴스 분할을 위해 **Contour Proposal Network(CPN)**라는 간결하지만 강한 프레임워크를 제안한다. CPN은 객체를 dense mask로 직접 그리는 대신, **단일 위치에서 Fourier descriptor 기반 contour를 제안하는 sparse detection 방식**을 사용한다. 이후 contour를 픽셀 공간으로 복원하고, local refinement와 NMS를 통해 최종 인스턴스를 얻는다. 이 접근은 겹치거나 맞닿은 세포를 더 자연스럽게 다루며, 형상 정보를 명시적으로 활용한다는 점에서 기존 U-Net, Mask R-CNN 류 방법과 구별된다. 논문은 실험적으로 CPN이 더 높은 정확도와 좋은 일반화 성능을 보이며, 일부 모델은 실시간 응용에도 적합하다고 주장한다. 전체적으로 이 논문의 진짜 가치는 단순한 새 네트워크 제안이 아니라, **instance segmentation을 contour proposal 문제로 재해석했다는 점**에 있다.  

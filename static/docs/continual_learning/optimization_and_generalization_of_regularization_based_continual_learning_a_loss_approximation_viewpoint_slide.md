@@ -38,14 +38,14 @@ math: mathjax
 
 ## 손실 근사 프레임워크
 
-- task $k$ 종료 시점의 파라미터 $\hat{w}\_k$ 근처에서 empirical loss를 2차 근사한다.
+- task $k$ 종료 시점의 파라미터 $\hat{w}_k$ 근처에서 empirical loss를 2차 근사한다.
   $$
-  L^{\mathrm{prox}}\_k(w)
+  L^{\mathrm{prox}}_k(w)
   = \sum_{k'=1}^{k}
   \Big[
-  \hat{L}\_{k'}(\hat{w}\_{k'})
-  + (w-\hat{w}\_{k'})^\top \nabla \hat{L}\_{k'}(\hat{w}\_{k'})
-  + \frac{1}{2}(w-\hat{w}\_{k'})^\top H_{k'}(w-\hat{w}\_{k'})
+  \hat{L}_{k'}(\hat{w}_{k'})
+  + (w-\hat{w}_{k'})^\top \nabla \hat{L}_{k'}(\hat{w}_{k'})
+  + \frac{1}{2}(w-\hat{w}_{k'})^\top H_{k'}(w-\hat{w}_{k'})
   \Big]
   $$
 - 실제로는 보통 gradient term을 생략해 이전 task별 quadratic penalty 합으로 구현된다.

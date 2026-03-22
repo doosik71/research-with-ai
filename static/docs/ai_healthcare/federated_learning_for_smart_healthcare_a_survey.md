@@ -30,11 +30,11 @@
 
 저자들은 스마트 헬스케어에서 쓰이는 FL을 세 가지로 나눈다.
 
-**Horizontal FL (HFL)** 은 feature space는 같고 sample space가 다른 경우다. 예를 들어 여러 사용자가 같은 형태의 음성 데이터를 각자 스마트폰에 갖고 있는 경우, 같은 모델 구조를 로컬에서 학습한 뒤 서버가 이를 합칠 수 있다. 논문은 speech disorder detection을 예시로 든다.  
+**Horizontal FL (HFL)**은 feature space는 같고 sample space가 다른 경우다. 예를 들어 여러 사용자가 같은 형태의 음성 데이터를 각자 스마트폰에 갖고 있는 경우, 같은 모델 구조를 로컬에서 학습한 뒤 서버가 이를 합칠 수 있다. 논문은 speech disorder detection을 예시로 든다.  
 
-**Vertical FL (VFL)** 은 sample space는 같지만 feature space가 다른 경우다. 예를 들어 병원과 보험회사가 같은 환자 집단에 대해 서로 다른 특성(병원 기록 vs. 비용 정보)을 갖고 있을 때, 동일 환자에 대한 서로 다른 feature를 결합해 협력 학습할 수 있다. 이 경우 entity alignment와 encryption이 중요하다.  
+**Vertical FL (VFL)**은 sample space는 같지만 feature space가 다른 경우다. 예를 들어 병원과 보험회사가 같은 환자 집단에 대해 서로 다른 특성(병원 기록 vs. 비용 정보)을 갖고 있을 때, 동일 환자에 대한 서로 다른 feature를 결합해 협력 학습할 수 있다. 이 경우 entity alignment와 encryption이 중요하다.  
 
-**Federated Transfer Learning (FTL)** 은 sample space와 feature space가 모두 다를 때를 다룬다. transfer learning을 사용해 서로 다른 표현 공간을 공통 표현으로 옮긴 뒤 협력 학습하는 방식이다. 논문은 여러 국가/병원의 상이한 환자 집단과 치료 프로그램을 예시로 들며, 이를 통해 disease diagnosis 정확도를 높일 수 있다고 설명한다.  
+**Federated Transfer Learning (FTL)**은 sample space와 feature space가 모두 다를 때를 다룬다. transfer learning을 사용해 서로 다른 표현 공간을 공통 표현으로 옮긴 뒤 협력 학습하는 방식이다. 논문은 여러 국가/병원의 상이한 환자 집단과 치료 프로그램을 예시로 들며, 이를 통해 disease diagnosis 정확도를 높일 수 있다고 설명한다.  
 
 이 분류는 단순한 용어 정리가 아니라, **헬스케어 데이터 분산 형태가 매우 다양하기 때문에 어떤 FL 패러다임이 맞는지를 설계 초기에 결정해야 한다**는 점을 보여준다.
 

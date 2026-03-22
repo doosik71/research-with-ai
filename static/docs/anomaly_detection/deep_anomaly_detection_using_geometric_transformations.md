@@ -50,17 +50,17 @@ $$n_S(x) \triangleq \sum_{i=0}^{k-1} \log p(\mathbf{y}(T_i(x)) | T_i)$$
 
 여기서 $\mathbf{y}(x) \triangleq \text{softmax}(f_\theta(x))$는 분류기의 softmax 응답 벡터이다.
 
-각 조건부 분포를 Dirichlet 분포로 근사한다: $\mathbf{y}(T_i(x)) | T_i \sim \text{Dir}(\boldsymbol{\alpha}\_i)$
+각 조건부 분포를 Dirichlet 분포로 근사한다: $\mathbf{y}(T_i(x)) | T_i \sim \text{Dir}(\boldsymbol{\alpha}_i)$
 
 최종 정규성 점수는 다음과 같이 단순화된다:
 
-$$n_S(x) = \sum_{i=0}^{k-1} (\tilde{\boldsymbol{\alpha}}\_i - 1) \cdot \log \mathbf{y}(T_i(x))$$
+$$n_S(x) = \sum_{i=0}^{k-1} (\tilde{\boldsymbol{\alpha}}_i - 1) \cdot \log \mathbf{y}(T_i(x))$$
 
 ### 단순화된 정규성 점수
 
 실험 초기에 다음의 단순화된 정규성 점수도 사용되었다:
 
-$$\hat{n}\_S(x) \triangleq \frac{1}{k} \sum_{j=0}^{k-1} [\mathbf{y}(T_j(x))]_j$$
+$$\hat{n}_S(x) \triangleq \frac{1}{k} \sum_{j=0}^{k-1} [\mathbf{y}(T_j(x))]_j$$
 
 이 점수 함수는 Dirichlet 파라미터 추정이 필요 없어 구현이 간단하며, Dirichlet 점수보다 약간 낮은 성능을 보이지만 여전히 우수한 결과를 달성한다.
 

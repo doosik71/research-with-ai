@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 ELU와 PReLU의 장점을 하나의 activation으로 통합하려는 시도다. 저자들은 ReLU/PReLU 계열은 음수 구간에서 **linear family** 는 잘 표현하지만 non-linear family는 못 표현하고, ELU는 반대로 **non-linear family** 는 표현하지만 linear family는 못 표현한다는 “표현 공간의 간극”을 문제로 본다. 이를 해결하기 위해 **MPELU (Multiple Parametric Exponential Linear Unit)** 를 제안하고, 동시에 ELU/MPELU처럼 exponential linear unit을 쓰는 매우 깊은 네트워크를 안정적으로 학습시키기 위한 **새 weight initialization** 도 함께 제시한다. 마지막으로 이 둘을 이용한 deep MPELU ResNet을 구성해 CIFAR-10/100에서 당시 state-of-the-art 수준 성능을 보고한다.
+이 논문은 ELU와 PReLU의 장점을 하나의 activation으로 통합하려는 시도다. 저자들은 ReLU/PReLU 계열은 음수 구간에서 **linear family** 는 잘 표현하지만 non-linear family는 못 표현하고, ELU는 반대로 **non-linear family** 는 표현하지만 linear family는 못 표현한다는 “표현 공간의 간극”을 문제로 본다. 이를 해결하기 위해 **MPELU (Multiple Parametric Exponential Linear Unit)**를 제안하고, 동시에 ELU/MPELU처럼 exponential linear unit을 쓰는 매우 깊은 네트워크를 안정적으로 학습시키기 위한 **새 weight initialization** 도 함께 제시한다. 마지막으로 이 둘을 이용한 deep MPELU ResNet을 구성해 CIFAR-10/100에서 당시 state-of-the-art 수준 성능을 보고한다.
 
 이 문제가 중요한 이유는 activation function과 initialization이 단순 부품이 아니라, **표현력과 학습 가능 깊이** 를 동시에 제한하기 때문이다. 저자들은 특히 ELU가 좋은 학습 특성을 가지면서도 Batch Normalization과 잘 맞지 않을 수 있고, 또 ReLU용 He/MSRA initialization은 exponential unit에는 직접 맞지 않는다고 본다. 따라서 이 논문은 “새 activation”과 “그 activation을 깊은 네트워크에서 실제로 돌릴 수 있게 하는 initialization”을 한 세트로 제안하는 논문이다.
 
@@ -96,10 +96,10 @@ $$
 
 ### 해석
 
-비판적으로 보면, 이 논문의 더 큰 의미는 “MPELU가 최고 activation”이라기보다, **activation function family를 연속적 공간으로 일반화하고, 그에 맞는 initialization까지 함께 설계해야 한다**는 점을 보여 준 데 있다. 또한 ELU류 activation의 약점이 단순 함수 형태보다 **학습 가능성(initialization, BN compatibility)** 에도 있음을 잘 드러낸다.
+비판적으로 보면, 이 논문의 더 큰 의미는 “MPELU가 최고 activation”이라기보다, **activation function family를 연속적 공간으로 일반화하고, 그에 맞는 initialization까지 함께 설계해야 한다**는 점을 보여 준 데 있다. 또한 ELU류 activation의 약점이 단순 함수 형태보다 **학습 가능성(initialization, BN compatibility)**에도 있음을 잘 드러낸다.
 
 ## 6. Conclusion
 
-이 논문은 **MPELU (Multiple Parametric Exponential Linear Unit)** 를 제안해 ReLU/PReLU의 rectified family와 ELU의 exponential family를 하나의 일반형 안에서 통합했다. MPELU는 learnable $\alpha, \beta$ 를 통해 음수 구간의 포화 크기와 곡률을 조절하며, ReLU, PReLU, ELU를 special case처럼 포함한다. 동시에 저자들은 ELU/MPELU를 위한 **analytic initialization** 을 제안해, 기존 rectifier용 이론을 exponential linear unit까지 확장했다.  
+이 논문은 **MPELU (Multiple Parametric Exponential Linear Unit)**를 제안해 ReLU/PReLU의 rectified family와 ELU의 exponential family를 하나의 일반형 안에서 통합했다. MPELU는 learnable $\alpha, \beta$ 를 통해 음수 구간의 포화 크기와 곡률을 조절하며, ReLU, PReLU, ELU를 special case처럼 포함한다. 동시에 저자들은 ELU/MPELU를 위한 **analytic initialization** 을 제안해, 기존 rectifier용 이론을 exponential linear unit까지 확장했다.  
 
 실험적으로 논문은 NIN부터 1001-layer ResNet까지 폭넓게 검증했고, MPELU가 classification accuracy와 convergence를 개선하며, 제안 초기화가 매우 깊은 ELU/MPELU 네트워크를 실제로 수렴시키고 generalization도 향상시킨다고 주장한다. 최종적으로 deep MPELU ResNet은 CIFAR-10/100에서 state-of-the-art 수준 성능을 보고했다.  

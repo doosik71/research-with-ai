@@ -1,6 +1,6 @@
 # Active Learning of Inverse Models with Intrinsically Motivated Goal Exploration in Robots
 
-이 논문은 로봇이 고차원·중복(redundant) sensorimotor space에서 **inverse model** 을 더 효율적으로 학습하려면, 저수준 actuator space에서 무작위로 motor babbling을 하는 대신 **task space에서 goal을 능동적으로 생성하고 선택해야 한다**고 주장한다. 이를 위해 저자들은 **SAGG-RIAC (Self-Adaptive Goal Generation - Robust Intelligent Adaptive Curiosity)** 라는 다층 active learning 아키텍처를 제안한다. 핵심은 로봇이 스스로 목표(goal)를 만들어 보고, 그 목표에 대한 **competence progress** 가 큰 영역을 더 자주 탐색하게 만드는 것이다. 논문은 이 방식이 단순한 random goal selection이나 actuator-space 탐색보다 더 빠르게 inverse model을 익히고, 로봇이 **무엇을 할 수 있고 무엇을 할 수 없는지**, 즉 reachable space의 경계를 스스로 발견하게 만든다고 보고한다.
+이 논문은 로봇이 고차원·중복(redundant) sensorimotor space에서 **inverse model** 을 더 효율적으로 학습하려면, 저수준 actuator space에서 무작위로 motor babbling을 하는 대신 **task space에서 goal을 능동적으로 생성하고 선택해야 한다**고 주장한다. 이를 위해 저자들은 **SAGG-RIAC (Self-Adaptive Goal Generation - Robust Intelligent Adaptive Curiosity)**라는 다층 active learning 아키텍처를 제안한다. 핵심은 로봇이 스스로 목표(goal)를 만들어 보고, 그 목표에 대한 **competence progress** 가 큰 영역을 더 자주 탐색하게 만드는 것이다. 논문은 이 방식이 단순한 random goal selection이나 actuator-space 탐색보다 더 빠르게 inverse model을 익히고, 로봇이 **무엇을 할 수 있고 무엇을 할 수 없는지**, 즉 reachable space의 경계를 스스로 발견하게 만든다고 보고한다.
 
 ## 1. Paper Overview
 

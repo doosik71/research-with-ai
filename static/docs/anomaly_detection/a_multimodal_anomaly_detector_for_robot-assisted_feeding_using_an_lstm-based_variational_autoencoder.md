@@ -26,45 +26,45 @@
 
 ### 3.2 LSTM-VAE 아키텍처
 
-LSTM-VAE는 인코더(encoder)와 디코더(decoder)로 구성된다. 인코더는 시간 $t$에서의 멀티모달 입력 $\mathbf{x}\_t$를 LSTM에 통과시킨 후, 두 개의 선형 모듈을 통해 잠재 변수 $\mathbf{z}\_t$의 평균 $\mu_{\mathbf{z}\_t}$와 공분산 $\Sigma_{\mathbf{z}\_t}$을 추정한다. 이 때 $\mathbf{z}\_t$는 사후 분포 $q_\phi(\mathbf{z}\_t|\mathbf{x}\_t)$로부터 샘플링된다.
+LSTM-VAE는 인코더(encoder)와 디코더(decoder)로 구성된다. 인코더는 시간 $t$에서의 멀티모달 입력 $\mathbf{x}_t$를 LSTM에 통과시킨 후, 두 개의 선형 모듈을 통해 잠재 변수 $\mathbf{z}_t$의 평균 $\mu_{\mathbf{z}_t}$와 공분산 $\Sigma_{\mathbf{z}_t}$을 추정한다. 이 때 $\mathbf{z}_t$는 사후 분포 $q_\phi(\mathbf{z}_t|\mathbf{x}_t)$로부터 샘플링된다.
 
-디코더는 샘플링된 $\mathbf{z}\_t$를 입력으로 받아 LSTM을 통과시키고, 최종 출력으로 재구성된 분포의 평균 $\mu_{\mathbf{x}\_t}$와 공분산 $\Sigma_{\mathbf{x}\_t}$를 산출한다.
+디코더는 샘플링된 $\mathbf{z}_t$를 입력으로 받아 LSTM을 통과시키고, 최종 출력으로 재구성된 분포의 평균 $\mu_{\mathbf{x}_t}$와 공분산 $\Sigma_{\mathbf{x}_t}$를 산출한다.
 
 ### 3.3 손실 함수: Denoising Variational Lower Bound
 
 입력에 가우시안 노이즈를 추가하는 denoising autoencoding criterion을 적용한다. 손상된 입력 $\tilde{\mathbf{x}} = \mathbf{x} + \epsilon$ where $\epsilon \sim \mathcal{N}(0, \sigma_{\text{noise}})$를 사용하여, 손실 함수는 다음과 같이 정의된다:
 
-$$\mathcal{L}\_{\text{dvae}} = -D_{\text{KL}}(\tilde{q}\_\phi(\mathbf{z}\_t|\mathbf{x}\_t)||p_\theta(\mathbf{z}\_t)) + \mathbb{E}\_{\tilde{q}\_\phi(\mathbf{z}\_t|\mathbf{x}\_t)}[\log p_\theta(\mathbf{x}\_t|\mathbf{z}\_t)]$$
+$$\mathcal{L}_{\text{dvae}} = -D_{\text{KL}}(\tilde{q}_\phi(\mathbf{z}_t|\mathbf{x}_t)||p_\theta(\mathbf{z}_t)) + \mathbb{E}_{\tilde{q}_\phi(\mathbf{z}_t|\mathbf{x}_t)}[\log p_\theta(\mathbf{x}_t|\mathbf{z}_t)]$$
 
 첫 번째 항은 근사 사후 분포와 prior 사이의 KL 발산을 최소화하여 잠재 변수를 정규화한다. 두 번째 항은 재구성 손실을 최소화한다.
 
 ### 3.4 Progress-based Prior
 
-기존 VAE가 정적인 표준 정규분포 $\mathcal{N}(0,1)$을 prior로 사용하는 것과 달리, 본 논문에서는 태스크 진행 상황에 따라 변화하는 prior $p(\mathbf{z}\_t)$를 도입한다. 구체적으로, prior의 중심을 $\mathcal{N}(\mu_p, \Sigma_p)$로 설정하고, $\mu_p$를 태스크 시작 시 $p_1$에서 종료 시 $p_T$로 선형적으로 변화시킨다. 이를 통해 시계열 데이터의 시간적 의존성을 잠재 공간 분포에 반영한다.
+기존 VAE가 정적인 표준 정규분포 $\mathcal{N}(0,1)$을 prior로 사용하는 것과 달리, 본 논문에서는 태스크 진행 상황에 따라 변화하는 prior $p(\mathbf{z}_t)$를 도입한다. 구체적으로, prior의 중심을 $\mathcal{N}(\mu_p, \Sigma_p)$로 설정하고, $\mu_p$를 태스크 시작 시 $p_1$에서 종료 시 $p_T$로 선형적으로 변화시킨다. 이를 통해 시계열 데이터의 시간적 의존성을 잠재 공간 분포에 반영한다.
 
 정규분포 간 KL 발산은 다음과 같이 계산된다:
 
-$$D_{\text{KL}}(\mathcal{N}(\mu_{\mathbf{z}\_t},\Sigma_{\mathbf{z}\_t})||\mathcal{N}(\mu_p, 1)) = \frac{1}{2}\left(\text{tr}(\Sigma_{\mathbf{z}\_t}) + (\mu_p - \mu_{\mathbf{z}\_t})^T(\mu_p - \mu_{\mathbf{z}\_t}) - D - \log|\Sigma_{\mathbf{z}\_t}|\right)$$
+$$D_{\text{KL}}(\mathcal{N}(\mu_{\mathbf{z}_t},\Sigma_{\mathbf{z}_t})||\mathcal{N}(\mu_p, 1)) = \frac{1}{2}\left(\text{tr}(\Sigma_{\mathbf{z}_t}) + (\mu_p - \mu_{\mathbf{z}_t})^T(\mu_p - \mu_{\mathbf{z}_t}) - D - \log|\Sigma_{\mathbf{z}_t}|\right)$$
 
 재구성 항은 다변량 가우시안 분포를 가정하여 다음과 같이 유도된다:
 
-$$\mathbb{E}\_{\tilde{q}\_\phi(\mathbf{z}\_t|\mathbf{x}\_t)}[\log p_\theta(\mathbf{x}\_t|\mathbf{z}\_t)] = -\frac{1}{2}(\log|\Sigma_{\mathbf{x}\_t}| + (\mathbf{x}\_t - \mu_{\mathbf{x}\_t})^T\Sigma_{\mathbf{x}\_t}^{-1}(\mathbf{x}\_t - \mu_{\mathbf{x}\_t}) + D\log(2\pi))$$
+$$\mathbb{E}_{\tilde{q}_\phi(\mathbf{z}_t|\mathbf{x}_t)}[\log p_\theta(\mathbf{x}_t|\mathbf{z}_t)] = -\frac{1}{2}(\log|\Sigma_{\mathbf{x}_t}| + (\mathbf{x}_t - \mu_{\mathbf{x}_t})^T\Sigma_{\mathbf{x}_t}^{-1}(\mathbf{x}_t - \mu_{\mathbf{x}_t}) + D\log(2\pi))$$
 
 ### 3.5 Anomaly Score 및 감지 과정
 
 Anomaly score는 관측치의 음의 로그 우도로 정의된다:
 
-$$f_s(\mathbf{x}\_t, \phi, \theta) = -\log p(\mathbf{x}\_t; \mu_{\mathbf{x}\_t}, \Sigma_{\mathbf{x}\_t})$$
+$$f_s(\mathbf{x}_t, \phi, \theta) = -\log p(\mathbf{x}_t; \mu_{\mathbf{x}_t}, \Sigma_{\mathbf{x}_t})$$
 
 높은 score는 입력이 LSTM-VAE에 의해 잘 재구성되지 못했음을 의미한다.
 
 감지 과정은 다음과 같은 조건으로 수행된다:
 
-$$\begin{cases} \text{anomaly}, & \text{if } f_s(\mathbf{x}\_t, \phi, \theta) > \eta \\ \neg\text{anomaly}, & \text{otherwise} \end{cases}$$
+$$\begin{cases} \text{anomaly}, & \text{if } f_s(\mathbf{x}_t, \phi, \theta) > \eta \\ \neg\text{anomaly}, & \text{otherwise} \end{cases}$$
 
 ### 3.6 State-based Threshold
 
-고정 임계값 대신 상태 기반 임계값을 도입한다. 잠재 공간 표현 $\mathbf{z}$와 해당하는 anomaly score $s$의 관계를 SVR로 모델링하여, 기대 anomaly score $\hat{f}\_s(\mathbf{z})$를 추정한다. 최종 임계값은 $\eta = \hat{f}\_s(\mathbf{z}) + c$로 정의되며, 여기서 상수 $c$는 감도의 민감도를 조절한다.
+고정 임계값 대신 상태 기반 임계값을 도입한다. 잠재 공간 표현 $\mathbf{z}$와 해당하는 anomaly score $s$의 관계를 SVR로 모델링하여, 기대 anomaly score $\hat{f}_s(\mathbf{z})$를 추정한다. 최종 임계값은 $\eta = \hat{f}_s(\mathbf{z}) + c$로 정의되며, 여기서 상수 $c$는 감도의 민감도를 조절한다.
 
 ## 4. 실험 및 결과
 

@@ -729,6 +729,63 @@
 	const md = new MarkdownIt({ html: true, linkify: true, typographer: true });
 	const marp = new MarpLite({ html: true });
 
+	const textEncoder = new TextEncoder();
+	const textDecoder = new TextDecoder();
+
+	function encodeHex(text: string): string {
+		const bytes = textEncoder.encode(text);
+		let out = '';
+		for (const byte of bytes) {
+			out += byte.toString(16).padStart(2, '0');
+		}
+		return out;
+	}
+
+	function decodeHex(text: string): string {
+		if (!/^[0-9a-fA-F]*$/.test(text) || text.length % 2 !== 0) {
+			return text;
+		}
+		const bytes = new Uint8Array(text.length / 2);
+		for (let i = 0; i < text.length; i += 2) {
+			bytes[i / 2] = Number.parseInt(text.slice(i, i + 2), 16);
+		}
+		return textDecoder.decode(bytes);
+	}
+
+	const blockMathRegex = /(?<!\\)\$\$([\s\S]*?)\$\$/g;
+	const inlineMathRegex = /(?<!\\)(?<!\$)\$(?!\$)([^$\n]*?)(?<!\\)(?<!\$)\$(?!\$)/g;
+
+	function preProcessMath(text: string): string {
+		const blockProcessed = text.replace(blockMathRegex, (_match, content: string) => {
+			return `$$${encodeHex(content)}$$`;
+		});
+
+		return blockProcessed
+			.split('\n')
+			.map((line) =>
+				line.replace(inlineMathRegex, (_match, content: string) => `$${encodeHex(content)}$`)
+			)
+			.join('\n');
+	}
+
+	function postProcessMath(html: string): string {
+		const inlineRestored = html
+			.split('\n')
+			.map((line) =>
+				line
+					// ** 먼저 처리
+					.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+					// 그 다음 * 처리 (단, ** 제외)
+					.replace(/\*(?!\*)(.+?)\*(?!\*)/g, '<em>$1</em>')
+					.replace(inlineMathRegex, (_match, content: string) => `$${decodeHex(content)}$`)
+			)
+			.join('\n');
+
+		return inlineRestored.replace(blockMathRegex, (_match, content: string) => {
+			return `$$${decodeHex(content)}$$`;
+		});
+	}
+
 	async function typesetMathJax() {
 		if (typeof window === 'undefined') return;
 		const mj = (window as unknown as { MathJax?: { typesetPromise?: () => Promise<void> } })
@@ -1365,11 +1422,14 @@
 			const res = await fetch(`/docs/${selectedTopic.id}/${filename}`);
 			if (res.ok) {
 				const text = await res.text();
+				const processed = preProcessMath(text);
 				if (type === 'summary') {
-					renderHtml = md.render(text);
+					renderHtml = postProcessMath(md.render(processed));
 				} else if (type === 'slide') {
-					const { html, css } = marp.render(text);
-					renderHtml = `<style>${css}</style><div class="marp-slide-wrapper">${html}</div>`;
+					const { html, css } = marp.render(processed);
+					renderHtml = postProcessMath(
+						`<style>${css}</style><div class="marp-slide-wrapper">${html}</div>`
+					);
 				}
 			} else {
 				renderHtml = `<p>File not found: ${filename}</p>`;
@@ -2951,10 +3011,11 @@
 	/* Preview Content */
 	.preview-content {
 		flex: 1;
+		overflow-x: auto;
 		overflow-y: auto;
 		background: var(--bg-base);
 		-webkit-overflow-scrolling: touch;
-		touch-action: pan-y;
+		touch-action: auto;
 		transition: background 0.2s;
 	}
 	.summary-content {

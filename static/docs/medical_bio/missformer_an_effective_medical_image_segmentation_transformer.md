@@ -100,7 +100,7 @@ Enhanced Mix-FFN의 핵심은 다음과 같다.
 논문이 제시한 식은 다음과 같다.
 
 $$
-y_1 = \mathrm{LN}(\mathrm{Conv}\_{3 \times 3}(\mathrm{FC}(x_{in})) + \mathrm{FC}(x_{in}))
+y_1 = \mathrm{LN}(\mathrm{Conv}_{3 \times 3}(\mathrm{FC}(x_{in})) + \mathrm{FC}(x_{in}))
 $$
 
 $$

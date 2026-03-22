@@ -13,7 +13,7 @@
 첫째, **벤치마크 자체를 실제 수요 분포에 맞춰 설계**했다는 점이다. 저자들은 웹 검색 기능이 있는 LLM 챗봇 상호작용으로부터 수집한 96,147개의 실제 질의를 바탕으로, “여러 차례 검색하고, 정보를 수집하고, 분석해 고품질 보고서를 작성해야 하는 과제”를 deep research task로 정의했다. 이후 44,019개의 deep research 질의를 22개 도메인으로 분류하고, 그 분포를 압축해 100개의 평가 과제를 만들었다. 즉, 단순히 연구자가 임의로 만든 문제셋이 아니라 **현실적 사용자 수요의 축소판**을 만들려 했다는 점이 핵심이다.
 
 둘째, **평가를 두 축으로 분리**했다는 점이다.
-하나는 최종 보고서의 품질을 보는 **RACE (Reference-based Adaptive Criteria-driven Evaluation with Dynamic Weighting)**, 다른 하나는 보고서가 실제 웹 근거를 얼마나 정확하고 풍부하게 활용했는지를 보는 **FACT (Factual Abundance and Citation Trustworthiness)** 이다. 이 분리는 매우 합리적이다. 어떤 에이전트는 글을 매끄럽게 잘 쓰더라도 근거 인용이 약할 수 있고, 반대로 많은 근거를 모아도 분석과 구조화 능력이 떨어질 수 있기 때문이다. 저자들은 이 두 축을 함께 측정해야 DRA의 실질 능력을 더 잘 파악할 수 있다고 본다.
+하나는 최종 보고서의 품질을 보는 **RACE (Reference-based Adaptive Criteria-driven Evaluation with Dynamic Weighting)**, 다른 하나는 보고서가 실제 웹 근거를 얼마나 정확하고 풍부하게 활용했는지를 보는 **FACT (Factual Abundance and Citation Trustworthiness)**이다. 이 분리는 매우 합리적이다. 어떤 에이전트는 글을 매끄럽게 잘 쓰더라도 근거 인용이 약할 수 있고, 반대로 많은 근거를 모아도 분석과 구조화 능력이 떨어질 수 있기 때문이다. 저자들은 이 두 축을 함께 측정해야 DRA의 실질 능력을 더 잘 파악할 수 있다고 본다.
 
 이 논문의 상대적 신선함은 단순히 “벤치마크를 만들었다”는 데 있지 않다. 보고서 평가에서 흔히 발생하는 문제, 즉 고정된 rubric이나 checklist가 과제별 특수성을 반영하지 못하고, LLM judge가 보고서를 단독으로 보면 점수를 지나치게 높게 주는 경향을 보완하기 위해, **과제별 가중치 생성 + 기준 생성 + reference 기반 상대평가**를 결합했다는 점이 더 중요하다. 또한 FACT는 단순 citation count가 아니라 **실제로 문장과 URL이 지원 관계인지 판단**하여 유효한 인용만 세는 구조라는 점에서 기존의 표면적 인용 수 평가보다 정교하다.
 
@@ -57,7 +57,7 @@ $$
 Judge LLM은 모든 criterion에 대해 두 보고서의 점수 리스트를 출력한다.
 
 $$
-({s_{tgt,c}}\_{c \in C_t}, {s*{ref,c}}\_{c \in C_t}) = \text{JudgeLLM}(t, R*{tgt}, R_{ref}, C_t)
+({s_{tgt,c}}_{c \in C_t}, {s*{ref,c}}_{c \in C_t}) = \text{JudgeLLM}(t, R*{tgt}, R_{ref}, C_t)
 $$
 
 그 후 criterion 가중치와 dimension 가중치를 반영해 intermediate score를 계산하고, 최종 점수는 reference 대비 상대 점수로 정한다.
@@ -84,7 +84,7 @@ FACT는 에이전트가 웹에서 얼마나 유효한 정보를 찾아와 보고
 
 논문은 두 개의 핵심 지표를 정의한다.
 
-첫째, **Citation Accuracy (C. Acc.)** 는 task별로 support 판정을 받은 비율을 평균한 값이다.
+첫째, **Citation Accuracy (C. Acc.)**는 task별로 support 판정을 받은 비율을 평균한 값이다.
 
 과제 $t$에서 고유 pair 수를 $N_{u,t}$, support된 pair 수를 $N_{s,t}$라 할 때,
 
@@ -104,7 +104,7 @@ $$
 
 이다. 즉, citation precision에 가까운 개념이다.
 
-둘째, **Average Effective Citations per Task (E. Cit.)** 는 task당 평균적으로 몇 개의 “실제로 support되는 유효 citation”을 생성했는지를 본다.
+둘째, **Average Effective Citations per Task (E. Cit.)**는 task당 평균적으로 몇 개의 “실제로 support되는 유효 citation”을 생성했는지를 본다.
 
 $$
 E.Cit. = \frac{\sum_{t \in T} N_{s,t}}{|T|}
@@ -172,7 +172,7 @@ FACT 결과는 RACE와 다른 면을 드러낸다.
 
 ### 4.4 Human Consistency 결과
 
-표 2에 따르면 **RACE(Full)** 는 PAR 71.33, OPC 99.54, FAP 60.24, FAS 59.12로 가장 강한 전반적 정합성을 보인다. Vanilla Prompt는 overall 60.46에 그치며, reference 제거, static criteria 사용, weight 제거 등 여러 ablation은 모두 RACE full보다 성능이 떨어진다. 특히 **No Reference** 변형의 성능 하락은 reference-based scoring이 실제로 중요하다는 강한 근거다.
+표 2에 따르면 **RACE(Full)**는 PAR 71.33, OPC 99.54, FAP 60.24, FAS 59.12로 가장 강한 전반적 정합성을 보인다. Vanilla Prompt는 overall 60.46에 그치며, reference 제거, static criteria 사용, weight 제거 등 여러 ablation은 모두 RACE full보다 성능이 떨어진다. 특히 **No Reference** 변형의 성능 하락은 reference-based scoring이 실제로 중요하다는 강한 근거다.
 
 더 인상적인 부분은, RACE의 Pairwise Agreement Rate 71.33이 인간 annotator 간 inter-agreement 68.44보다 높다는 점이다. 이는 적어도 “보고서 A와 B 중 무엇이 더 낫나”라는 비교 문제에서, RACE가 사람 평균 판단을 상당히 안정적으로 근사한다는 것을 뜻한다. 물론 이것이 자동평가가 사람보다 “더 옳다”는 의미는 아니지만, practical evaluation tool로 쓰기에는 충분히 설득력 있는 결과다.
 

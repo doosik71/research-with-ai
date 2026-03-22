@@ -1,6 +1,6 @@
 # Transformer-Based Visual Segmentation: A Survey
 
-이 논문은 **Transformer 기반 visual segmentation 전체 지형도**를 정리하는 survey다. 단일 task나 단일 모델을 제안하는 논문이 아니라, semantic segmentation, instance segmentation, panoptic segmentation, 그리고 이들의 video·point cloud 확장까지 포함해, 최근 segmentation 연구가 왜 Transformer 중심으로 재편되었는지를 체계적으로 설명한다. 저자들은 먼저 segmentation의 문제 정의, 데이터셋, CNN 기반 전통을 정리한 뒤, **DETR에서 확장된 meta-architecture**를 공통 프레임으로 제시하고, 이를 기준으로 최신 방법들을 분류한다. 그 위에서 point cloud segmentation, foundation model tuning, domain-aware segmentation, efficient segmentation, class-agnostic segmentation/tracking, medical segmentation까지 별도 하위 분야로 확장해 다룬다. 또한 단순 문헌 정리에 그치지 않고, 주요 benchmark에서 기존 방법들을 **재비교(re-benchmark)** 하고, 앞으로의 연구 과제까지 정리한다는 점이 이 survey의 핵심 가치다.  
+이 논문은 **Transformer 기반 visual segmentation 전체 지형도**를 정리하는 survey다. 단일 task나 단일 모델을 제안하는 논문이 아니라, semantic segmentation, instance segmentation, panoptic segmentation, 그리고 이들의 video·point cloud 확장까지 포함해, 최근 segmentation 연구가 왜 Transformer 중심으로 재편되었는지를 체계적으로 설명한다. 저자들은 먼저 segmentation의 문제 정의, 데이터셋, CNN 기반 전통을 정리한 뒤, **DETR에서 확장된 meta-architecture**를 공통 프레임으로 제시하고, 이를 기준으로 최신 방법들을 분류한다. 그 위에서 point cloud segmentation, foundation model tuning, domain-aware segmentation, efficient segmentation, class-agnostic segmentation/tracking, medical segmentation까지 별도 하위 분야로 확장해 다룬다. 또한 단순 문헌 정리에 그치지 않고, 주요 benchmark에서 기존 방법들을 **재비교(re-benchmark)**하고, 앞으로의 연구 과제까지 정리한다는 점이 이 survey의 핵심 가치다.  
 
 ## 1. Paper Overview
 

@@ -32,7 +32,7 @@
 
 ### 문제 정의
 
-훈련 데이터셋 $\mathcal{D} = \{\mathcal{D}^a, \mathcal{D}^u\}$가 주어졌을 때, $\mathcal{D}^a$는 소수의 레이블된 이상치 집합이고 $\mathcal{D}^u$는 대규모 비레이블 데이터셋이다. $\mathcal{D}^a$는 k개의 알려진 이상치 클래스에 의해 분포되고, $\mathcal{D}^u$는 대부분 정상 데이터와 알려진 및 알려지지 않은 이상치 클래스의 일부 이상치를 포함한다. 목표는 데이터 인스턴스에 이상치 점수를 할당하는 이상치 점수 함수 $\phi: \mathcal{D} \to \mathbb{R}$를 학습하여, $\phi(\mathbf{s}\_i) > \phi(\mathbf{s}\_j)$를 만족하게 하는 것이다.
+훈련 데이터셋 $\mathcal{D} = \{\mathcal{D}^a, \mathcal{D}^u\}$가 주어졌을 때, $\mathcal{D}^a$는 소수의 레이블된 이상치 집합이고 $\mathcal{D}^u$는 대규모 비레이블 데이터셋이다. $\mathcal{D}^a$는 k개의 알려진 이상치 클래스에 의해 분포되고, $\mathcal{D}^u$는 대부분 정상 데이터와 알려진 및 알려지지 않은 이상치 클래스의 일부 이상치를 포함한다. 목표는 데이터 인스턴스에 이상치 점수를 할당하는 이상치 점수 함수 $\phi: \mathcal{D} \to \mathbb{R}$를 학습하여, $\phi(\mathbf{s}_i) > \phi(\mathbf{s}_j)$를 만족하게 하는 것이다.
 
 ### DRL 프레임워크
 
@@ -52,7 +52,7 @@
 
 #### 시뮬레이션 환경
 
-$\mathcal{D}$가 일반적인 데이터로 가정되므로, 의미 있는 자동적 상호작용을 가능하게 하는 시뮬레이션 환경 $E$를 생성해야 한다. 이를 위해 관찰 샘플링 함수 $g(\mathbf{s}\_{t+1}|\mathbf{s}\_t, a_t)$를 정의한다.
+$\mathcal{D}$가 일반적인 데이터로 가정되므로, 의미 있는 자동적 상호작용을 가능하게 하는 시뮬레이션 환경 $E$를 생성해야 한다. 이를 위해 관찰 샘플링 함수 $g(\mathbf{s}_{t+1}|\mathbf{s}_t, a_t)$를 정의한다.
 
 #### 보상
 
@@ -66,38 +66,38 @@ $\mathcal{D}$가 일반적인 데이터로 가정되므로, 의미 있는 자동
 
 에이전트 $A$는 최적의 이상치 탐지 지향 행동-값 함수(Q-value function)를 학습하는 것을 목표로 한다:
 
-$$Q^*(\mathbf{s}, a) = \max_\pi \mathbb{E}[r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots | \mathbf{s}\_t = \mathbf{s}, a_t = a, \pi]$$
+$$Q^*(\mathbf{s}, a) = \max_\pi \mathbb{E}[r_t + \gamma r_{t+1} + \gamma^2 r_{t+2} + \cdots | \mathbf{s}_t = \mathbf{s}, a_t = a, \pi]$$
 
 DQN을 사용하여 매개변수 $\theta$를 반복적으로 최소화하여 학습한다:
 
-$$\mathcal{L}\_j(\theta_j) = \mathbb{E}\_{(\mathbf{s}, a, r, \mathbf{s}') \sim U(\mathcal{E})}[(r + \gamma \max_{a'} Q(\mathbf{s}', a'; \theta_j^-) - Q(\mathbf{s}, a; \theta_j))]$$
+$$\mathcal{L}_j(\theta_j) = \mathbb{E}_{(\mathbf{s}, a, r, \mathbf{s}') \sim U(\mathcal{E})}[(r + \gamma \max_{a'} Q(\mathbf{s}', a'; \theta_j^-) - Q(\mathbf{s}, a; \theta_j))]$$
 
 #### 근접성 기반 관찰 샘플링
 
 샘플링 함수 $g$는 두 함수 $g_a$와 $g_u$로 구성된다. $g_a$는 $\mathcal{D}^a$에서 균일하게 샘플링하고, $g_u$는 현재 관찰의 근접성에 따라 $\mathcal{D}^u$에서 샘플링한다:
 
 $$
-g_u(\mathbf{s}\_{t+1}|\mathbf{s}\_t, a_t; \theta^e) =
+g_u(\mathbf{s}_{t+1}|\mathbf{s}_t, a_t; \theta^e) =
 \begin{cases}
-\arg\min_{\mathbf{s} \in \mathcal{S}} d(\mathbf{s}\_t, \mathbf{s}; \theta^e) & \text{if } a_t = a^1 \\\\
-\arg\max_{\mathbf{s} \in \mathcal{S}} d(\mathbf{s}\_t, \mathbf{s}; \theta^e) & \text{if } a_t = a^0
+\arg\min_{\mathbf{s} \in \mathcal{S}} d(\mathbf{s}_t, \mathbf{s}; \theta^e) & \text{if } a_t = a^1 \\\\
+\arg\max_{\mathbf{s} \in \mathcal{S}} d(\mathbf{s}_t, \mathbf{s}; \theta^e) & \text{if } a_t = a^0
 \end{cases}
 $$
 
 #### 외부 보상 함수
 
 $$
-r_t^e = h(\mathbf{s}\_t, a_t) =
+r_t^e = h(\mathbf{s}_t, a_t) =
 \begin{cases}
-1 & \text{if } a_t = a^1 \text{ and } \mathbf{s}\_t \in \mathcal{D}^a \\\\
-0 & \text{if } a_t = a^0 \text{ and } \mathbf{s}\_t \in \mathcal{D}^u \\\\
+1 & \text{if } a_t = a^1 \text{ and } \mathbf{s}_t \in \mathcal{D}^a \\\\
+0 & \text{if } a_t = a^0 \text{ and } \mathbf{s}_t \in \mathcal{D}^u \\\\
 -1 & \text{otherwise}
 \end{cases}
 $$
 
 #### 내재적 보상 함수
 
-$$r_t^i = f(\mathbf{s}\_t; \theta^e) = \text{iForest}(\mathbf{s}\_t; \theta^e)$$
+$$r_t^i = f(\mathbf{s}_t; \theta^e) = \text{iForest}(\mathbf{s}_t; \theta^e)$$
 
 #### 결합 보상
 

@@ -8,7 +8,7 @@
 
 이 논문은 **continual learning** 환경에서 분류 모델이 순차적으로 여러 태스크를 학습할 때 발생하는 **catastrophic forgetting** 문제를 해결하는 것을 목표로 한다. 구체적으로는, 과거 태스크의 원본 데이터에 더 이상 접근할 수 없고, 과거 태스크별 모델을 따로 저장하지도 않는 조건에서, 새로운 태스크를 계속 배우면서도 이전 태스크의 분류 성능을 유지하려는 문제를 다룬다.
 
-저자들은 이를 위해 **VAE(Variational Autoencoder)** 의 encoder와 decoder에 classifier를 결합한 잠재변수 기반 분류 모델을 제안한다. 핵심은 단순히 reconstruction만 잘하는 생성모델이 아니라, 입력 $x$와 라벨 $y$를 **공동으로 모델링하는 joint likelihood $\log p(x,y)$** 를 최적화하는 방식으로 분류와 생성을 함께 학습한다는 점이다. 이를 위해 저자들은 $\log p(x,y)$에 대한 새로운 variational lower bound를 유도한다.
+저자들은 이를 위해 **VAE(Variational Autoencoder)**의 encoder와 decoder에 classifier를 결합한 잠재변수 기반 분류 모델을 제안한다. 핵심은 단순히 reconstruction만 잘하는 생성모델이 아니라, 입력 $x$와 라벨 $y$를 **공동으로 모델링하는 joint likelihood $\log p(x,y)$** 를 최적화하는 방식으로 분류와 생성을 함께 학습한다는 점이다. 이를 위해 저자들은 $\log p(x,y)$에 대한 새로운 variational lower bound를 유도한다.
 
 이 문제가 중요한 이유는 continual learning의 핵심 제약 때문이다. 실제 환경에서는 데이터가 한 번에 모두 주어지지 않고 시간에 따라 순차적으로 도착하는 경우가 많다. 이때 일반적인 신경망은 모든 태스크를 한꺼번에 학습하면 여러 태스크를 처리할 수 있지만, 태스크를 하나씩 순서대로 학습하면 이전 태스크 성능이 급격히 무너진다. 논문은 이러한 구조적 한계를 완화하기 위해, 과거 데이터를 저장하지 않고도 **과거 태스크를 “생성”해서 재학습에 활용하는 방식**을 제안한다.
 
@@ -161,7 +161,7 @@ $$
 
 첫 번째 baseline은 **vae-cl**이다. 이것은 논문이 제안한 variational bound와 classifier를 사용하지만, teacher-student architecture는 없는 모델이다. 다시 말해 joint generative-discriminative VAE이긴 하지만 continual replay 메커니즘이 없다. 따라서 단순한 joint model만으로 forgetting을 막을 수 있는지를 비교하는 기준이 된다.
 
-두 번째 baseline은 **EWC(Elastic Weight Consolidation)** 를 이 문제에 맞게 변형한 방식이다. 논문 설명에 따르면 이 baseline에서도 teacher는 과거 분포의 요약을 유지하는 데 사용되지만, teacher가 student를 위해 데이터를 생성하지는 않는다. 대신 teacher와 student의 파라미터 차이에 대해 Fisher 정보 기반 regularization을 건다.
+두 번째 baseline은 **EWC(Elastic Weight Consolidation)**를 이 문제에 맞게 변형한 방식이다. 논문 설명에 따르면 이 baseline에서도 teacher는 과거 분포의 요약을 유지하는 데 사용되지만, teacher가 student를 위해 데이터를 생성하지는 않는다. 대신 teacher와 student의 파라미터 차이에 대해 Fisher 정보 기반 regularization을 건다.
 
 식으로는 대략 다음 형태다.
 

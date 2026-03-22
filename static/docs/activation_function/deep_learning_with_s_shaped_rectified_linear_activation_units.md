@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 CNN에서 널리 쓰이는 ReLU 계열 activation function의 표현 한계를 문제로 삼는다. 저자들은 ReLU, Leaky ReLU, PReLU, maxout 같은 기존 rectified activation이 대체로 **convex 함수만 잘 표현**하거나, APL처럼 non-convex를 근사하더라도 불필요한 제약을 갖는다고 본다. 이를 해결하기 위해 저자들은 **S-shaped Rectified Linear Unit (SReLU)** 를 제안한다. SReLU는 세 개의 piecewise linear segment와 네 개의 학습 가능한 파라미터로 구성되며, backpropagation으로 네트워크 전체와 함께 학습된다. 논문의 핵심 주장은 SReLU가 **convex와 non-convex 함수를 모두 유연하게 학습**하면서도, 비포화 piecewise linear 구조이기 때문에 ReLU류의 계산 효율과 gradient 전달 장점을 유지한다는 것이다.
+이 논문은 CNN에서 널리 쓰이는 ReLU 계열 activation function의 표현 한계를 문제로 삼는다. 저자들은 ReLU, Leaky ReLU, PReLU, maxout 같은 기존 rectified activation이 대체로 **convex 함수만 잘 표현**하거나, APL처럼 non-convex를 근사하더라도 불필요한 제약을 갖는다고 본다. 이를 해결하기 위해 저자들은 **S-shaped Rectified Linear Unit (SReLU)**를 제안한다. SReLU는 세 개의 piecewise linear segment와 네 개의 학습 가능한 파라미터로 구성되며, backpropagation으로 네트워크 전체와 함께 학습된다. 논문의 핵심 주장은 SReLU가 **convex와 non-convex 함수를 모두 유연하게 학습**하면서도, 비포화 piecewise linear 구조이기 때문에 ReLU류의 계산 효율과 gradient 전달 장점을 유지한다는 것이다.
 
 이 문제가 중요한 이유는 activation function이 단순한 부품이 아니라, 네트워크의 표현력과 optimization dynamics를 직접 제한하기 때문이다. 저자들은 특히 deep CNN의 성공을 비포화 activation 덕분이라고 보면서도, 단순 ReLU류는 표현 가능한 비선형성의 형태가 제한적이라고 지적한다. 따라서 이 논문은 “더 깊은 모델”이나 “더 복잡한 block”이 아니라, **activation 자체를 더 유연하게 만들어 성능을 끌어올릴 수 있는가**라는 질문에 답한다.  
 

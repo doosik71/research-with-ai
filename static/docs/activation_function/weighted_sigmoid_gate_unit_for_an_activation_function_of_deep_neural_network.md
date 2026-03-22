@@ -1,6 +1,6 @@
 # Weighted Sigmoid Gate Unit for an Activation Function of Deep Neural Network
 
-첨부 논문은 ReLU 계열 활성화 함수의 한계를 넘기 위해, 입력에 sigmoid gate를 곱하는 **Weighted Sigmoid Gate Unit (WiG)** 를 제안한다. 핵심은 scalar 단위의 단순한 비선형성 대신, **가중치가 있는 gate가 입력의 각 성분을 얼마나 통과시킬지 결정**하게 만드는 것이다. 저자는 WiG가 ReLU, SiL, Swish를 모두 포괄하는 더 일반적인 형태라고 주장하며, 기존 연구가 주로 분류(object recognition)에서만 활성화 함수를 비교한 것과 달리, **객체 인식과 이미지 복원(denoising)** 두 과제에서 함께 검증했다. 논문의 결론은 WiG가 두 과제 모두에서 기존 활성화 함수들보다 우수하다는 것이다.
+첨부 논문은 ReLU 계열 활성화 함수의 한계를 넘기 위해, 입력에 sigmoid gate를 곱하는 **Weighted Sigmoid Gate Unit (WiG)**를 제안한다. 핵심은 scalar 단위의 단순한 비선형성 대신, **가중치가 있는 gate가 입력의 각 성분을 얼마나 통과시킬지 결정**하게 만드는 것이다. 저자는 WiG가 ReLU, SiL, Swish를 모두 포괄하는 더 일반적인 형태라고 주장하며, 기존 연구가 주로 분류(object recognition)에서만 활성화 함수를 비교한 것과 달리, **객체 인식과 이미지 복원(denoising)** 두 과제에서 함께 검증했다. 논문의 결론은 WiG가 두 과제 모두에서 기존 활성화 함수들보다 우수하다는 것이다.
 
 ## 1. Paper Overview
 
@@ -11,10 +11,10 @@
 WiG의 핵심 아이디어는 다음 식으로 요약된다.
 
 $$
-\mathbf{f}(\mathbf{x})=\mathbf{x}\odot \sigma(\mathbf{W}\_g\mathbf{x}+\mathbf{b}\_g)
+\mathbf{f}(\mathbf{x})=\mathbf{x}\odot \sigma(\mathbf{W}_g\mathbf{x}+\mathbf{b}_g)
 $$
 
-즉, 입력 $\mathbf{x}$ 자체를 그대로 쓰지 않고, 이를 **sigmoid gate** $\sigma(\mathbf{W}\_g\mathbf{x}+\mathbf{b}\_g)$ 로 조절한 뒤 element-wise product를 취한다. gate 값이 1에 가까우면 성분이 통과되고, 0에 가까우면 억제된다. 결국 WiG는 “입력을 살릴지 말지”를 단순 임계값이 아니라 **학습 가능한 가중 gate** 로 결정하는 구조다.
+즉, 입력 $\mathbf{x}$ 자체를 그대로 쓰지 않고, 이를 **sigmoid gate** $\sigma(\mathbf{W}_g\mathbf{x}+\mathbf{b}_g)$ 로 조절한 뒤 element-wise product를 취한다. gate 값이 1에 가까우면 성분이 통과되고, 0에 가까우면 억제된다. 결국 WiG는 “입력을 살릴지 말지”를 단순 임계값이 아니라 **학습 가능한 가중 gate** 로 결정하는 구조다.
 
 이 아이디어가 중요한 이유는 WiG가 기존 함수들을 특수한 경우로 포함하기 때문이다.
 
@@ -31,14 +31,14 @@ $$
 논문이 제시한 WiG의 정의는 다음과 같다.
 
 $$
-\mathbf{f}(\mathbf{x})=\mathbf{x}\odot \sigma(\mathbf{W}\_g\mathbf{x}+\mathbf{b}\_g)
+\mathbf{f}(\mathbf{x})=\mathbf{x}\odot \sigma(\mathbf{W}_g\mathbf{x}+\mathbf{b}_g)
 $$
 
 여기서:
 
 * $\mathbf{x}\in \mathbb{R}^N$: 입력 벡터
-* $\mathbf{W}\_g\in \mathbb{R}^{N\times N}$: gate를 계산하는 가중치
-* $\mathbf{b}\_g\in \mathbb{R}^N$: gate bias
+* $\mathbf{W}_g\in \mathbb{R}^{N\times N}$: gate를 계산하는 가중치
+* $\mathbf{b}_g\in \mathbb{R}^N$: gate bias
 * $\odot$: element-wise product
 
 보통 활성화 함수는 선형변환 뒤에 붙는다. 이 점을 반영하면, 선형층 $\mathbf{W}\mathbf{x}$ 뒤에 WiG를 붙인 형태는 다음과 같이 쓸 수 있다.
@@ -48,7 +48,7 @@ $$
 ================================
 
 \mathbf{W}\mathbf{x}\odot \sigma(\mathbf{V}\mathbf{x}),
-\quad \mathbf{V}=\mathbf{W}\mathbf{W}\_g
+\quad \mathbf{V}=\mathbf{W}\mathbf{W}_g
 $$
 
 저자는 이 구현이 기존 유사 네트워크와 계산 복잡도는 같지만, **병렬 계산 측면에서는 더 효율적일 수 있고**, 반대로 학습 관점에서는 $\mathbf{V}$ 와 $\mathbf{W}$ 의 통계적 성질이 달라 별도의 매개변수화가 유리할 수 있다고 해석한다.  
@@ -63,7 +63,7 @@ $$
 
 ### 3.4 Initialization
 
-초기화는 이 논문에서 꽤 중요한 부분이다. 저자는 $\mathbf{W}\_g$ 와 $\mathbf{b}\_g$ 를 위한 초기화를 따로 논의하며, 특히 $\mathbf{W}\_g$ 를 **scaled identity matrix $s\mathbf{I}$** 로 초기화하는 방식을 제안한다. 이때:
+초기화는 이 논문에서 꽤 중요한 부분이다. 저자는 $\mathbf{W}_g$ 와 $\mathbf{b}_g$ 를 위한 초기화를 따로 논의하며, 특히 $\mathbf{W}_g$ 를 **scaled identity matrix $s\mathbf{I}$** 로 초기화하는 방식을 제안한다. 이때:
 
 * $s$ 가 크면 WiG는 초기 상태에서 **ReLU 근사**가 된다.
 * 따라서 기존 ReLU 네트워크에서 WiG 네트워크로 **transfer learning** 하기 좋다.
@@ -119,7 +119,7 @@ $$
 
 한계도 분명하다.
 
-첫째, 구조가 ReLU보다 복잡하다. gate를 위한 $\mathbf{W}\_g, \mathbf{b}\_g$ 가 추가되므로, 계산량과 파라미터 측면에서 단순 activation보다 무겁다. 논문은 병렬 계산 효율이나 구현 형태를 논의하지만, 실제 large-scale modern architecture에서의 cost-benefit은 이 논문만으로는 충분히 판단하기 어렵다.
+첫째, 구조가 ReLU보다 복잡하다. gate를 위한 $\mathbf{W}_g, \mathbf{b}_g$ 가 추가되므로, 계산량과 파라미터 측면에서 단순 activation보다 무겁다. 논문은 병렬 계산 효율이나 구현 형태를 논의하지만, 실제 large-scale modern architecture에서의 cost-benefit은 이 논문만으로는 충분히 판단하기 어렵다.
 
 둘째, 실험 범위가 제한적이다. CIFAR와 denoising은 의미 있는 벤치마크지만, 훨씬 큰 규모의 vision backbone이나 NLP/sequence 모델에서의 보편성은 보여 주지 않는다. 논문 자체가 LSTM의 sigmoid gating을 언급하긴 하지만, WiG를 sequence model에 실제 적용해 보인 것은 아니다.
 

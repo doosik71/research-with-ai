@@ -14,7 +14,7 @@
 
 GRAM의 핵심 아이디어는 “의료 코드 하나를 하나의 embedding으로만 보지 말고, **그 코드와 그 조상 개념들의 mixture로 표현하자**”는 것이다. 예를 들어 어떤 leaf diagnosis code가 매우 희귀하다면, 그 코드 자체의 embedding만으로는 학습이 불안정할 수 있다. 대신 그 code의 parent, grandparent 같은 더 일반적인 개념은 더 많은 샘플을 공유하므로 더 안정적으로 학습된다. GRAM은 이 점을 attention mechanism으로 구현한다.  
 
-즉, 의료 개념 $c_i$의 최종 표현 $\mathbf{g}\_i$는 단순한 base embedding $\mathbf{e}\_i$가 아니라, 자기 자신과 ancestor들의 base embedding을 attention으로 가중합한 결과다. 논문 그림 설명에 따르면, leaf node는 실제 EHR 코드이고 non-leaf node는 더 일반적인 상위 개념이며, 최종 표현은 이들을 조합해 만들어진다. 그 뒤 이 embedding matrix를 이용해 visit vector를 visit representation으로 바꾸고, 이를 예측 모델에 넣는다.
+즉, 의료 개념 $c_i$의 최종 표현 $\mathbf{g}_i$는 단순한 base embedding $\mathbf{e}_i$가 아니라, 자기 자신과 ancestor들의 base embedding을 attention으로 가중합한 결과다. 논문 그림 설명에 따르면, leaf node는 실제 EHR 코드이고 non-leaf node는 더 일반적인 상위 개념이며, 최종 표현은 이들을 조합해 만들어진다. 그 뒤 이 embedding matrix를 이용해 visit vector를 visit representation으로 바꾸고, 이를 예측 모델에 넣는다.
 
 이 구조의 novelty는 두 가지다. 첫째, ontology를 단순 feature engineering이나 post-hoc regularizer로 쓰지 않고, **attention 기반 representation learning 내부에 직접 통합**했다는 점이다. 둘째, ontology 사용 강도를 고정하지 않고, **데이터 양과 계층 구조에 따라 adaptive하게 조절**한다는 점이다. 저자들이 반복해서 강조하는 것도 바로 “rare code면 ancestor에 더 의존하고, frequent code면 leaf 자체를 더 신뢰한다”는 직관이다.  
 
@@ -22,17 +22,17 @@ GRAM의 핵심 아이디어는 “의료 코드 하나를 하나의 embedding으
 
 ### 3.1 데이터와 ontology의 형식화
 
-논문은 EHR를 환자별 visit sequence로 본다. 전체 의료 코드 집합을 $\mathcal{C}$라고 하면, 각 visit $V_t$는 그 부분집합이고, binary visit vector $\mathbf{x}\_t \in {0,1}^{|\mathcal{C}|}$로 표현할 수 있다. 또한 의료 ontology는 leaf node가 실제 코드, non-leaf node가 상위 개념인 directed acyclic graph(DAG) $\mathcal{G}$로 표현된다. 즉, 모델은 EHR의 순차 구조와 ontology의 계층 구조를 동시에 다룬다.
+논문은 EHR를 환자별 visit sequence로 본다. 전체 의료 코드 집합을 $\mathcal{C}$라고 하면, 각 visit $V_t$는 그 부분집합이고, binary visit vector $\mathbf{x}_t \in {0,1}^{|\mathcal{C}|}$로 표현할 수 있다. 또한 의료 ontology는 leaf node가 실제 코드, non-leaf node가 상위 개념인 directed acyclic graph(DAG) $\mathcal{G}$로 표현된다. 즉, 모델은 EHR의 순차 구조와 ontology의 계층 구조를 동시에 다룬다.
 
 ### 3.2 Knowledge DAG와 attention
 
-GRAM에서 각 node $c_i$는 먼저 base embedding $\mathbf{e}\_i \in \mathbb{R}^m$를 가진다. 하지만 실제 예측에 쓰는 것은 base embedding이 아니라 final representation $\mathbf{g}\_i$다. 이 final representation은 해당 leaf concept와 ancestor concept들의 embedding을 attention으로 결합해 만든다. 저자 설명에 따르면, 희귀한 코드일수록 ancestor가 더 큰 weight를 받고, 충분히 자주 등장하는 코드일수록 leaf 자체가 더 큰 weight를 받는다. 이는 ontology를 통해 rare code representation을 보강하는 메커니즘이다.  
+GRAM에서 각 node $c_i$는 먼저 base embedding $\mathbf{e}_i \in \mathbb{R}^m$를 가진다. 하지만 실제 예측에 쓰는 것은 base embedding이 아니라 final representation $\mathbf{g}_i$다. 이 final representation은 해당 leaf concept와 ancestor concept들의 embedding을 attention으로 결합해 만든다. 저자 설명에 따르면, 희귀한 코드일수록 ancestor가 더 큰 weight를 받고, 충분히 자주 등장하는 코드일수록 leaf 자체가 더 큰 weight를 받는다. 이는 ontology를 통해 rare code representation을 보강하는 메커니즘이다.  
 
 직관적으로 보면, 이는 의료 ontology를 통한 **adaptive smoothing**이다. 일반적인 임베딩에서는 희귀 코드는 noisy한 vector가 되기 쉽지만, GRAM은 상위 개념과의 관계를 활용해 representation을 안정화한다. 중요한 점은 이 과정이 hand-crafted rule이 아니라 **attention으로 end-to-end 학습**된다는 것이다. 논문은 이를 통해 robust하면서도 ontology-aligned한 representation을 얻는다고 설명한다.
 
 ### 3.3 전체 예측 파이프라인
 
-논문의 Figure 1 설명에 따르면, 최종 concept embeddings로 이루어진 matrix $\mathbf{G}$를 이용해 visit vector $\mathbf{x}\_t$를 visit representation $\mathbf{v}\_t$로 변환한 뒤, 이를 neural predictive model에 넣어 $\hat{\mathbf{y}}\_t$를 예측한다. 즉 GRAM은 그 자체가 최종 classifier라기보다, **ontology-aware representation layer + downstream predictive model** 구조로 이해하는 것이 맞다.
+논문의 Figure 1 설명에 따르면, 최종 concept embeddings로 이루어진 matrix $\mathbf{G}$를 이용해 visit vector $\mathbf{x}_t$를 visit representation $\mathbf{v}_t$로 변환한 뒤, 이를 neural predictive model에 넣어 $\hat{\mathbf{y}}_t$를 예측한다. 즉 GRAM은 그 자체가 최종 classifier라기보다, **ontology-aware representation layer + downstream predictive model** 구조로 이해하는 것이 맞다.
 
 이 때문에 GRAM의 공헌은 특정 예측기 하나보다 “의료 ontology를 활용하는 representation learning 방식”에 더 가깝다. 논문에서도 sequential diagnosis prediction과 HF prediction이라는 서로 다른 task에 같은 representation idea를 적용한다. 그래서 GRAM은 task-specific trick이라기보다 healthcare representation learning framework로 해석할 수 있다.
 
@@ -42,7 +42,7 @@ GRAM에서 각 node $c_i$는 먼저 base embedding $\mathbf{e}\_i \in \mathbb{R}
 
 ### 3.5 초기화(initialization)
 
-논문은 ontology 정보 외에도 효과적인 initialization 기법을 제안한다. 실험 비교에서 `GRAM+`는 `GRAM`과 동일하지만 basic embedding $\mathbf{e}\_i$를 별도 초기화 전략으로 초기화한 버전이다. 저자 해석에 따르면 이 initialization은 co-occurrence 정보를 더 많이 주입하므로, 순차적 diagnosis prediction에서는 더 유리할 수 있지만 HF prediction에서는 개선이 제한적일 수 있다. 즉 initialization 효과는 데이터셋보다는 **task nature**에 더 민감하다.  
+논문은 ontology 정보 외에도 효과적인 initialization 기법을 제안한다. 실험 비교에서 `GRAM+`는 `GRAM`과 동일하지만 basic embedding $\mathbf{e}_i$를 별도 초기화 전략으로 초기화한 버전이다. 저자 해석에 따르면 이 initialization은 co-occurrence 정보를 더 많이 주입하므로, 순차적 diagnosis prediction에서는 더 유리할 수 있지만 HF prediction에서는 개선이 제한적일 수 있다. 즉 initialization 효과는 데이터셋보다는 **task nature**에 더 민감하다.  
 
 ## 4. Experiments and Findings
 

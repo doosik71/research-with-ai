@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 image classification에서 **deep active learning**의 효율을 높이기 위해 **DEAL (Deep Evidential Active Learning)** 을 제안한다. 문제의식은 분명하다. CNN은 높은 성능을 내지만 대량의 labeled data를 필요로 하고, 의료영상이나 산업 영상처럼 전문가 라벨링이 비싼 환경에서는 annotation cost가 병목이 된다. 저자들은 이러한 상황에서, unlabeled pool 중 어떤 샘플을 먼저 라벨링해야 학습 효율이 가장 좋은지를 결정하는 active learning 전략이 중요하다고 본다. 기존 CNN 기반 AL 방법들은 uncertainty를 softmax, MC-Dropout, ensemble, loss prediction 등으로 추정하지만, 성능이 일관되지 않거나 계산비용이 큰 문제가 있었다. DEAL은 softmax 대신 **Dirichlet density의 파라미터를 직접 출력하는 evidential formulation**을 사용해, 더 좋은 uncertainty를 단일 forward pass로 얻고 이를 acquisition에 활용한다. 논문은 MNIST, CIFAR-10, 그리고 pediatric chest X-ray pneumonia detection 실험에서 DEAL이 기존 방법을 일관되게 앞선다고 주장한다.  
+이 논문은 image classification에서 **deep active learning**의 효율을 높이기 위해 **DEAL (Deep Evidential Active Learning)**을 제안한다. 문제의식은 분명하다. CNN은 높은 성능을 내지만 대량의 labeled data를 필요로 하고, 의료영상이나 산업 영상처럼 전문가 라벨링이 비싼 환경에서는 annotation cost가 병목이 된다. 저자들은 이러한 상황에서, unlabeled pool 중 어떤 샘플을 먼저 라벨링해야 학습 효율이 가장 좋은지를 결정하는 active learning 전략이 중요하다고 본다. 기존 CNN 기반 AL 방법들은 uncertainty를 softmax, MC-Dropout, ensemble, loss prediction 등으로 추정하지만, 성능이 일관되지 않거나 계산비용이 큰 문제가 있었다. DEAL은 softmax 대신 **Dirichlet density의 파라미터를 직접 출력하는 evidential formulation**을 사용해, 더 좋은 uncertainty를 단일 forward pass로 얻고 이를 acquisition에 활용한다. 논문은 MNIST, CIFAR-10, 그리고 pediatric chest X-ray pneumonia detection 실험에서 DEAL이 기존 방법을 일관되게 앞선다고 주장한다.  
 
 이 문제가 중요한 이유는 active learning의 목표가 단순 정확도 향상이 아니라, **같은 labeling budget으로 더 높은 성능을 얻는 것**이기 때문이다. 논문은 특히 의료 영상처럼 라벨링에 전문가 시간이 많이 드는 분야에서 DEAL의 실효성을 강조한다. 초록과 서론에서 저자들은 pneumonia chest radiograph 사례에서 90% 정확도 달성에 필요한 라벨 수를 random acquisition 대비 **34.52% 줄일 수 있었다**고 요약한다.  
 

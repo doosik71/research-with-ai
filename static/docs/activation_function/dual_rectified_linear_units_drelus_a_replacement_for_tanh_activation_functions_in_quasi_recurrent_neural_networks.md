@@ -2,7 +2,7 @@
 
 ## 1. Paper Overview
 
-이 논문은 순환신경망 계열, 특히 **Quasi-Recurrent Neural Networks (QRNNs)** 에서 널리 쓰이던 `tanh` 활성함수를 대체할 수 있는 새로운 활성화 단위인 **DReLU (Dual Rectified Linear Unit)** 를 제안한다. 저자들의 문제의식은 분명하다. ReLU는 feed-forward 비전 모델에서 강력한 성능을 보였지만, 순환 구조에서는 출력이 양수 영역에만 존재하기 때문에 hidden state를 “빼는 방향”으로 갱신하기 어렵다. 반면 `tanh`는 양수와 음수 출력을 모두 줄 수 있지만, 포화(saturation)와 vanishing gradient 문제에 취약하다. 이 논문은 바로 이 틈을 겨냥한다.  
+이 논문은 순환신경망 계열, 특히 **Quasi-Recurrent Neural Networks (QRNNs)**에서 널리 쓰이던 `tanh` 활성함수를 대체할 수 있는 새로운 활성화 단위인 **DReLU (Dual Rectified Linear Unit)**를 제안한다. 저자들의 문제의식은 분명하다. ReLU는 feed-forward 비전 모델에서 강력한 성능을 보였지만, 순환 구조에서는 출력이 양수 영역에만 존재하기 때문에 hidden state를 “빼는 방향”으로 갱신하기 어렵다. 반면 `tanh`는 양수와 음수 출력을 모두 줄 수 있지만, 포화(saturation)와 vanishing gradient 문제에 취약하다. 이 논문은 바로 이 틈을 겨냥한다.  
 
 핵심 제안은 간단하다. **두 개의 ReLU 출력을 서로 빼서 signed output을 만들자**는 것이다. 이렇게 하면 ReLU의 장점인 희소성(sparsity), vanishing gradient 완화, 계산 단순성을 어느 정도 유지하면서도 `tanh`처럼 양수와 음수 값을 모두 표현할 수 있다. 저자들은 이 구조가 QRNN의 recurrent step에서 `tanh`를 대체하는 **drop-in replacement** 로 동작할 수 있다고 주장한다.
 
@@ -34,7 +34,7 @@ $$
 
 즉, DReLU는 **ReLU처럼 정확한 zero activation** 을 만들 수 있으면서도, 전체 출력은 양수도 음수도 가능하다. 저자들은 이것이 `tanh`와 ReLU의 장점을 동시에 일부 갖는 구조라고 해석한다.
 
-논문은 또 하나의 변형으로 **DELU (Dual Exponential Linear Unit)** 도 제안한다. 이는 ReLU 대신 ELU를 두 개 사용해 signed output을 만드는 방식이다. 하지만 논문의 중심 메시지는 DReLU 쪽에 있다.
+논문은 또 하나의 변형으로 **DELU (Dual Exponential Linear Unit)**도 제안한다. 이는 ReLU 대신 ELU를 두 개 사용해 signed output을 만드는 방식이다. 하지만 논문의 중심 메시지는 DReLU 쪽에 있다.
 
 ## 3. Detailed Method Explanation
 

@@ -8,7 +8,7 @@
 
 ## 2. Core Idea
 
-핵심 아이디어는 activation function을 고정된 수학식으로 보지 않고, **연산자 트리(tree of operators)** 로 표현해 진화 가능한 개체로 다루는 것이다. 각 activation은 unary operator와 binary operator의 조합으로 구성되며, mutation은 트리의 한 노드를 다른 연산자로 바꾸고, crossover는 두 activation tree의 같은 깊이 subtree를 교환한다. 이렇게 하면 사람이 직관적으로 떠올리기 어려운 복잡한 activation도 탐색할 수 있다.
+핵심 아이디어는 activation function을 고정된 수학식으로 보지 않고, **연산자 트리(tree of operators)**로 표현해 진화 가능한 개체로 다루는 것이다. 각 activation은 unary operator와 binary operator의 조합으로 구성되며, mutation은 트리의 한 노드를 다른 연산자로 바꾸고, crossover는 두 activation tree의 같은 깊이 subtree를 교환한다. 이렇게 하면 사람이 직관적으로 떠올리기 어려운 복잡한 activation도 탐색할 수 있다.
 
 또 하나의 핵심은 “보편적으로 좋은 activation 하나를 찾는 것”보다, **특정 architecture와 dataset에 특화된 activation을 진화시키는 것**이 더 강력할 수 있다는 주장이다. 논문은 Ramachandran et al.의 Swish처럼 하나의 범용 activation을 찾는 접근보다 한 걸음 더 나아가, activation function을 task-specific하게 metalearning하는 방향을 제안한다.
 

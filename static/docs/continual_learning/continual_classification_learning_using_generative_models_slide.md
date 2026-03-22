@@ -59,9 +59,9 @@ math: mathjax
 
   $$
   \mathcal{L}(x, y)
-  = \mathbb{E}\_{q_{\phi}(z \mid x)}[\log p(x \mid z)]
+  = \mathbb{E}_{q_{\phi}(z \mid x)}[\log p(x \mid z)]
   - D_{\mathrm{KL}}(q_{\phi}(z \mid x) \parallel p(z))
-  + \mathbb{E}\_{q_{\phi}(z \mid x)}[\log p(y \mid z)]
+  + \mathbb{E}_{q_{\phi}(z \mid x)}[\log p(y \mid z)]
   $$
 
 - 의미:

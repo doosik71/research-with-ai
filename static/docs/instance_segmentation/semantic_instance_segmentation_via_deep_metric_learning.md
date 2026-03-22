@@ -37,7 +37,7 @@ $$\sigma(p,q)=\frac{2}{1+\exp(||e_{p}-e_{q}||_{2}^{2})}\quad(1)$$
 
 네트워크는 다음 손실 함수를 최소화하여 훈련된다:
 
-$$\mathcal{L}\_{e} = -\frac{1}{|S|}\sum_{p,q\in S}w_{pq}\left[1_{\{y_{p}=y_{q}\}}\log(\sigma(p,q)) + 1_{\{y_{p}\
+$$\mathcal{L}_{e} = -\frac{1}{|S|}\sum_{p,q\in S}w_{pq}\left[1_{\{y_{p}=y_{q}\}}\log(\sigma(p,q)) + 1_{\{y_{p}\
 eq y_{q}\}}\log(1-\sigma(p,q))\right]$$
 
 여기서 $S$는 선택된 픽셀 집합, $y_p$는 픽셀 $p$의 인스턴스 레이블, $w_{pq}$는 가중치이다.

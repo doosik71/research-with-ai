@@ -1,6 +1,6 @@
 # ActiveHARNet: Towards On-Device Deep Bayesian Active Learning for Human Activity Recognition
 
-이 논문은 **Human Activity Recognition (HAR)** 와 **fall detection** 을 모바일·웨어러블 환경에서 수행할 때 생기는 두 문제를 동시에 다룬다. 첫째, 모델이 서버가 아니라 **on-device** 에서 돌아가야 하므로 가볍고 추론이 빨라야 한다. 둘째, 실제 사용자 데이터는 계속 들어오지만 즉시 라벨이 붙지 않으므로, 모델이 **어떤 샘플만 선택적으로 라벨링 요청할지** 스스로 판단해야 한다. 저자들은 이를 위해 **ActiveHARNet** 을 제안한다. 이는 경량 HARNet 계열 구조에 **Bayesian uncertainty estimation** 과 **active learning acquisition function** 을 결합한 프레임워크이며, incremental learning까지 지원해 새 사용자 데이터로 기기를 현장에서 계속 적응시킬 수 있게 하려는 접근이다. 논문 초록과 서론은 이 시스템이 두 공개 데이터셋에서 **추론 효율 향상**과 함께, incremental learning 중 **획득해야 하는 라벨 수를 최소 60% 줄였다**고 주장한다.  
+이 논문은 **Human Activity Recognition (HAR)**와 **fall detection** 을 모바일·웨어러블 환경에서 수행할 때 생기는 두 문제를 동시에 다룬다. 첫째, 모델이 서버가 아니라 **on-device** 에서 돌아가야 하므로 가볍고 추론이 빨라야 한다. 둘째, 실제 사용자 데이터는 계속 들어오지만 즉시 라벨이 붙지 않으므로, 모델이 **어떤 샘플만 선택적으로 라벨링 요청할지** 스스로 판단해야 한다. 저자들은 이를 위해 **ActiveHARNet** 을 제안한다. 이는 경량 HARNet 계열 구조에 **Bayesian uncertainty estimation** 과 **active learning acquisition function** 을 결합한 프레임워크이며, incremental learning까지 지원해 새 사용자 데이터로 기기를 현장에서 계속 적응시킬 수 있게 하려는 접근이다. 논문 초록과 서론은 이 시스템이 두 공개 데이터셋에서 **추론 효율 향상**과 함께, incremental learning 중 **획득해야 하는 라벨 수를 최소 60% 줄였다**고 주장한다.  
 
 ## 1. Paper Overview
 

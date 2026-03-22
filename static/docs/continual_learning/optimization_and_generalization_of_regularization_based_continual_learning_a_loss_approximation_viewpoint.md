@@ -80,7 +80,7 @@ $T_1, \dots, T_K$를 가정한다.
 population loss는 다음과 같이 정의된다.
 
 $$
-L_k(w) := \mathbb{E}\_{(x,y) \sim D_k}[\ell_k(w; x, y)]
+L_k(w) := \mathbb{E}_{(x,y) \sim D_k}[\ell_k(w; x, y)]
 $$
 
 continual learning에서는 task $k$를 학습할 때
@@ -91,17 +91,17 @@ continual learning에서는 task $k$를 학습할 때
 ### 3.2 손실 근사 프레임워크
 
 핵심 아이디어는 task $k$가 끝났을 때 얻은 파라미터
-$\hat{w}\_k$ 근처에서,
+$\hat{w}_k$ 근처에서,
 그 task의 empirical loss를 2차 Taylor 전개로 근사하는 것이다.
 
 두 task만 있는 단순한 경우,
-첫 번째 task 손실 $\hat{L}\_1(w)$를 $\hat{w}\_1$ 주변에서
+첫 번째 task 손실 $\hat{L}_1(w)$를 $\hat{w}_1$ 주변에서
 다음처럼 근사한다.
 
 $$
-L^{\mathrm{prox}}\_1(w) = \hat{L}\_1(\hat{w}\_1) +
-(w-\hat{w}\_1)^\top \nabla \hat{L}\_1(\hat{w}\_1) +
-\frac{1}{2}(w-\hat{w}\_1)^\top \nabla^2 \hat{L}\_1(\hat{w}\_1)(w-\hat{w}\_1)
+L^{\mathrm{prox}}_1(w) = \hat{L}_1(\hat{w}_1) +
+(w-\hat{w}_1)^\top \nabla \hat{L}_1(\hat{w}_1) +
+\frac{1}{2}(w-\hat{w}_1)^\top \nabla^2 \hat{L}_1(\hat{w}_1)(w-\hat{w}_1)
 $$
 
 일반적인 $k$ task 누적 버전은,
@@ -110,12 +110,12 @@ $$
 논문은 이를 다음 형태로 정리한다.
 
 $$
-L^{\mathrm{prox}}\_k(w)
+L^{\mathrm{prox}}_k(w)
 = \sum\_{k'=1}^{k}
 \Big[
-\hat{L}\_{k'}(\hat{w}\_{k'}) +
-(w-\hat{w}\_{k'})^\top \nabla \hat{L}\_{k'}(\hat{w}\_{k'}) +
-\frac{1}{2}(w-\hat{w}\_{k'})^\top H\_{k'}(w-\hat{w}\_{k'})
+\hat{L}_{k'}(\hat{w}_{k'}) +
+(w-\hat{w}_{k'})^\top \nabla \hat{L}_{k'}(\hat{w}_{k'}) +
+\frac{1}{2}(w-\hat{w}_{k'})^\top H\_{k'}(w-\hat{w}_{k'})
 \Big]
 $$
 

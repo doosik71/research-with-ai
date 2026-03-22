@@ -4,7 +4,7 @@
 
 이 논문은 **의료 감시(healthcare surveillance) 환경에서 환자의 감정을 자동 인식하는 기술**을 신경망 기반 관점에서 정리한 서베이 논문이다. 저자들은 환자의 감정을 speech, facial expression, audio-visual 입력으로부터 인식할 수 있다면, 우울·스트레스 같은 심리적 이상 징후를 조기에 발견하고 더 빠른 개입을 수행하는 스마트 헬스케어 센터 구축에 도움이 된다고 본다. 즉, 이 논문의 핵심 문제의식은 감정 인식이 단순한 HCI 문제가 아니라, **환자 모니터링과 정신건강 조기 대응을 지원하는 의료 응용 기술**이라는 점이다.  
 
-이 논문이 중요한 이유는, 의료 분야에서 환자의 상태가 생리 신호나 진단 지표만으로 완전히 설명되지 않기 때문이다. 감정 상태는 환자의 스트레스, 우울, 불안, 사회적 상호작용, 치료 반응을 반영할 수 있으며, 이를 surveillance system에 통합하면 보다 풍부한 clinical context를 확보할 수 있다. 저자들은 다양한 emotion recognition 방법 중에서도 **카메라와 마이크로 획득 가능한 세 모달리티(speech, face, audio-visual)** 에 초점을 맞추고, 각 모달리티별로 공통적으로 나타나는 세 단계, 즉 **pre-processing → feature selection/extraction → classification** 구조를 중심으로 최근 기법을 정리한다.  
+이 논문이 중요한 이유는, 의료 분야에서 환자의 상태가 생리 신호나 진단 지표만으로 완전히 설명되지 않기 때문이다. 감정 상태는 환자의 스트레스, 우울, 불안, 사회적 상호작용, 치료 반응을 반영할 수 있으며, 이를 surveillance system에 통합하면 보다 풍부한 clinical context를 확보할 수 있다. 저자들은 다양한 emotion recognition 방법 중에서도 **카메라와 마이크로 획득 가능한 세 모달리티(speech, face, audio-visual)**에 초점을 맞추고, 각 모달리티별로 공통적으로 나타나는 세 단계, 즉 **pre-processing → feature selection/extraction → classification** 구조를 중심으로 최근 기법을 정리한다.  
 
 ## 2. Core Idea
 
@@ -44,7 +44,7 @@
 
 ### 3.3 Speech Emotion Recognition (SER)
 
-SER에서 저자들이 강조하는 것은 **음성 신호의 복잡성과 비정상성(non-uniform emotional distribution)** 이다. 감정은 음성 전체에 균일하게 퍼져 있지 않기 때문에, 어떤 시간 구간이 더 emotionally salient한지를 잘 다뤄야 한다. 논문은 RNN with local attention, CNN+RNN 결합, utterance-level representation 학습, nonverbal segment 추출 등 다양한 방향을 소개한다. 특히 local attention은 더 감정적으로 중요한 구간에 집중할 수 있기 때문에 기존 고정 feature 기반 SVM보다 더 나은 정확도를 보였다고 설명한다.
+SER에서 저자들이 강조하는 것은 **음성 신호의 복잡성과 비정상성(non-uniform emotional distribution)**이다. 감정은 음성 전체에 균일하게 퍼져 있지 않기 때문에, 어떤 시간 구간이 더 emotionally salient한지를 잘 다뤄야 한다. 논문은 RNN with local attention, CNN+RNN 결합, utterance-level representation 학습, nonverbal segment 추출 등 다양한 방향을 소개한다. 특히 local attention은 더 감정적으로 중요한 구간에 집중할 수 있기 때문에 기존 고정 feature 기반 SVM보다 더 나은 정확도를 보였다고 설명한다.
 
 #### SER Preprocessing
 

@@ -1,6 +1,6 @@
 # Instance Segmentation by Jointly Optimizing Spatial Embeddings and Clustering Bandwidth
 
-이 논문은 proposal-free instance segmentation의 약점을 정면으로 겨냥합니다. 기존 proposal-based 방법, 특히 Mask R-CNN 계열은 정확하지만 느리고 mask 해상도가 낮으며, 반대로 dense prediction 기반 proposal-free 방법은 고해상도 mask와 빠른 실행 속도를 제공하지만 정확도가 부족했습니다. 이 논문은 이 간극을 메우기 위해, 각 픽셀이 물체 중심을 가리키는 **spatial embedding**을 예측하되, 모든 물체에 동일한 clustering 기준을 두지 않고 **instance별 clustering bandwidth(= sigma, margin)** 를 함께 학습하는 새로운 clustering loss를 제안합니다. 핵심은 픽셀을 정확히 중심점 하나에 맞추도록 강제하는 대신, 각 물체에 대해 IoU를 최대화하는 “최적의 attraction region” 안으로 모이도록 학습시키는 것입니다. 논문은 Cityscapes에서 이 방법이 **27.6 AP**, **11 fps**를 달성해, Mask R-CNN의 **26.2 AP**를 넘으면서도 실시간 수준 속도를 제공한다고 주장합니다.
+이 논문은 proposal-free instance segmentation의 약점을 정면으로 겨냥합니다. 기존 proposal-based 방법, 특히 Mask R-CNN 계열은 정확하지만 느리고 mask 해상도가 낮으며, 반대로 dense prediction 기반 proposal-free 방법은 고해상도 mask와 빠른 실행 속도를 제공하지만 정확도가 부족했습니다. 이 논문은 이 간극을 메우기 위해, 각 픽셀이 물체 중심을 가리키는 **spatial embedding**을 예측하되, 모든 물체에 동일한 clustering 기준을 두지 않고 **instance별 clustering bandwidth(= sigma, margin)**를 함께 학습하는 새로운 clustering loss를 제안합니다. 핵심은 픽셀을 정확히 중심점 하나에 맞추도록 강제하는 대신, 각 물체에 대해 IoU를 최대화하는 “최적의 attraction region” 안으로 모이도록 학습시키는 것입니다. 논문은 Cityscapes에서 이 방법이 **27.6 AP**, **11 fps**를 달성해, Mask R-CNN의 **26.2 AP**를 넘으면서도 실시간 수준 속도를 제공한다고 주장합니다.
 
 ## 1. Paper Overview
 
@@ -37,13 +37,13 @@ $$
 로 정의되고, 표준 regression loss는
 
 $$
-\mathcal{L}\_{regr} = \sum\_{i=1}^{n} |o_i - \hat{o}\_i|
+\mathcal{L}_{regr} = \sum\_{i=1}^{n} |o_i - \hat{o}_i|
 $$
 
 이며 여기서
 
 $$
-\hat{o}\_i = C_k - x_i
+\hat{o}_i = C_k - x_i
 $$
 
 입니다. 이 방식은 결국 “embedding이 centroid로 가야 한다”는 점별 제약만 줄 뿐, 실제 inference에서 필요한 centroid localization과 clustering은 loss 밖에 남겨 둡니다. 논문은 이것이 end-to-end instance optimization을 방해한다고 지적합니다.
@@ -74,7 +74,7 @@ centroid 기반 방법의 또 다른 문제는 “중심을 어떻게 찾을 것
 
 ### 3.5 Learnable center of attraction
 
-저자들은 center를 꼭 기하학적 centroid로 둘 필요도 없다고 봅니다. **Center of Attraction (CoA)** 를 centroid로 고정할 수도 있지만, 더 일반적으로는 동일 instance의 spatial embeddings 평균으로부터 얻는 **learnable center**를 사용할 수 있습니다. 논문은 이 learnable CoA가 fixed centroid보다 더 좋은 AP를 준다고 보고합니다. 해석하면, 네트워크가 실제 clustering에 유리한 중심 위치를 스스로 선택할 수 있다는 뜻입니다.
+저자들은 center를 꼭 기하학적 centroid로 둘 필요도 없다고 봅니다. **Center of Attraction (CoA)**를 centroid로 고정할 수도 있지만, 더 일반적으로는 동일 instance의 spatial embeddings 평균으로부터 얻는 **learnable center**를 사용할 수 있습니다. 논문은 이 learnable CoA가 fixed centroid보다 더 좋은 AP를 준다고 보고합니다. 해석하면, 네트워크가 실제 clustering에 유리한 중심 위치를 스스로 선택할 수 있다는 뜻입니다.
 
 ### 3.6 Circular vs. elliptical margin
 

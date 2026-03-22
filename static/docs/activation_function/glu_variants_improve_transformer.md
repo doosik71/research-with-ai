@@ -13,17 +13,17 @@
 기존 FFN은 bias 없는 T5 스타일로 쓰면 대략 다음과 같다.
 
 $$
-\mathrm{FFN}\_{\mathrm{ReLU}}(x,W_1,W_2)=\max(xW_1,0)W_2
+\mathrm{FFN}_{\mathrm{ReLU}}(x,W_1,W_2)=\max(xW_1,0)W_2
 $$
 
 또는 GELU/Swish를 쓰면
 
 $$
-\mathrm{FFN}\_{\mathrm{GELU}}(x,W_1,W_2)=\mathrm{GELU}(xW_1)W_2
+\mathrm{FFN}_{\mathrm{GELU}}(x,W_1,W_2)=\mathrm{GELU}(xW_1)W_2
 $$
 
 $$
-\mathrm{FFN}\_{\mathrm{Swish}}(x,W_1,W_2)=\mathrm{Swish}\_1(xW_1)W_2
+\mathrm{FFN}_{\mathrm{Swish}}(x,W_1,W_2)=\mathrm{Swish}_1(xW_1)W_2
 $$
 
 가 된다. 즉, 하나의 projection에 activation을 적용하고 다시 projection하는 구조다.  
@@ -79,7 +79,7 @@ $$
 
 SwiGLU:
 $$
-\mathrm{Swish}\_1(xW)\otimes xV
+\mathrm{Swish}_1(xW)\otimes xV
 $$
 
 Bilinear:

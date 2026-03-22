@@ -38,10 +38,10 @@ $$
 \max \mathcal{I}\big(\boldsymbol{M}, f(g(\boldsymbol{M}))\big)
 $$
 
-여기서 $g(\cdot)$는 mask encoder, $f(\cdot)$는 decoder입니다. 이후 이 목적은 reconstruction loss 형태로 정리됩니다. 각 마스크 $\boldsymbol{m}\_i$에 대한 embedding $\boldsymbol{r}\_i = g(\boldsymbol{m}\_i)$를 사용해,
+여기서 $g(\cdot)$는 mask encoder, $f(\cdot)$는 decoder입니다. 이후 이 목적은 reconstruction loss 형태로 정리됩니다. 각 마스크 $\boldsymbol{m}_i$에 대한 embedding $\boldsymbol{r}_i = g(\boldsymbol{m}_i)$를 사용해,
 
 $$
-\min \sum_{i=1}^{n} \left| \boldsymbol{m}\_i - f(\boldsymbol{r}\_i) \right|\_2^2
+\min \sum_{i=1}^{n} \left| \boldsymbol{m}_i - f(\boldsymbol{r}_i) \right|_2^2
 $$
 
 를 최소화하는 문제로 바꿉니다. 논문은 encoder/decoder를 단순한 선형 변환으로 두면 이 문제가 결국 **PCA와 같은 형태**가 되고, closed-form solution으로 mask embedding basis를 얻을 수 있다고 설명합니다. 즉, 이 논문은 복잡한 learned autoencoder 대신 **PCA 기반 mask dictionary**만으로도 충분하다고 주장합니다.  
