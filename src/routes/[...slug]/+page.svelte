@@ -3082,7 +3082,8 @@
 	.summary-content :global(p) {
 		line-height: 1.7;
 	}
-	.summary-content :global(img) {
+	.summary-content :global(p > img:only-of-type) {
+    display: block;
 		max-height: 100dvh;
 		max-width: 100%;
 		margin: 1em auto;

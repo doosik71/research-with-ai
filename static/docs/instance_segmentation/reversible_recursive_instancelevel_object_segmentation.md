@@ -30,6 +30,8 @@
 
 ### 전체 구조
 
+![Figure 2:Detailed architecture of the proposed R2-IOS.](https://ar5iv.labs.arxiv.org/html/1511.04517/assets/x2.png)
+
 R2-IOS는 크게 두 개의 sub-network로 이루어진다.
 
 하나는 **instance-level segmentation sub-network**이고, 다른 하나는 **reversible proposal refinement sub-network**이다. 두 네트워크는 같은 이미지 feature를 바탕으로 각 proposal을 처리하지만, 각자의 출력이 서로에게 입력으로 다시 반영된다.
@@ -68,7 +70,7 @@ $$
 
 이 segmentation branch의 학습에는 **pixel-wise cross-entropy loss**를 사용한다. 즉, 각 픽셀이 dominant object foreground인지 아닌지를 supervised하게 학습한다.
 
-이 모듈의 핵심 의미는, 단순한 convolutional local predictor를 넘어 **proposal 단위의 전역적 판단(global inference)** 을 가능하게 만든다는 점이다.
+이 모듈의 핵심 의미는, 단순한 convolutional local predictor를 넘어 **proposal 단위의 전역적 판단(global inference)**을 가능하게 만든다는 점이다.
 
 ### 3.2 Reversible Proposal Refinement Sub-network
 
