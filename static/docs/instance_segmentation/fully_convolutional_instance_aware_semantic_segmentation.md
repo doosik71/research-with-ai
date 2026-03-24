@@ -1,140 +1,250 @@
 # Fully Convolutional Instance-aware Semantic Segmentation
 
-- **저자**: Yi Li, Haozhi Qi, Jifeng Dai, Xiangyang Ji, Yichen Wei
-- **발표연도**: 2016
-- **arXiv**: https://ar5iv.labs.arxiv.org/html/1611.07709v2
+* **저자**: Yi Li, Haozhi Qi, Jifeng Dai, Xiangyang Ji, Yichen Wei
+* **발표연도**: 2016
+* **arXiv**: <https://arxiv.org/abs/1611.07709>
 
 ## 1. 논문 개요
 
-**연구 문제:** 인스턴스 인지 의미론적 분할(instance-aware semantic segmentation)은 기존 FCN(Fully Convolutional Network)이 개별 객체 인스턴스를 구분하기 어려운 번역 불변성(translation invariance) 문제에 직면해 있었습니다. 이전 방법들은 ROI(Region of Interest) 풀링과 FC(Fully Connected) 레이어를 사용하는 다단계 네트워크를 통해 이 문제를 해결하려 했으나, 이는 공간 세부 정보 손실, 고정 크기 표현, 그리고 지역 가중치 공유 없이 과도한 매개변수화(over-parameterization)를 초래했습니다. 기존 인스턴스 마스크 제안(instance mask proposal) 방법들은 클래스에 둔감했으며, 별도의 하위 네트워크를 필요로 했습니다.
+이 논문은 **instance-aware semantic segmentation**, 즉 이미지 안의 각 물체를 **클래스별로 구분**하는 동시에 **개별 인스턴스 단위의 mask**까지 예측하는 문제를 다룬다. 일반적인 semantic segmentation은 픽셀마다 클래스 라벨만 부여하므로 같은 클래스의 여러 객체를 서로 구분하지 못한다. 반면 이 문제는 “무엇인지”와 “어디까지가 한 개체인지”를 동시에 맞혀야 한다.
 
-**논문의 목표:** 본 논문은 인스턴스 인지 의미론적 분할을 위한 최초의 완전 컨볼루션 방식의 엔드-투-엔드(end-to-end) 솔루션인 FCIS(Fully Convolutional Instance-aware Semantic Segmentation)를 제안합니다. 이 모델은 위치에 민감한(position-sensitive) 내부/외부 스코어 맵을 활용하여 객체 분할 및 탐지 작업을 공동으로 수행합니다.
+저자들은 당시 널리 쓰이던 방법들이 보통 세 단계 구조를 가진다고 지적한다. 먼저 이미지 전체에서 convolutional feature를 뽑고, 그 위에 ROI pooling으로 각 proposal의 고정 크기 feature를 만들고, 마지막으로 per-ROI fully connected layer나 별도 sub-network를 통해 mask와 classification을 수행한다. 이 방식은 구조적으로 자연스럽지만, ROI warping 과정에서 공간 정보가 손실되고, 큰 fc layer가 mask 예측을 담당하면서 파라미터가 비대해지며, 각 ROI마다 별도 계산이 필요해 속도가 느려지는 문제가 있다.
 
-**문제의 중요성:** 기존 방식의 단점을 해결하고, 단일 통합 네트워크를 통해 두 하위 태스크 간의 강력한 상관관계를 활용하여 정확도와 효율성을 모두 개선하는 것이 중요합니다. 이는 이미지 이해 분야에서 더 발전된 애플리케이션의 기반이 됩니다.
+이 논문의 핵심 목표는 이런 한계를 넘어서, **FCN의 장점인 fully convolutional, end-to-end, shared computation**을 유지하면서도 instance-level segmentation이 가능하도록 만드는 것이다. 이를 위해 저자들은 **FCIS (Fully Convolutional Instance-aware Semantic Segmentation)** 를 제안한다. 이 모델은 detection과 segmentation을 분리하지 않고, 하나의 fully convolutional 구조 안에서 **jointly and simultaneously** 수행한다.
+
+문제의 중요성은 분명하다. instance segmentation은 autonomous driving, robotics, image editing, scene understanding처럼 객체 단위 이해가 필요한 거의 모든 비전 응용에서 중요하다. 이 논문은 단순히 정확도를 조금 높인 수준이 아니라, 당시의 파이프라인 중심 접근을 fully convolutional 방향으로 재구성했다는 점에서 의미가 크다.
 
 ## 2. 핵심 아이디어
 
-**중심적인 직관 또는 설계 아이디어:** FCIS의 핵심 아이디어는 *위치에 민감한 내부/외부 스코어 맵(position-sensitive inside/outside score maps)*을 도입하여 객체 분할과 탐지 작업을 _공동으로 그리고 동시에_ 수행하는 것입니다. 이 스코어 맵은 모든 ROI와 두 하위 작업 간에 컨볼루션 특징 표현을 완전히 공유하며, 추가적인 매개변수를 필요로 하지 않습니다. 이를 통해 피처 워핑(feature warping)이나 크기 조정(resizing), 또는 완전 연결 레이어 사용 없이 엔드-투-엔드 학습이 가능해집니다.
+논문의 중심 직관은 다음과 같다. 일반적인 FCN은 **translation invariant** 하다. 즉, 같은 모양의 패턴이 이미지 어디에 있어도 비슷한 응답을 낸다. semantic segmentation에는 이것이 장점이지만, instance segmentation에서는 문제가 된다. 같은 픽셀이라도 어떤 ROI 안에서 보느냐에 따라 “이 인스턴스의 foreground인지 아닌지”가 달라질 수 있기 때문이다. 다시 말해, 인스턴스 단위 문제는 어느 정도 **translation-variant** 성질을 필요로 한다.
 
-**기존 접근 방식과의 차별점:**
+이를 해결하기 위해 저자들은 기존 InstanceFCN의 **position-sensitive score maps** 개념을 발전시킨다. 객체를 $k \times k$ 격자로 나누고, 각 상대적 위치에 대해 별도 score map을 두면, 픽셀이 객체 안에서 어느 상대 위치에 있는지에 따라 다른 점수를 받을 수 있다. 예를 들어 같은 픽셀도 어떤 ROI에서는 “top-left part of an object”로 해석되고, 다른 ROI에서는 “background”로 해석될 수 있다.
 
-- 기존 FCN이 인스턴스를 구분하지 못하는 번역 불변성 문제를 해결합니다.
-- ROI 풀링이나 FC 레이어로 인한 공간 세부 정보 손실 및 과도한 매개변수화 문제를 방지합니다.
-- 인스턴스 마스크 제안과 객체 분류 작업을 별도로 수행하던 이전 방법들과 달리, FCIS는 이 두 가지를 단일 통합 네트워크 내에서 함께 처리합니다.
-- 복잡하고 느렸던 기존 다단계 접근 방식과 달리, FCIS는 효율적이고 빠르며, 지역 가중치 공유(local weight sharing) 특성을 보존하여 정규화 메커니즘으로 활용합니다.
+하지만 이 논문의 진짜 차별점은 단순히 position-sensitive map을 쓰는 데서 끝나지 않는다. 저자들은 **mask prediction과 classification을 같은 score map 집합으로 함께 푼다**. 즉, segmentation branch와 detection branch를 따로 두지 않고, **inside/outside**라는 두 종류의 position-sensitive map만으로 두 작업을 동시에 해결한다.
+
+이 joint formulation은 매우 인상적이다. 보통 detection은 “이 ROI가 어떤 클래스의 객체인가”를 묻고, segmentation은 “ROI 안 각 픽셀이 객체 내부인가”를 묻는다. 저자들은 이 둘이 본질적으로 강하게 연결되어 있다고 보고, 하나의 표현으로 함께 풀어낸다. 그 결과 추가 파라미터 없이 두 과업이 같은 convolutional representation을 공유하고, ROI별 계산은 단순한 assembling, softmax, max, average pooling 정도로 끝난다.
+
+기존 접근과의 차별점은 세 가지로 요약할 수 있다. 첫째, **ROI pooling 후 fc layer** 중심이 아니라 **fully convolutional shared computation** 중심이다. 둘째, segmentation과 detection을 **순차적 pipeline** 으로 풀지 않고 **joint formulation** 으로 풀었다. 셋째, mask prediction을 고정된 $28 \times 28$ 같은 저해상도 fc 출력으로 만들지 않고, ROI의 실제 위치 정보와 aspect ratio를 더 자연스럽게 보존하는 방식으로 수행했다.
 
 ## 3. 상세 방법 설명
 
-### 3.1 위치에 민감한 스코어 맵 매개변수화
+### 3.1 Position-sensitive score maps의 의미
 
-기존 FCN은 픽셀이 어떤 객체 카테고리에 속하는지에 대한 번역 불변 점수를 예측하여, 인스턴스 구분이 어렵습니다. [5]에서 제안된 인스턴스 마스크 제안 방법은 $k^2$개의 위치에 민감한 스코어 맵을 사용하여 슬라이딩 윈도우를 $k \times k$ 셀로 분할하고, 각 셀이 해당 위치에서의 픽셀 소속 가능성을 나타내는 스코어 맵을 생성합니다. 이를 통해 픽셀이 인스턴스 내에서 다른 상대적 위치에 있을 때 다른 점수를 가질 수 있게 됩니다. 그러나 이 방법은 고정 크기 슬라이딩 윈도우에 의존하고, 객체 카테고리에 둔감하며, 별도의 분류 네트워크를 필요로 하는 한계가 있었습니다.
+기존 FCN에서는 클래스마다 하나의 score map만 예측한다. 예를 들어 “person” 클래스 score map은 각 픽셀이 person인지 아닌지를 알려준다. 그러나 이것만으로는 같은 클래스의 인접한 두 사람을 구분하기 어렵다.
 
-### 3.2 마스크 예측 및 분류의 통합
+FCIS는 각 클래스를 하나의 score map으로 보지 않고, 객체를 $k \times k$ 셀로 나눈 상대 위치별 map으로 본다. 기본 실험에서는 $k=7$ 이다. 즉, 한 클래스당 $7 \times 7 = 49$ 개의 위치 민감 score map이 필요하다. 이 map의 각 채널은 “객체 내부의 특정 상대 위치”를 담당한다.
 
-FCIS는 기존 인스턴스 마스크 제안 방식의 _위치에 민감한 스코어 맵_ 아이디어를 확장하여 객체 분할 및 탐지 작업을 _동시에_ 수행합니다. 동일한 스코어 맵 세트와 기본 컨볼루션 표현이 두 하위 작업에 공유되며, 추가 매개변수가 없습니다.
+ROI가 주어지면, ROI를 동일하게 $k \times k$ 셀로 나누고, 각 셀은 대응되는 score map에서 값을 가져온다. 논문은 이를 assembling 또는 copy-paste로 설명한다. 이 과정 덕분에 같은 픽셀도 ROI가 달라지면 다른 score를 받게 되고, translation-variant 성질이 생긴다.
 
-**작동 방식:**
-주어진 ROI에 대해, 픽셀별 스코어 맵은 ROI 내에서 어셈블링(assembling) 작업을 통해 생성됩니다. 각 픽셀은 두 가지 질문에 대한 답을 얻습니다:
+### 3.2 Joint mask prediction and classification
 
-1. **탐지(Detection):** 해당 픽셀이 상대적 위치에 있는 객체 경계 상자에 속하는가(detection+) 또는 아닌가(detection-).
-2. **분할(Segmentation):** 해당 픽셀이 객체 인스턴스의 경계 안에 있는가(segmentation+) 또는 아닌가(segmentation-).
+논문의 핵심은 이 부분이다. ROI 안 각 픽셀에 대해 저자들은 두 가지 질문을 동시에 고려한다.
 
-이 두 가지 질문에 대한 답은 두 가지 스코어(내부(inside) 및 외부(outside))로 통합됩니다.
+첫 번째는 detection 관점의 질문이다.
+이 픽셀이 “어떤 객체 bounding box의 상대 위치에 속하는가” 아니면 “아무 객체에도 해당하지 않는가”를 본다.
 
-- 높은 내부 스코어, 낮은 외부 스코어: detection+, segmentation+
-- 낮은 내부 스코어, 높은 외부 스코어: detection+, segmentation-
-- 두 스코어 모두 낮음: detection-, segmentation-
+두 번째는 segmentation 관점의 질문이다.
+이 픽셀이 “그 객체 인스턴스의 boundary 안쪽인가” 아니면 “바깥인가”를 본다.
 
-탐지의 경우, 소프트맥스(softmax)와 최대(max) 연산을 통해 detection+와 detection-를 구분합니다. 전체 ROI의 탐지 스코어는 모든 픽셀의 가능성을 평균 풀링(average pooling)한 후 소프트맥스를 적용하여 얻습니다. 분할의 경우, 각 픽셀에서 소프트맥스를 사용하여 segmentation+와 segmentation-를 구분합니다. ROI의 전경 마스크는 각 픽셀의 분할 스코어를 종합한 것입니다.
+저자들은 이 두 질문을 따로 예측하는 대신, **inside** 와 **outside** 두 점수로 묶는다. ROI 내 한 픽셀에 대해 가능한 해석은 세 가지다.
 
-이러한 통합 방식은 피처 워핑, 크기 조정, 또는 FC 레이어를 포함하지 않고, 모든 ROI 구성 요소에 자유 매개변수가 없다는 장점을 가집니다. FCN의 지역 가중치 공유 속성이 보존되어 정규화 메커니즘으로 작용하며, ROI당 계산 비용이 매우 낮습니다.
+1. inside 높고 outside 낮음: detection+, segmentation+
+2. inside 낮고 outside 높음: detection+, segmentation-
+3. 둘 다 낮음: detection-, segmentation-
 
-### 3.3 엔드-투-엔드 솔루션 아키텍처
+즉, 객체 ROI의 일부이지만 실제 mask 바깥일 수 있고, 아예 객체 ROI 자체가 아닐 수도 있다.
+이때 segmentation은 inside와 outside를 픽셀 단위로 비교하면 되고, detection은 “inside 또는 outside 중 하나라도 강하면 객체 관련 픽셀”로 볼 수 있다.
 
-FCIS의 전체 아키텍처는 그림 3에 제시되어 있습니다.
+논문 설명을 따라 정리하면 다음과 같다.
 
-- **백본 네트워크:** ResNet [18] 모델을 사용하며, 최종 1000-way 분류 레이어는 제거됩니다.
-- **피처 스트라이드 감소:** 인스턴스 인지 의미론적 분할에 적합하도록 유효 피처 스트라이드(effective feature stride)를 32에서 16으로 줄입니다. 이를 위해 conv5 레이어의 첫 번째 블록에서 스트라이드를 2에서 1로 줄이고, 모든 conv5 레이어에 'hole algorithm'(dilation 2)을 적용하여 수용 필드(field of view)를 유지합니다.
-- **ROI 생성:** Region Proposal Network (RPN) [34]을 사용하여 ROI를 생성합니다. RPN은 conv4 레이어 위에 추가되며, 이 또한 완전 컨볼루션 방식입니다.
-- **스코어 맵 생성:** conv5 피처 맵에서 $2k^2 \times (C+1)$ 스코어 맵이 생성됩니다 (C는 객체 카테고리 수, 1은 배경 카테고리, $k=7$은 기본 설정). $1 \times 1$ 컨볼루션 레이어를 사용하여 이 스코어 맵을 생성합니다.
-- **바운딩 박스 회귀(Bounding Box Regression):** [13, 12]의 바운딩 박스 회귀를 사용하여 ROI를 정제하며, $1 \times 1$ 컨볼루션 레이어를 통해 $4k^2$개의 출력을 생성합니다.
+* **Segmentation score**: 각 픽셀에서 inside와 outside 사이에 softmax를 적용하여 foreground probability를 얻는다.
+* **Detection score**: 각 픽셀에서 inside/outside 중 큰 값을 택해 detection likelihood를 만들고, ROI 전체에 대해 average pooling하여 category score를 계산한다. 이후 카테고리 간 softmax를 적용한다.
 
-**추론 과정:**
+이 설계의 장점은 detection과 segmentation이 완전히 분리된 branch가 아니라는 점이다. 같은 inside/outside score map이 두 손실에서 동시에 학습되므로, 두 과업의 상호 보완성이 자연스럽게 반영된다.
 
-1. RPN에서 상위 300개의 ROI 제안을 가져옵니다.
-2. 이 ROI를 회귀(regress)하여 위치를 정제합니다.
-3. 정제된 ROI에 대해 분류 및 전경 마스크를 예측합니다.
-4. IoU(Intersection over Union) 임계값 0.3을 사용하여 NMS(Non-Maximum Suppression)를 적용하여 겹치는 ROI를 필터링합니다.
+### 3.3 네트워크 아키텍처
 
-**훈련 과정:**
+전체 구조는 크게 세 부분으로 이해할 수 있다.
 
-- 지상 진실(ground truth) 객체와의 IoU가 0.5보다 큰 ROI는 양성(positive)으로 간주합니다.
-- 세 가지 손실 함수(모두 동일한 가중치)를 사용합니다:
-  1. $C+1$ 카테고리에 대한 소프트맥스 탐지 손실.
-  2. 오직 지상 진실 카테고리의 전경 마스크에 대한 소프트맥스 분할 손실.
-  3. 바운딩 박스 회귀 손실 (smooth L1 loss).
-- ImageNet 사전 훈련 가중치로 모델을 초기화합니다.
-- 훈련 이미지는 짧은 쪽이 600픽셀이 되도록 크기를 조정합니다.
-- SGD(Stochastic Gradient Descent) 최적화를 8개의 GPU를 사용하여 수행합니다.
-- PASCAL VOC의 경우, $10^{-3}$ 및 $10^{-4}$의 학습률로 30k 반복을 수행합니다.
-- OHEM(Online Hard Example Mining) [38]을 적용하여 300개의 제안 중 손실이 가장 높은 128개 ROI를 역전파에 사용합니다.
-- RPN은 9개의 기본 앵커를 사용하며, COCO의 경우 3개의 더 미세한 스케일 앵커를 추가합니다.
-- FCIS와 RPN 간의 피처 공유를 위해 공동 훈련을 수행합니다.
+첫째, backbone convolutional network이다.
+저자들은 ResNet을 사용한다. 원래 ResNet의 마지막 feature stride는 32인데, 이는 instance segmentation에는 너무 거칠다. 그래서 conv5 첫 block의 stride를 2에서 1로 줄이고, receptive field를 유지하기 위해 dilation 2를 적용하는 **à trous / hole algorithm** 을 사용한다. 그 결과 최종 feature stride를 16으로 낮춘다.
+
+둘째, region proposal network (RPN)이다.
+RPN은 conv4 feature 위에 붙어 ROI를 생성한다. 이 RPN 역시 fully convolutional이며, FCIS와 feature를 공유한다.
+
+셋째, score map head이다.
+conv5 feature에서 $1 \times 1$ convolution을 사용해
+
+$$
+2k^2(C+1)
+$$
+
+개의 score map을 만든다.
+
+여기서 $C$ 는 object category 수이고, 배경 1개를 포함하므로 총 $C+1$ categories를 고려한다. 각 category마다 inside/outside 두 세트가 있고, 세트마다 $k^2$ 개의 position-sensitive map이 필요하므로 위 식이 나온다.
+
+또한 bbox regression을 위해 별도의 sibling $1 \times 1$ convolution layer를 추가하여
+
+$$
+4k^2
+$$
+
+채널의 bounding box shift를 예측한다. 이 부분도 fully convolutional feature에서 바로 계산된다.
+
+### 3.4 Inference 절차
+
+추론은 다음 순서로 이루어진다.
+
+먼저 RPN이 상위 300개의 ROI를 생성한다.
+이 ROI들은 bbox regression branch를 통과해 refinement된 300개 ROI를 추가로 만들고, 결과적으로 총 600개 수준의 후보가 활용된다.
+
+각 ROI에 대해 모델은 다음을 출력한다.
+
+* 모든 category에 대한 classification score
+* 모든 category에 대한 foreground mask probability
+
+그 후 IoU threshold 0.3으로 NMS를 적용해 중복 ROI를 제거한다. 살아남은 ROI는 가장 높은 classification score의 category로 분류된다.
+
+최종 mask는 논문이 사용하는 **mask voting** 으로 얻는다. 어떤 ROI에 대해 IoU가 0.5보다 큰 다른 ROI들의 mask를 모아, classification score를 가중치로 사용해 픽셀 단위 평균을 낸다. 마지막에 이를 binarize하여 최종 mask로 출력한다.
+
+즉, 단일 ROI 결과를 그대로 쓰지 않고 주변의 유사 후보를 모아 안정화한다는 뜻이다.
+
+### 3.5 학습 목표와 학습 절차
+
+각 ROI는 가장 가까운 ground-truth object와의 box IoU가 0.5보다 크면 positive, 아니면 negative이다.
+
+각 ROI에 대해 세 가지 loss가 사용된다.
+
+1. **Detection loss**: $C+1$ categories에 대한 softmax loss
+2. **Segmentation loss**: ground-truth category에 대해서만 ROI 내부 픽셀에 대한 softmax loss
+3. **BBox regression loss**: bounding box refinement loss
+
+논문은 세 loss를 **equal weights** 로 둔다고 설명한다. 또한 segmentation loss와 bbox regression loss는 positive ROI에서만 적용된다.
+
+수식 형태를 논문이 명시적으로 자세히 쓰지는 않았지만, 구조적으로는 다음처럼 이해할 수 있다.
+
+$$
+L = L_{\text{det}} + L_{\text{seg}} + L_{\text{bbox}}
+$$
+
+여기서 $L_{\text{seg}}$ 는 ROI 내 픽셀별 손실의 합을 ROI 크기로 정규화한 값이다.
+
+학습은 ImageNet pre-trained model로 초기화하고, 새로 추가된 층은 random initialization을 사용한다.
+입력 이미지는 짧은 변이 600 pixel이 되도록 resize한다.
+최적화는 SGD를 사용하고, 8개의 GPU에서 각 GPU당 이미지 1장 mini-batch로 학습한다.
+
+또한 ROI별 계산 비용이 매우 작기 때문에, 저자들은 **OHEM (Online Hard Example Mining)** 을 효과적으로 적용한다. 한 이미지에서 제안된 300개의 ROI 전체에 forward를 수행하고, 손실이 큰 128개 ROI만 골라 backward를 수행한다. 이 부분은 per-ROI sub-network가 비싼 기존 방법 대비 FCIS의 중요한 실용적 장점이다.
 
 ## 4. 실험 및 결과
 
-### 4.1 PASCAL VOC에 대한 제거 연구
+### 4.1 PASCAL VOC ablation study
 
-PASCAL VOC 2012 훈련 세트로 학습하고 검증 세트로 평가했습니다. 마스크 수준 IoU 임계값 0.5 및 0.7에서의 mAP$^r$를 지표로 사용했습니다. 모든 방법은 ImageNet 사전 훈련된 ResNet-101을 사용했으며, 이 연구에서는 OHEM을 적용하지 않았습니다.
+PASCAL VOC 2012 train으로 학습하고 validation set에서 평가한다. 추가 instance mask annotation을 사용하며, 평가지표는 mask-level IoU threshold 0.5와 0.7에서의 **mAPr** 이다.
 
-**기준선 비교:**
+비교 대상은 다음과 같다.
 
-- **naïve MNC:** 전역적으로 적용된 ResNet-101 conv 레이어, conv5 피처에 대한 ROI 풀링, 그리고 마스크 예측($28 \times 28$)을 위한 784-way FC 레이어와 분류를 위한 21-way FC 레이어 사용. 'à trous' 트릭 적용. mAP$^r$@0.5에서 59.1%, mAP$^r$@0.7에서 36.0%를 달성. 이는 원본 MNC [8]보다 현저히 낮아 번역 불변 속성의 중요성을 강조합니다.
-- **InstFCN + R-FCN:** InstFCN [5]의 클래스에 둔감한 마스크 제안을 R-FCN [9]으로 분류. 별도로 훈련된 FCN 사용. mAP$^r$@0.5에서 62.7%, mAP$^r$@0.7에서 41.5%를 달성. FCIS보다 성능이 낮고 느립니다 (이미지당 1.27초).
-- **FCIS (번역 불변):** $k=1$ (번역 불변)인 FCIS. mAP$^r$@0.5에서 52.5%, mAP$^r$@0.7에서 38.5%를 달성. 전체 FCIS보다 훨씬 나빠 위치에 민감한 스코어 맵의 중요성을 확인했습니다.
-- **FCIS (개별 스코어 맵):** 분할 및 분류를 위해 개별 스코어 맵을 사용하는 FCIS. mAP$^r$@0.5에서 63.9%, mAP$^r$@0.7에서 49.7%를 달성. 통합된 FCIS보다 성능이 낮아 공동 공식화의 효과를 보여줍니다.
+* **naïve MNC**: 거의 fully convolutional하게 바꾼 MNC 유사 baseline
+* **InstFCN + R-FCN**: class-agnostic mask proposal과 분리된 classification 결합
+* **FCIS (translation invariant)**: $k=1$ 로 두어 위치 민감성을 제거한 버전
+* **FCIS (separate score maps)**: segmentation과 classification을 분리된 score map으로 학습한 버전
+* **FCIS**: 제안 방식
 
-**주요 결과:** 제안된 _FCIS_ 방법은 mAP$^r$@0.5에서 65.7%, mAP$^r$@0.7에서 52.1%로 최고의 결과를 달성하여 엔드-투-엔드 솔루션, 위치에 민감한 스코어 맵, 그리고 공동 공식화의 효과를 입증했습니다.
+결과는 다음과 같다.
+
+* naïve MNC: mAPr@0.5 = 59.1, mAPr@0.7 = 36.0
+* InstFCN + R-FCN: 62.7, 41.5
+* FCIS (translation invariant): 52.5, 38.5
+* FCIS (separate score maps): 63.9, 49.7
+* FCIS: **65.7, 52.1**
+
+이 결과는 몇 가지 중요한 결론을 준다.
+
+첫째, **translation-variant property가 필수적**이다.
+$k=1$ 인 translation invariant 버전은 성능이 크게 떨어진다. 이는 instance segmentation이 단순 semantic segmentation과 다르며, 상대 위치 정보를 명시적으로 모델링해야 함을 보여준다.
+
+둘째, **joint formulation이 실제로 효과적**이다.
+separate score maps 버전보다 FCIS가 더 좋다. 단순히 feature를 공유하는 것만으로는 부족하고, detection과 segmentation을 inside/outside score map으로 함께 학습시키는 구조 자체가 성능 향상에 기여한다.
+
+셋째, **fully convolutional per-ROI design이 단순하면서도 강하다**.
+InstFCN + R-FCN처럼 각 기능을 따로 결합한 방식보다, end-to-end joint 구조인 FCIS가 더 높은 정확도와 더 빠른 속도를 보인다.
 
 ### 4.2 COCO 실험
 
-80k+40k 훈련 및 검증 이미지로 학습하고 test-dev 세트에서 표준 COCO 지표(mAP$^r$@[0.5:0.95] 및 mAP$^r$@0.5)를 사용하여 평가했습니다.
+COCO에서는 80k+40k trainval로 학습하고 test-dev에서 평가한다.
+주요 지표는 **mAPr@[0.5:0.95]** 와 **mAPr@0.5** 이다.
 
-**MNC와의 비교:** FCIS는 COCO 2015 분할 챌린지 우승작인 MNC [8]와 비교되었습니다. 두 모델 모두 ResNet-101을 사용했습니다. OHEM 없이 FCIS는 mAP$^r$@[0.5:0.95]에서 28.8%를 달성하여 MNC보다 4.2% 절대적, 17% 상대적 성능 향상을 보였습니다. 대형 객체에서 정확도 향상이 더 두드러져, FCIS가 공간 세부 정보를 더 잘 포착함을 나타냅니다. 또한 FCIS는 추론 속도도 크게 빠릅니다: 이미지당 0.24초 (네트워크 포워드 0.19초 + 마스크 보팅 0.05초)로, MNC의 1.37초보다 약 $6\times$ 빠릅니다. 훈련 시간도 약 $4\times$ 빠릅니다. FCIS는 OHEM을 통해 mAP$^r$@[0.5:0.95]를 29.2%, mAP$^r$@0.5를 49.5%로 더욱 향상시켰습니다. 표 2는 다양한 객체 크기에 따른 속도 및 정확도 상세 비교를 제공합니다.
+#### MNC와 비교
 
-**다른 깊이의 네트워크:** ResNet-50, ResNet-101, ResNet-152 아키텍처를 사용한 FCIS 성능을 평가했습니다. ResNet-50 (27.1% mAP$^r$@[0.5:0.95])에서 ResNet-101 (29.2%)로 정확도가 향상되었지만, ResNet-152 (29.5%)에서는 포화되었습니다. 추론 시간도 깊이에 따라 증가했습니다. 표 3은 이러한 결과를 보여줍니다.
+ResNet-101 기준 결과는 다음과 같다.
 
-**COCO 2016 분할 챌린지 출품:** FCIS는 COCO 2016 분할 챌린지에서 1위를 차지했습니다. 기본 FCIS (29.2% mAP$^r$@[0.5:0.95])는 이미 MNC+++ (28.4%, 2015년 우승작)를 능가했습니다. 다음과 같은 추가 개선 사항이 적용되었습니다:
+* **MNC, random sampling**:
+  mAPr@[0.5:0.95] = 24.6, mAPr@0.5 = 44.3, test time = 1.37s/img
+* **FCIS, random sampling**:
+  28.8, 48.7, 0.24s/img
+* **FCIS, OHEM**:
+  29.2, 49.5, 0.24s/img
 
-- **다중 스케일 테스트(Multi-scale testing):** 이미지 스케일 피라미드 (짧은 쪽 {480, 576, 688, 864, 1200, 1400} 픽셀)로 테스트하여 정확도를 2.8% 향상시켜 32.0%를 달성했습니다.
-- **수평 뒤집기(Horizontal flip):** 원본 및 뒤집힌 이미지 결과를 평균화하여 정확도를 0.7% 추가로 향상시켜 32.7%를 달성했습니다.
-- **다중 스케일 훈련(Multi-scale training):** 다중 스케일 이미지 패치(예: $600 \times 600$)로 훈련하여 정확도를 0.9% 더 높여 33.6%를 달성했습니다.
-- **앙상블(Ensemble):** 6개 네트워크의 앙상블을 사용하여 최종 우승 점수인 37.6% mAP$^r$@[0.5:0.95] 및 59.9% mAP$^r$@0.5를 달성했습니다. 이는 G-RMI (2016년 2위)보다 3.8% (11% 상대적) 높고, MNC+++ (2015년 1위)보다 9.2% (32% 상대적) 높은 수치입니다. 표 4는 다른 챌린지 출품작들과의 이러한 결과를 비교합니다. 그림 4는 FCIS 결과의 예시를 시각화합니다.
+이 결과는 매우 강력하다. FCIS는 MNC보다 절대값으로 4.2%p 높은 mAPr@[0.5:0.95]를 기록하고, 상대적으로 약 17% 향상되었다고 저자들은 설명한다. 특히 큰 객체에서 개선 폭이 더 크다는 점이 중요하다. 이는 ROI warping이나 고정 크기 mask representation 없이, 공간 구조를 더 자연스럽게 유지한 설계가 큰 물체의 세부 mask를 더 잘 포착한다는 해석과 맞아떨어진다.
 
-**COCO 탐지:** FCIS는 박스 수준 객체 탐지에서도 우수한 성능을 보였습니다. 인스턴스 마스크의 경계 상자를 사용하여 COCO test-dev 세트에서 39.7% mAP$^b$@[0.5:0.95]를 달성하여 COCO 객체 탐지 리더보드에서 2위를 기록했습니다.
+속도도 인상적이다. 추론 시간은 0.24초/이미지로, MNC의 1.37초 대비 약 6배 빠르다. 훈련도 약 4배 빠르다고 보고한다. 이는 per-ROI heavy sub-network를 제거한 효과가 직접적으로 드러난 결과다.
+
+또한 FCIS는 OHEM을 거의 추가 비용 없이 활용할 수 있어 성능을 더 높일 수 있다. 반면 MNC는 per-ROI 계산이 비싸서 OHEM이 사실상 부담이 크다. 즉, FCIS는 단순히 “빠르다”가 아니라, **더 좋은 학습 전략을 적용하기 쉬운 구조**이기도 하다.
+
+#### Backbone depth 비교
+
+* ResNet-50: 27.1 / 46.7 / 0.16s
+* ResNet-101: 29.2 / 49.5 / 0.24s
+* ResNet-152: 29.5 / 49.8 / 0.27s
+
+깊이가 50에서 101로 증가하면 성능 향상이 분명하다. 그러나 152에서는 개선이 거의 포화된다. 즉, backbone을 더 깊게 만드는 것보다 구조적 설계 자체가 더 큰 기여를 한다고 볼 수 있다.
+
+### 4.3 COCO 2016 Segmentation Challenge 결과
+
+논문은 FCIS 기반 시스템으로 COCO 2016 segmentation challenge에서 1위를 차지했다고 보고한다. baseline FCIS는 29.2%이고, 여기에 다음과 같은 기법을 순차적으로 추가한다.
+
+* multi-scale testing: 32.0
+* horizontal flip: 32.7
+* multi-scale training: 33.6
+* ensemble: 37.6
+
+최종 ensemble 결과 37.6은 G-RMI의 33.8보다 3.8%p 높고, 상대적으로 약 11% 향상이라고 설명한다. 이 부분은 기본 모델의 구조적 강점 위에 테스트/학습 트릭을 더해 competition-level 성능을 달성했음을 보여준다.
+
+### 4.4 Detection 성능
+
+흥미롭게도 FCIS는 instance mask의 enclosing box를 detection box로 사용했을 때, COCO test-dev에서 **mAPb@[0.5:0.95] = 39.7** 의 detection 성능도 달성했다고 한다. 이는 이 모델이 segmentation 전용이 아니라 detection 관점에서도 경쟁력이 있다는 뜻이다. 즉, joint formulation이 detection 성능을 희생하고 segmentation만 챙긴 것이 아니라, 오히려 두 과업을 함께 잘 풀었다는 보조 증거로 볼 수 있다.
 
 ## 5. 강점, 한계
 
-**강점:**
+이 논문의 가장 큰 강점은 **문제 정의에 맞는 구조적 설계**를 제안했다는 점이다. 단순히 backbone을 바꾸거나 training trick을 추가한 것이 아니라, instance segmentation이 왜 기존 FCN으로 풀기 어려운지 정확히 짚고, 그것을 해결하기 위한 translation-variant 표현을 제시했다. 특히 **position-sensitive score maps** 를 detection과 segmentation의 공통 표현으로 재해석한 점은 매우 창의적이다.
 
-- **최초의 완전 컨볼루션 엔드-투-엔드 솔루션:** 인스턴스 인지 의미론적 분할을 위한 최초의 완전 컨볼루션 방식의 엔드-투-엔드 접근 방식입니다.
-- **효율적인 공동 공식화:** 객체 분할과 탐지를 _위치에 민감한 내부/외부 스코어 맵_을 통해 공동으로 그리고 동시에 수행하여 두 작업 간의 강력한 상관관계를 효과적으로 활용합니다.
-- **매개변수 효율성:** 별도의 매개변수 없이 컨볼루션 표현과 스코어 맵을 완전히 공유하여 모델의 복잡성을 줄입니다.
-- **공간 세부 정보 보존:** 피처 워핑, 크기 조정, 또는 FC 레이어를 사용하지 않아 공간 세부 정보를 효과적으로 보존하며, 특히 큰 객체에 대한 분할 정확도가 향상됩니다.
-- **높은 정확도:** COCO 2016 분할 챌린지에서 1위를 차지했으며, 이전 SOTA(State-of-the-Art) 방법을 크게 능가하는 정확도를 달성했습니다 (MNC보다 12% 상대적 정확도 향상).
-- **빠른 추론 및 훈련 속도:** MNC보다 추론에서 약 $6\times$, 훈련에서 약 $4\times$ 더 빠릅니다. ROI당 계산 비용이 매우 낮습니다.
-- **지역 가중치 공유:** FCN의 지역 가중치 공유 특성을 유지하여 정규화 효과를 제공합니다.
+둘째 강점은 **효율성과 정확도를 동시에 개선**했다는 점이다. 많은 논문이 정확도 향상을 위해 계산량을 늘리는데, 이 논문은 오히려 per-ROI 계산을 거의 없애면서도 정확도를 높였다. 이는 실제 시스템 적용 측면에서 매우 중요하다.
 
-**한계, 가정 또는 미해결 질문:**
+셋째 강점은 **joint formulation이 추가 파라미터 없이 작동**한다는 점이다. 복잡한 multi-branch head를 추가하지 않고도 detection과 segmentation supervision을 함께 받게 설계했다. 이 점은 모델의 간결성과 일반화 측면에서 장점으로 볼 수 있다.
 
-- **앙상블 의존성:** COCO 2016 챌린지에서의 최고 성능은 6개 네트워크의 앙상블을 통해 달성되었습니다. 이는 단일 모델의 성능이 여전히 개선될 여지가 있음을 시사합니다.
-- **심층 네트워크의 한계:** ResNet-101에서 ResNet-152로 깊이를 늘렸을 때 정확도 향상이 포화되는 경향을 보였습니다. 이는 단순히 네트워크 깊이를 늘리는 것만으로는 추가적인 큰 성능 향상을 기대하기 어렵다는 것을 의미할 수 있습니다.
-- **일반화 가능성:** PASCAL VOC 및 COCO 데이터셋에서 강력한 성능을 보였지만, 다른 도메인이나 이미지 조건에서의 일반화 능력에 대한 추가 검증이 필요할 수 있습니다.
+넷째 강점은 실험 설계가 설득력 있다는 점이다. 단순한 SOTA 비교뿐 아니라, translation invariant 버전, separate score maps 버전, InstFCN + R-FCN 조합 등 의미 있는 ablation을 제시해 어떤 요소가 실제로 중요한지 보여준다.
 
-**논문에 근거한 간략한 비판적 해석:** FCIS는 인스턴스 인지 분할 분야에서 중요한 발전을 이루었으며, 통합된 완전 컨볼루션 접근 방식이 효율성과 정확도 모두에서 우수함을 입증했습니다. 특히, 위치에 민감한 스코어 맵의 공동 활용은 기존 방법론의 고질적인 문제를 해결하는 데 핵심적인 역할을 했습니다. 그러나 앙상블 모델의 높은 의존성과 네트워크 깊이 증가에 따른 성능 포화는 향후 연구에서 단일 모델의 효율적인 성능 개선 및 더욱 견고한 아키텍처 설계에 대한 필요성을 시사합니다.
+반면 한계도 분명하다.
+
+먼저, 이 모델은 **ROI proposal 기반**이다. 즉, 완전히 proposal-free 방식은 아니며 RPN 품질에 영향을 받는다. 이후 등장한 one-stage instance segmentation이나 transformer 기반 접근과 비교하면, 구조적으로 여전히 proposal pipeline의 틀 안에 있다.
+
+둘째, 최종 성능 향상을 위해서는 **mask voting, multi-scale testing, horizontal flip, ensemble** 같은 후처리 및 테스트 기법에 의존하는 부분이 있다. baseline 자체도 강하지만 competition result는 순수 모델 구조의 힘만으로 해석해서는 안 된다.
+
+셋째, 논문은 inside/outside joint formulation의 직관은 명확히 설명하지만, 왜 이 설계가 항상 최적의 결합인지에 대한 이론적 분석은 깊지 않다. 다시 말해, detection과 segmentation의 관계를 매우 영리하게 이용했지만, 그 결합 방식의 일반성이나 최적성은 논문에서 엄밀히 다루지 않는다.
+
+넷째, score map 수가 $2k^2(C+1)$ 로 늘어나므로 클래스 수가 커질수록 head의 채널 수가 커진다. 논문에서는 이것이 큰 문제라고 하지는 않지만, 구조적으로 category-specific position-sensitive map 방식은 클래스 수 확장성 측면에서 비용이 증가할 수 있다.
+
+다섯째, 논문은 성능과 속도 측면에서 매우 강하지만, 작은 객체의 성능 개선은 큰 객체만큼 인상적이지 않다. COCO 결과에서도 large object에서 개선 폭이 더 크다고 해석할 수 있다. 이는 해상도와 stride 16 표현 한계, proposal 품질 등의 영향을 시사한다.
+
+비판적으로 보면, 이 논문은 당시 ROI 기반 instance segmentation의 병목을 매우 잘 해결했지만, 문제를 “ROI마다 position-sensitive map을 assemble하는 방식”으로 푸는 틀 자체는 여전히 남아 있다. 따라서 후속 세대의 dense prediction, dynamic convolution, transformer-based set prediction과 비교하면 더 단순하고 빠르지만 표현력의 유연성은 제한될 수 있다. 다만 이는 후대 관점의 해석이며, 논문 자체의 시대적 기여를 깎는 것은 아니다.
 
 ## 6. 결론
 
-**논문의 주요 기여 사항:** 본 논문은 인스턴스 인지 의미론적 분할을 위한 최초의 완전 컨볼루션 방식(FCIS)을 제시합니다. 이 방법은 객체 분할과 탐지를 위한 _새로운 공동 공식화_를 제안하여, 기존 FCN 기반 접근 방식의 단점(피처 워핑, 과도한 매개변수화)을 극복합니다. FCIS는 추가 매개변수 없이 컨볼루션 표현과 스코어 맵을 완전히 공유하는 고도로 효율적인 네트워크 아키텍처를 통해 두 작업을 통합합니다.
+이 논문은 **instance-aware semantic segmentation을 위한 첫 fully convolutional end-to-end 방법**을 제시했다는 점에서 중요한 이정표다. 핵심 기여는 세 가지로 정리할 수 있다.
 
-**이 연구가 실제 적용이나 향후 연구에 중요한 역할을 할 가능성:** FCIS는 정확도와 효율성 면에서 최첨단 성능을 크게 향상시켰습니다. COCO 2016 분할 챌린지에서 우승하며 그 우수성을 입증했고, 특히 대형 객체에 대한 뛰어난 성능과 현저히 빠른 추론 및 훈련 시간은 실제 애플리케이션에 매우 유용합니다. 이 연구는 자율 주행, 의료 영상 분석, 로봇 비전 등 인스턴스 수준의 정밀한 객체 이해가 필수적인 다양한 분야에서 중요한 기반 기술로 활용될 수 있습니다. 또한, 단일 통합 네트워크를 통한 효율적인 다중 작업 학습은 향후 객체 이해 시스템의 설계 방향에 중요한 영감을 줄 것입니다.
+첫째, instance segmentation에 필요한 **translation-variant 표현**을 position-sensitive score maps로 구현했다.
+둘째, detection과 segmentation을 분리하지 않고 **inside/outside joint formulation** 으로 함께 학습하게 만들었다.
+셋째, ROI warping과 heavy fc sub-network 없이도 높은 정확도와 매우 빠른 추론 속도를 달성했다.
+
+실험적으로도 PASCAL VOC와 COCO에서 강력한 성능을 보였고, COCO 2016 segmentation challenge 우승으로 실전 경쟁력까지 입증했다. 특히 이 논문은 “정확한 모델”일 뿐 아니라 “잘 설계된 시스템”이라는 점이 중요하다. 계산 공유, 구조 단순성, OHEM 활용 가능성, detection과 segmentation의 자연스러운 통합이라는 요소가 함께 작동한다.
+
+향후 연구 관점에서도 이 논문은 의미가 크다. instance segmentation을 semantic segmentation과 object detection의 단순한 결합으로 보지 않고, **공통 표현 위에서 함께 푸는 문제**로 다시 정의했기 때문이다. 이후 등장한 많은 instance segmentation 연구들이 다른 방식으로 발전했더라도, “mask와 class를 joint하게 예측하는 fully convolutional 구조”라는 방향성은 이 논문이 강하게 밀어준 흐름이라고 볼 수 있다.

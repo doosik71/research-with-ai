@@ -76,7 +76,7 @@ $$
 
 부록 B는 dataset shift 유형을 정리한다. source와 target 데이터셋을 각각 $D_S$, $D_T$라 하고, 이들이 분포 $p_S(x,y)$, $p_T(x,y)$에서 나왔다고 할 때, 두 분포 간 차이를 감지하는 것이 목표다. 여기에는 covariate shift, prior probability shift, sample selection bias, domain shift, source component shift, anomaly detection 등이 포함된다.
 
-탐지 방법은 supervised와 unsupervised로 나뉜다. supervised 방식은 progressive error나 holdout set을 활용하지만, 운영 환경에서는 레이블이 항상 즉시 उपलब्ध하지 않으므로 한계가 있다. 그래서 practical한 상황에서는 통계적 거리, histogram intersection, KL divergence 기반 접근, density-ratio estimation, random cut forest, changepoint detection 등이 중요하다고 설명한다. 저자들은 특정 탐지기 하나를 채택하지 않고, **어떤 종류의 shift가 있는지 파악하고 그에 따라 재학습 또는 적응 전략을 연결하는 상위 시스템 설계**에 초점을 둔다.
+탐지 방법은 supervised와 unsupervised로 나뉜다. supervised 방식은 progressive error나 holdout set을 활용하지만, 운영 환경에서는 레이블이 항상 즉시 사용가능하지 않으므로 한계가 있다. 그래서 practical한 상황에서는 통계적 거리, histogram intersection, KL divergence 기반 접근, density-ratio estimation, random cut forest, changepoint detection 등이 중요하다고 설명한다. 저자들은 특정 탐지기 하나를 채택하지 않고, **어떤 종류의 shift가 있는지 파악하고 그에 따라 재학습 또는 적응 전략을 연결하는 상위 시스템 설계**에 초점을 둔다.
 
 ### 3.6 Prediction Monitoring
 

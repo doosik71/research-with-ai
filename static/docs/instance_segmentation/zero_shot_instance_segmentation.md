@@ -55,7 +55,7 @@ SMH는 논문의 segmentation 핵심입니다. 이 모듈도 encoder-decoder 구
 * **ZSI**: unseen instance만 예측
 * **GZSI**: seen + unseen instance를 함께 예측
 
-지표는 zero-shot detection 관행을 따라 여러 IoU 기준(0.4, 0.5, 0.6)에서 **Recall@100**을 मुख्य 지표로 쓰고, IoU 0.5 기준 **mAP**도 참고로 제시합니다.
+지표는 zero-shot detection 관행을 따라 여러 IoU 기준(0.4, 0.5, 0.6)에서 **Recall@100**을 기본 지표로 쓰고, IoU 0.5 기준 **mAP**도 참고로 제시합니다.
 
 ### 4.2 주요 결과
 

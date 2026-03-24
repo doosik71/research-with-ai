@@ -533,7 +533,7 @@
 
 - 보고서는 마크다운 형식을 따라 작성해야 하며 보고서의 구성 형식은 다음과 같다.
 
----
+\`\`\`
 <메타데이터 블록>
 
 # <영어 논문 제목>
@@ -590,22 +590,21 @@
 
 - 논문의 주요 기여 사항에 대한 요약
 - 이 연구가 실제 적용이나 향후 연구에 중요한 역할을 할 가능성
+\`\`\`
 
-## 메타데이터 블록
+## 메타데이터 블록의 형식
 
 보고서의 맨 첫 줄에는 다음의 스키마를 가진 행을 추가한다.
 
 {"title": "<논문 제목>", "author": "<저자 목록>", "year": <출판 연도>, "url": "<Arxiv URL>", "summary": "<요약 파일 이름>", "slide": ""}
----
 
-여기에서 보고서 첫 줄의 "summary" 필드 값 <요약 파일 이름>은 다음과 같이 구성한다.
-
-- 영어 논문 제목을 영어 소문자로 변환한다.
-- 공백 문자는 "_"(underbar) 문자로 대체한다.
-- 기호 등의 특수문자는 삭제한다.
-- 파일 형식의 확장자로 "".md"를 추가한다.
-
-<요약 파일 이름>의 예시: 논문 제목이 "Attention Is All You Need"인 경우, <요약 파일 이름>은 "attention_is_all_you_need.md"가 된다.
+- <Arxiv URL> 값은 논문 텍스트에 해당 정보가 없으면 비워둔다.
+- <요약 파일 이름>은 다음과 같이 구성한다.
+	- 영어 논문 제목을 영어 소문자로 변환한다.
+	- 공백 문자는 "_"(underbar) 문자로 대체한다.
+	- 기호 등의 특수문자는 삭제한다.
+	- 파일 형식의 확장자로 "".md"를 추가한다.
+  - 예시: 논문 제목이 "Attention Is All You Need"인 경우, <요약 파일 이름>은 "attention_is_all_you_need.md"가 된다.
 
 ## 분석 보고서 품질 검사
 
@@ -783,6 +782,32 @@
 
 		return inlineRestored.replace(blockMathRegex, (_match, content: string) => {
 			return `$$${decodeHex(content)}$$`;
+		});
+	}
+
+	function escapeHtml(text: string): string {
+		return text
+			.replaceAll('&', '&amp;')
+			.replaceAll('<', '&lt;')
+			.replaceAll('>', '&gt;')
+			.replaceAll('"', '&quot;')
+			.replaceAll("'", '&#39;');
+	}
+
+	function postProcessImage(html: string): string {
+		return html.replace(/<img\b[^>]*>/gi, (imgTag) => {
+			if (typeof document === 'undefined') return imgTag;
+
+			const wrapper = document.createElement('div');
+			wrapper.innerHTML = imgTag;
+
+			const img = wrapper.querySelector('img');
+			const alt = img?.getAttribute('alt')?.trim();
+
+			if (!alt) return imgTag;
+
+			const caption = `<p style="text-align:center;"><em>${escapeHtml(alt)}</em></p>`;
+			return `${imgTag}${caption}`;
 		});
 	}
 
@@ -1423,7 +1448,7 @@
 				const text = await res.text();
 				const processed = preProcessMath(text);
 				if (type === 'summary') {
-					renderHtml = postProcessMath(md.render(processed));
+					renderHtml = postProcessImage(postProcessMath(md.render(processed)));
 				} else if (type === 'slide') {
 					const { html, css } = marp.render(processed);
 					renderHtml = postProcessMath(

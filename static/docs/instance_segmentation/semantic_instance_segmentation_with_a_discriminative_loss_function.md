@@ -1,101 +1,116 @@
 # Semantic Instance Segmentation with a Discriminative Loss Function
 
-- **저자**: Bert De Brabandere, Davy Neven, Luc Van Gool
-- **발표연도**: 2017
-- **arXiv**: https://ar5iv.labs.arxiv.org/html/1708.02551v1
+* **저자**: Bert De Brabandere, Davy Neven, Luc Van Gool
+* **발표연도**: 2017
+* **arXiv**: <https://arxiv.org/abs/1708.02551>
 
 ## 1. 논문 개요
 
-이 논문은 의미론적 인스턴스 분할(semantic instance segmentation)이라는 도전적인 과제를 해결하기 위해 픽셀 수준에서 작동하는 판별 손실 함수(discriminative loss function)를 제안합니다. 이 손실 함수는 합성곱 신경망(convolutional network)이 이미지를 쉽게 인스턴스로 클러스터링할 수 있는 표현을 생성하도록 학습을 유도합니다. 즉, 동일한 인스턴스에 속하는 픽셀은 특징 공간(feature space)에서 서로 가깝게 위치하고, 다른 인스턴스에 속하는 픽셀은 넓은 마진을 두고 분리되도록 네트워크를 학습시킵니다. 기존의 객체 제안(object proposals)이나 순환 메커니즘에 의존하지 않고, 기성 네트워크(off-the-shelf network)와 거리 학습(metric learning)에서 영감을 받은 원칙적인 손실 함수를 결합하는 방식은 개념적으로 단순하면서도 효과적이며, 복잡한 방식과 동등한 성능을 달성할 수 있음을 보여줍니다. 또한, 대중적인 탐지 및 분할(detect-and-segment) 접근 방식의 일부 한계점들을 겪지 않음을 입증합니다. Cityscapes 및 CVPPP 잎 분할 벤치마크에서 경쟁력 있는 성능을 달성했습니다.
+이 논문은 semantic segmentation과 instance segmentation 사이의 간극을 매우 단순한 방식으로 메우려는 시도다. 저자들은 각 픽셀을 클래스 확률로 분류하는 대신, 각 픽셀을 feature space의 임베딩 벡터로 보낸 뒤, 같은 instance에 속한 픽셀은 서로 가깝게, 다른 instance의 픽셀은 충분히 멀어지도록 학습시키는 discriminative loss를 제안한다. 이렇게 학습된 출력은 복잡한 detection head, proposal generator, recurrent decoder 없이도 간단한 clustering 후처리만으로 instance mask로 변환될 수 있다는 것이 논문의 핵심 주장이다. 논문은 이 접근이 variable number of instances와 permutation invariance라는 instance segmentation의 본질적 난점을 자연스럽게 다룬다고 설명한다.
+
+연구 문제가 중요한 이유는, 일반 semantic segmentation은 같은 클래스의 서로 다른 객체를 하나의 영역으로 합쳐 버리지만, 실제 응용에서는 객체별 분리가 필요하기 때문이다. 자율주행에서는 여러 대의 차량과 보행자를 각각 분리해야 하고, 식물 phenotyping에서는 잎 하나하나를 세어야 하며, 산업·의료 영상에서는 서로 가려진 개체까지 분리할 필요가 있다. 저자들은 기존 softmax 기반 segmentation이 이 문제에 잘 맞지 않는다고 본다. 한 이미지 안의 instance 수가 고정되어 있지 않고, instance label 자체가 순열 불변이기 때문에 “1번 객체, 2번 객체” 식의 고정 클래스화가 부자연스럽기 때문이다.
+
+이 논문의 기여는 새로운 거대한 네트워크 구조를 제안했다기보다, semantic segmentation용 off-the-shelf backbone을 거의 그대로 재사용하면서 loss function만 바꿔 instance segmentation 문제를 풀 수 있음을 보인 데 있다. 즉, 구조적 복잡성을 늘리지 않고 목적 함수를 바꿔 문제를 재정의한 논문이라고 보는 것이 적절하다.
 
 ## 2. 핵심 아이디어
 
-이 논문의 핵심 아이디어는 인스턴스 분할을 위해 픽셀 단위에서 작동하는 판별 손실 함수를 사용하는 것입니다. 기존의 의미론적 분할에서 흔히 사용되는 픽셀 단위 소프트맥스 손실(pixel-wise softmax loss)을 대체하여, 각 픽셀을 N차원 특징 벡터로 매핑하도록 네트워크를 학습시킵니다. 이때 동일한 인스턴스에 속하는 픽셀의 특징 벡터는 서로 가깝게, 다른 인스턴스에 속하는 픽셀의 특징 벡터는 서로 멀리 떨어지도록 만듭니다. 이러한 특징 공간에서의 픽셀 임베딩(pixel embedding)은 간단하고 빠른 후처리 클러스터링 작업을 통해 개별 인스턴스로 쉽게 분할될 수 있습니다. 이 메커니즘을 통해 가변적인 인스턴스 수와 순열 불변성(permutation-invariance)과 관련된 문제들을 피하는 목적 함수를 최적화합니다. 이는 기존의 객체 제안 방식이나 순환 네트워크 방식과 달리, 보다 원칙적이고 간소화된 접근 방식을 취하며, 어떤 기성 의미론적 분할 네트워크 아키텍처에도 적용 가능하게 설계되었습니다.
+중심 직관은 매우 명확하다. 픽셀마다 $n$차원 embedding을 출력하게 하고, 같은 object instance에 속한 픽셀 embedding은 하나의 cluster를 이루게 만들며, 서로 다른 instance의 cluster center들은 넉넉한 margin을 두고 떨어지게 만든다. 그러면 추론 시에는 복잡한 proposal selection이나 sequence decoding 없이, embedding space에서 cluster를 찾는 것만으로 instance를 복원할 수 있다. 저자들은 이를 “pixel-level metric learning”에 가까운 관점으로 설명한다. 기존 siamese network나 triplet loss가 이미지 간 거리를 학습했다면, 이 논문은 그것을 이미지 내부의 픽셀들 사이 관계로 옮겨왔다고 볼 수 있다.
+
+기존 접근과의 차별점은 세 가지로 정리할 수 있다. 첫째, proposal-based method처럼 bounding box나 object proposal에 의존하지 않는다. 둘째, recurrent instance segmentation처럼 instance를 순차적으로 하나씩 생성하지 않는다. 셋째, center direction, depth ordering, bounding box coordinate prediction처럼 출력 표현을 사람이 강하게 설계한 ad-hoc representation으로 제한하지 않는다. 네트워크는 그저 embedding space를 잘 조직하면 되고, 그 조직 원리는 loss가 정한다. 이 점에서 논문은 “표현 자체를 직접 규정하지 않고, 구분 가능한 구조만 요구하는 loss 중심 설계”라는 점이 특징이다.
+
+또 하나 중요한 아이디어는 inter-cluster 분리를 모든 픽셀 쌍에 대해 계산하지 않고, 각 cluster의 평균 벡터인 cluster center들 사이에서만 계산했다는 점이다. instance segmentation에서는 픽셀 수는 매우 많지만 instance 수는 상대적으로 적으므로, 서로 다른 label의 모든 픽셀쌍을 직접 밀어내는 방식보다 훨씬 계산 효율적이다. 즉, “픽셀을 중심으로 모으고, 중심끼리만 밀어낸다”는 구조가 계산량과 최적화 단순성 모두를 잡는 설계다.
 
 ## 3. 상세 방법 설명
 
-제안하는 방법론은 각 입력 이미지의 픽셀을 N차원 특징 공간의 한 점인 '픽셀 임베딩'으로 매핑하는 미분 가능한 함수를 사용합니다. 손실 함수의 기본 원리는 동일한 인스턴스에 속하는 임베딩은 서로 가깝게, 다른 인스턴스에 속하는 임베딩은 서로 멀리 떨어져야 한다는 것입니다.
+전체 파이프라인은 다음과 같다. 입력 이미지를 semantic segmentation용 backbone network에 통과시키고, 마지막 출력은 픽셀별 class logit 대신 픽셀별 embedding vector로 만든다. 학습 중에는 ground-truth instance mask를 이용해 어떤 픽셀들이 같은 cluster에 속해야 하는지 알 수 있으므로, 이 정보를 바탕으로 discriminative loss를 계산한다. 추론 시에는 네트워크가 만든 embedding map을 clustering하여 개별 instance mask를 얻는다. Cityscapes처럼 multi-class instance segmentation에서는 semantic class mask를 먼저 얻고, 클래스별로 instance clustering을 독립적으로 수행한다. 즉, 같은 클래스 내부의 instance들만 embedding space에서 서로 분리하도록 학습·추론한다.
 
-제안하는 판별 손실 함수는 세 가지 주요 항으로 구성됩니다:
+### 3.1 Discriminative loss의 구조
 
-1. **분산 항 (variance term)**: 클러스터 내의 당기는 힘으로, 각 클러스터의 임베딩을 해당 클러스터의 평균 임베딩(클러스터 중심)으로 끌어당깁니다.
-2. **거리 항 (distance term)**: 클러스터 간의 미는 힘으로, 다른 클러스터들을 서로 멀리 밀어내어 클러스터 중심 간의 거리를 증가시킵니다.
-3. **정규화 항 (regularization term)**: 모든 클러스터를 원점으로 끌어당기는 작은 힘으로, 활성화 값을 경계 내에 유지합니다.
+논문은 손실 함수를 세 항으로 구성한다. 첫째는 variance term $L_{var}$이고, 같은 instance 내부의 픽셀 embedding을 그 instance의 평균 embedding인 cluster center $\mu_c$ 쪽으로 끌어당긴다. 둘째는 distance term $L_{dist}$이고, 서로 다른 instance의 cluster center들이 충분히 멀어지도록 민다. 셋째는 regularization term $L_{reg}$이고, 전체 cluster center가 원점에서 너무 멀리 떠나지 않도록 activation을 완만하게 제한한다. 최종 손실은 세 항의 가중합이다.
 
-분산 항과 거리 항은 '힌지(hinged)' 특성을 가집니다. 즉, 특정 거리까지만 힘이 활성화됩니다. 클러스터 중심으로부터 $\delta_v$ 거리 내에 있는 임베딩은 더 이상 끌어당겨지지 않아, 단일 점으로 수렴하기보다는 특징 공간 내의 지역적 매니폴드(local manifold)에 존재할 수 있게 합니다. 유사하게, $2\delta_d$보다 멀리 떨어져 있는 클러스터 중심들은 더 이상 서로 밀어내지 않고 특징 공간에서 자유롭게 움직일 수 있습니다. 이러한 힌지 방식은 네트워크에 대한 제약을 완화하여 목표 달성을 위한 표현 능력을 향상시킵니다.
+논문에 제시된 식은 다음과 같다.
 
-손실 함수는 다음과 같이 정의됩니다:
+$$
+\begin{align}
+L_{var} &= \frac{1}{C} \sum_{c=1}^{C} \frac{1}{N_c} \sum_{i=1}^{N_c} \left[ \lVert \mu_c - x_i \rVert - \delta_v \right]_+^2 \\
+L_{dist} &= \frac{1}{C(C-1)} \sum_{c_A=1}^{C} \sum_{c_B=1,, c_A \neq c_B}^{C} \left[ 2\delta_d - \lVert \mu_{c_A} - \mu_{c_B} \rVert \right]_+^2 \\
+L_{reg} &= \frac{1}{C} \sum_{c=1}^{C} \lVert \mu_c \rVert \\
+L &= \alpha L_{var} + \beta L_{dist} + \gamma L_{reg}
+\end{align}
+$$
 
-- $C$: 실제 클러스터의 수
-- $N_c$: 클러스터 $c$의 요소(픽셀) 수
-- $x_i$: 클러스터 $c$ 내 $i$-번째 픽셀의 임베딩
-- $\mu_c$: 클러스터 $c$의 평균 임베딩 (클러스터 중심)
-- $\lVert\cdot\rVert$: L1 또는 L2 거리
-- $[x]_+ = \max(0, x)$: 힌지 함수
-- $\delta_v$: 분산 손실의 마진
-- $\delta_d$: 거리 손실의 마진
+여기서 $C$는 이미지 내 instance 수, $N_c$는 instance $c$의 픽셀 수, $x_i$는 픽셀 embedding, $\mu_c$는 해당 instance의 평균 embedding이다. $\lVert \cdot \rVert$는 $L_1$ 또는 $L_2$ distance이며, $[x]_+ = \max(0, x)$는 hinge 연산이다. 실험에서는 $\alpha = 1$, $\beta = 1$, $\gamma = 0.001$을 사용한다.
 
-손실 함수 공식:
+이 식을 쉬운 말로 풀면 다음과 같다. 같은 instance의 픽셀이 자기 중심에서 $\delta_v$ 이내에 들어오면 더 이상 벌점을 주지 않는다. 즉, 무조건 한 점에 collapse시킬 필요는 없다. 그래서 cluster 내부가 작은 manifold처럼 퍼져 있어도 된다. 반대로 두 cluster center의 거리가 $2\delta_d$보다 충분히 크면 더 이상 추가로 밀어내지 않는다. 이것도 필요 이상으로 feature space를 왜곡하지 않기 위한 장치다. 논문은 이런 hinge 구조가 네트워크에 더 큰 representational freedom을 제공한다고 주장한다. 즉, “같은 것은 적당히 모으고, 다른 것은 충분히만 떼어놓는다”는 large-margin clustering 철학이다.
 
-$$L_{\text{var}}=\frac{1}{C}\sum_{c=1}^{C}\frac{1}{N_c}\sum_{i=1}^{N_c}[\|\mu_c-x_i\|-\delta_v]_{+}^2 \quad (1)$$
-**설명**: 분산 손실은 각 클러스터 $c$에 대해, 클러스터 중심 $\mu_c$와 해당 클러스터에 속하는 각 픽셀 임베딩 $x_i$ 간의 거리가 마진 $\delta_v$를 초과할 때 페널티를 부여합니다. 즉, 동일 인스턴스 픽셀 임베딩이 클러스터 중심에 가깝게 모이도록 유도합니다.
+### 3.2 Softmax loss와의 비교
 
-$$L_{\text{dist}}=\frac{1}{C(C-1)}\sum_{c_A=1}^{C}\sum_{c_B=1, c_A \neq c_B}^{C}[2\delta_d-\|\mu_{c_A}-\mu_{c_B}\|]_{+}^2 \quad (2)$$
-**설명**: 거리 손실은 모든 클러스터 쌍 $c_A$와 $c_B$에 대해, 두 클러스터의 중심 $\mu_{c_A}$와 $\mu_{c_B}$ 간의 거리가 마진 $2\delta_d$보다 작을 때 페널티를 부여합니다. 즉, 서로 다른 인스턴스에 속하는 클러스터 중심들이 충분히 멀리 떨어지도록 밀어냅니다.
+저자들이 특히 강조하는 비교는 softmax cross-entropy와의 차이다. softmax 분류는 각 픽셀을 미리 정해진 클래스 축 중 하나로 보내는 구조라서, 출력 차원이 클래스 수와 직접 연결된다. 그러나 instance segmentation에서는 이미지마다 instance 수가 달라지고, label identity는 permutation-invariant하다. 반면 이 논문의 embedding loss는 출력 차원이 instance 수와 무관하다. 다시 말해, “몇 개의 instance가 나올지 미리 정하지 않아도 되는 feature space”를 만든다. 이것이 instance segmentation에 더 자연스럽다는 것이 저자들의 논지다.
 
-$$L_{\text{reg}}=\frac{1}{C}\sum_{c=1}^{C}\|\mu_c\| \quad (3)$$
-**설명**: 정규화 손실은 모든 클러스터 중심 $\mu_c$가 원점(origin)에 가깝게 위치하도록 유도하여 활성화 값이 과도하게 커지는 것을 방지합니다.
+### 3.3 추론 및 후처리
 
-최종 손실 함수는 이 세 항의 가중 합입니다:
+이 논문의 후처리는 loss 설계와 직접 연결되어 있다. 학습이 이상적으로 이루어져 $L_{var}$와 $L_{dist}$가 충분히 작다면, 모든 픽셀은 자기 cluster center에서 $\delta_v$ 안에 있고, 서로 다른 cluster center들은 최소 $2\delta_d$ 이상 떨어져 있다. 따라서 $\delta_d > \delta_v$이면, 각 embedding은 자기 중심에 더 가깝고 타 instance 중심에는 더 멀다. 이 조건을 이용해 반경 $b = \delta_v$인 hypersphere thresholding으로 같은 instance 픽셀을 선택할 수 있다. 논문의 식은 다음과 같다.
 
-$$L=\alpha\cdot L_{\text{var}}+\beta\cdot L_{\text{dist}}+\gamma\cdot L_{\text{reg}} \quad (4)$$
-실험에서는 $\alpha=\beta=1$, $\gamma=0.001$로 설정되었습니다.
+$$
+x_i \in C \iff \lVert x_i - x_c \rVert < b
+$$
 
-이 손실 함수는 픽셀 임베딩이 특정 클래스의 원-핫 벡터로 수렴하는 소프트맥스 손실과 달리, 출력 특징 공간의 차원이 클래스 수와 같을 필요가 없어, 학습 후 클래스 추가 시 아키텍처 변경이 필요 없다는 장점이 있습니다.
+여기서 $x_c$는 기준이 되는 중심 embedding이다.
+
+하지만 instance segmentation에서는 semantic class처럼 고정된 class center를 데이터셋 전체에서 저장해 둘 수 없다. 이미지마다 instance가 달라지고 label 순서도 의미가 없기 때문이다. 그래서 저자들은 unlabeled pixel 하나를 고르고, 그 픽셀 embedding 근처를 thresholding해서 하나의 instance를 찾고, 찾은 픽셀들을 같은 label로 묶은 다음, 아직 할당되지 않은 픽셀에 대해 같은 작업을 반복하는 절차를 제안한다. 즉, seed-based clustering이다.
+
+현실에서는 test loss가 0이 아니므로 outlier 때문에 한 instance가 둘로 쪼개지는 문제가 생길 수 있다. 이를 줄이기 위해 논문은 mean-shift의 빠른 변형을 사용한다. 처음에 랜덤한 unlabeled pixel로 thresholding하고, 선택된 embedding들의 평균을 다시 계산한 뒤, 그 평균 주변으로 다시 thresholding한다. 이를 mean convergence까지 반복하면 density가 높은 진짜 cluster center로 이동할 가능성이 커진다. 즉, 단순 thresholding에 mean update를 추가해 outlier robustness를 높인 것이다.
+
+### 3.4 장단점에 대한 방법론적 해석
+
+저자들은 이 방법이 detect-and-segment 계열보다 복잡한 occlusion에 강하다고 주장한다. bounding box만으로는 객체 mask를 모호성 없이 복원하기 어려운 경우가 있기 때문이다. 예를 들어 막대 두 개가 X자 형태로 겹친 경우, 박스는 크게 중첩되며 박스 안에서 어느 픽셀이 어느 객체에 속하는지 판단하기 어렵다. 반면 이 논문은 이미지를 holistic하게 보고 픽셀 embedding을 학습하므로, 박스 prior 없이도 이런 상황을 더 자연스럽게 다룰 수 있다고 본다. 반대로, 장면 구성이 매우 다양하고 같은 객체가 예기치 않게 여러 개 등장하는 VOC/COCO 스타일 데이터셋에는 sliding-window detection 계열이 더 적합할 수 있다고 스스로 인정한다. 이 self-critique는 논문의 균형감을 높여 준다.
 
 ## 4. 실험 및 결과
 
-제안된 손실 함수는 두 가지 인스턴스 분할 데이터셋인 CVPPP 잎 분할(CVPPP Leaf Segmentation) 데이터셋과 Cityscapes 인스턴스 수준 의미 레이블링 작업(Cityscapes Instance-Level Semantic Labeling Task)에서 평가되었습니다. 이 데이터셋들은 이미지당 중간값으로 15개 이상의 인스턴스를 포함합니다.
+논문은 두 개의 대표 벤치마크에서 실험한다. 하나는 CVPPP leaf segmentation이고, 다른 하나는 Cityscapes instance-level semantic labeling task다. CVPPP는 식물 잎을 개별적으로 분할하는 문제이고, Cityscapes는 도시 장면에서 차량, 보행자 등 객체 instance를 분리하는 문제다. 두 데이터셋 모두 이미지당 instance 수의 중앙값이 15개 이상이라, variable-instance setting에서 제안 손실의 장점을 보기 좋다.
 
-**데이터셋:**
+### 4.1 데이터셋과 설정
 
-- **CVPPP 잎 분할**: 식물의 각 잎을 개별적으로 분할하는 작은 규모의 도전적인 벤치마크입니다. A1 서브셋(128개의 레이블링된 이미지, 33개의 테스트 이미지)을 사용했습니다. 인스턴스 분할의 정확도를 나타내는 Symmetric Best Dice (SBD)와 개수 차이의 절대값 (|DiC|) 두 가지 지표를 보고합니다.
-- **Cityscapes**: 도시 거리 장면의 의미론적 이해에 중점을 둔 대규모 데이터셋입니다. 미세한(fine-grained) 주석만 사용하여 인스턴스 수준 의미론적 분할 작업을 수행했습니다. 2975개의 훈련 이미지, 500개의 검증 이미지, 1525개의 테스트 이미지로 구성됩니다. 평균 정밀도 (AP), 50% 중첩 기준 평균 정밀도 (AP0.5), 50m 및 100m 거리 내 객체에 대한 평가가 제한된 AP50m 및 AP100m의 네 가지 지표를 사용합니다.
+CVPPP A1 subset은 128장의 학습 이미지와 33장의 테스트 이미지를 사용한다. 평가지표는 instance segmentation 정확도를 보는 Symmetric Best Dice (SBD)와, 잎 개수 예측 오차를 보는 $|DiC|$다. Leaf segmentation 실험에서는 데이터가 작기 때문에 좌우 반전, 회전, scale deformation을 포함한 online augmentation을 사용한다. 입력 이미지는 $512 \times 512$로 리사이즈하고, 추가로 x, y coordinate map을 채널로 붙인다. margin은 $\delta_v = 0.5$, $\delta_d = 1.5$, embedding 차원은 16으로 설정했다. 이 벤치마크는 foreground mask가 테스트셋에 제공되므로 instance separation 자체에 더 집중할 수 있다.
 
-**설정:**
+Cityscapes는 fine annotation 기준으로 2975개 train, 500개 validation, 1525개 test 이미지로 구성된다. 저자들은 validation으로 하이퍼파라미터를 조정하고 train set으로 최종 모델을 학습한다. 입력 해상도는 $768 \times 384$이며, 데이터 양과 다양성이 충분해 별도의 augmentation은 쓰지 않았다고 설명한다. margin은 동일하게 $\delta_v = 0.5$, $\delta_d = 1.5$이고 embedding 차원은 8이다. semantic class 구분을 위해 pretrained ResNet-38 semantic segmentation network를 별도로 사용하고, instance embedding loss는 각 semantic class에 대해 독립적으로 적용한다. 즉, pedestrian과 car는 같은 feature space 위치를 차지해도 상관없고, 같은 클래스 내부 instance만 분리하면 된다.
 
-- **모델 아키텍처**: 의미론적 분할을 위해 설계된 ResNet-38 네트워크 [40]를 사용했습니다. CityScapes 의미론적 분할로 사전 학습된 모델을 파인튜닝했습니다.
-- **학습**: 모든 모델은 Adam 옵티마이저를 사용했으며, 학습률은 1e-4였습니다.
-- **잎 분할**: 데이터 오버피팅을 방지하기 위해 온라인 데이터 증강(좌우 반전, 임의 회전)을 적용했습니다.
-- **Cityscapes**: 768x384로 다운샘플링된 훈련 이미지로 최종 모델을 학습했습니다. 마진 $\delta_v=0.5$, $\delta_d=1.5$를 사용했습니다. Cityscapes는 다중 클래스 인스턴스 분할 챌린지이므로, 손실 함수는 각 의미론적 클래스에 대해 독립적으로 실행되었습니다.
+모든 실험은 off-the-shelf semantic segmentation backbone으로 ResNet-38을 사용하고, Cityscapes semantic segmentation으로 사전학습된 모델에서 fine-tuning한다. 최적화는 Adam, learning rate는 $10^{-4}$이며, NVidia Titan X GPU에서 학습했다고 명시한다. 여기서도 논문의 메시지는 일관된다. “새 구조가 아니라, 기존 구조에 새 loss를 꽂는다”는 점이다.
 
-**개별 구성 요소 분석:**
-의미론적 분할의 품질과 후처리 단계가 전체 성능에 미치는 영향을 분석하기 위해 Cityscapes 검증 세트에서 두 가지 추가 실험을 수행했습니다:
+### 4.2 CVPPP 결과
 
-1. **의미론적 분할 vs 실제 값 (ground truth)**: ResNet-38의 의미론적 분할 마스크를 실제 값 마스크로 교체했을 때의 성능 변화를 측정했습니다.
-2. **평균 이동 클러스터링(Mean Shift Clustering) vs 실제 값 클러스터링**: 제안된 평균 이동 클러스터링 알고리즘과 실제 인스턴스 마스크를 기반으로 한 평균 임베딩 임계값 설정을 통한 클러스터링 간의 성능 차이를 측정했습니다.
+CVPPP 테스트셋에서 제안 방법은 SBD 84.2, $|DiC|$ 1.0을 기록했다. 표에 따르면 End-to-end recurrent attention 기반 방법이 SBD 84.9, $|DiC|$ 0.8로 약간 높지만, 제안 방법도 사실상 동급 성능이다. 저자들은 자신들의 방법이 recurrent method보다 개념적으로 더 단순하면서도 비슷한 성능을 낸다고 해석한다. 특히 non-deep learning 방법들과 recurrent instance segmentation인 RIS+CRF보다 우수하거나 경쟁력 있는 결과를 보였다고 강조한다.
 
-**결과 및 토론:**
+정성적 결과에서는 작은 잎이나 잎자루 부근에서만 소폭 오류가 나타나고, 대부분의 잎을 안정적으로 분리했다고 서술한다. 즉, 동일한 형태가 반복적으로 나타나는 장면에서는 embedding clustering 방식이 상당히 잘 맞는다는 점을 보여준다.
 
-- **CVPPP 데이터셋**: 그림 5는 CVPPP 검증 세트에서 제안된 방법의 일부 결과를 보여줍니다. 가장 작은 잎과 잎자루의 분할에서 약간의 오류를 제외하고는 오류가 거의 없었습니다. 표 1의 수치 결과에 따르면 SBD 점수 84.2로 최첨단(SBD 84.9)과 동등한 경쟁력 있는 결과를 달성했습니다. 모든 비-딥러닝 방법과 [31]의 순환 인스턴스 분할보다 우수한 성능을 보였습니다.
-- **Cityscapes 데이터셋**: 그림 6은 Cityscapes 검증 세트의 시각적 결과를 보여줍니다. 자동차나 보행자가 많은 복잡한 시나리오에서도 개별 객체를 식별하는 데 성공했습니다. 실패 사례는 주로 단일 객체가 여러 인스턴스로 분할되거나 인접한 인스턴스가 잘못 병합되는 경우였습니다. 잘못된 의미론적 분할도 실패 모드 중 하나였습니다. 그럼에도 불구하고, Cityscapes 리더보드에서 [1] 경쟁력 있는 결과를 달성했으며, [5]의 한 미출판 작업을 제외하고는 모든 작업을 능가했습니다. SAIS [13, 18]의 MNC 기반 방법과 동등한 성능을 보였습니다 (표 2 참조).
-- **개별 구성 요소 분석 결과**: 표 3의 결과에 따르면, 예상대로 구성 요소를 실제 값으로 교체할 때 성능이 향상되었습니다. 의미론적 분할의 영향이 가장 컸으며, ResNet-38 의미론적 분할 마스크를 실제 값 마스크로 교체했을 때 성능이 크게 증가했습니다. 이는 AP(평균 정밀도) 지표가 의미론적 클래스에 대한 평균이기 때문에 일부 클래스에서는 의미론적 분할의 품질이 큰 영향을 미치기 때문입니다. 클러스터링 알고리즘 간에도 성능 차이가 있었는데, 검증 세트에서 손실이 0이 아니어서 손실 함수에 의해 부과된 제약 조건이 충족되지 않아 평균 이동 클러스터링이 완벽한 결과를 내지 못했기 때문입니다. 이 효과는 작은 인스턴스에서 더 두드러지게 나타났습니다.
+### 4.3 Cityscapes 결과
+
+Cityscapes 테스트셋에서 제안 방법은 AP 17.5, AP0.5 35.9, AP100m 27.8, AP50m 31.0을 기록했다. 표 기준으로 Mask R-CNN 26.2 AP보다는 낮지만, Boundary-aware 17.4, DWT 19.4, Pixelwise DIN 20.0과 비슷한 경쟁권에 있으며, 일부 기존 방법보다 높다. 저자들은 “공개된 방법들 중 거의 최상위권”이며, 특히 multi-task network cascades 계열 SAIS와 사실상 비슷한 수준이라고 해석한다. 다만 표 숫자 자체만 보면 당시 최고 성능은 아니며, proposal-free하고 구조가 단순하다는 점을 감안한 경쟁력으로 이해하는 것이 정확하다.
+
+정성적으로는 차량과 보행자가 많은 복잡한 거리 장면에서도 개별 instance를 자주 올바르게 구분한다. 그러나 대표적인 실패 사례는 두 가지다. 하나는 실제로 서로 다른 객체를 하나로 합쳐 버리는 incorrect merging이고, 다른 하나는 semantic segmentation 오류가 downstream instance segmentation까지 전파되는 경우다. 예를 들어 비어 있는 자전거 보관대를 bicycle로 잘못 semantic segmentation하면, instance embedding은 존재하지 않는 자전거들을 억지로 쪼개려 한다. 이 분석은 논문이 단순히 instance embedding 자체만이 아니라 semantic front-end 품질에도 강하게 의존한다는 사실을 잘 보여준다.
+
+### 4.4 구성 요소 분석
+
+논문에서 가장 유익한 실험 중 하나는 semantic segmentation과 clustering의 영향을 분리해서 본 ablation이다. Cityscapes validation에서 ResNet-38 semantic mask와 mean-shift clustering을 사용한 기본 설정은 AP 21.4, AP0.5 40.2다. 같은 semantic mask를 유지하고 clustering만 ground-truth center threshold로 바꾸면 AP가 22.9, AP0.5가 44.1로 올라간다. 즉, clustering 개선만으로도 일정한 이득이 있다.
+
+더 큰 차이는 semantic segmentation 품질에서 나온다. semantic mask를 ground truth로 바꾸고 mean-shift clustering을 쓰면 AP 37.5, AP0.5 58.5가 되고, semantic mask도 ground truth, clustering도 ground-truth center threshold를 쓰면 AP 47.8, AP0.5 77.8까지 올라간다. 이 결과는 두 가지를 말해 준다. 첫째, 실제 병목은 semantic segmentation 품질이다. 둘째, embedding 자체도 완벽하지 않아 clustering 단계에도 여전히 개선 여지가 있다. 저자들도 특히 작은 instance에서 mean-shift clustering의 오류가 더 두드러진다고 해석한다. 즉, 이 논문의 core idea는 타당하지만, 최종 성능은 front-end semantic mask와 back-end clustering 모두의 영향을 크게 받는다.
+
+### 4.5 Speed-accuracy trade-off
+
+논문은 car class만 대상으로 ENet, SegNet, Dilation, ResNet-38 등 여러 semantic segmentation backbone을 서로 다른 해상도에서 비교한다. 핵심 메시지는 명확하다. ResNet-38이 정확도는 가장 좋지만 메모리 사용량이 크고 속도가 느리다. ENet은 정확도는 약간 낮지만 훨씬 빠르다. 또한 해상도를 $768 \times 384$ 이상으로 올려도 큰 정확도 향상은 없다고 보고한다. 후처리 오버헤드는 무시할 만하다고 적고 있어, 실제 비용 대부분은 backbone forward pass에서 발생한다고 볼 수 있다. 이 실험은 제안 손실이 특정 backbone에 묶이지 않고 다양한 segmentation network 위에 얹힐 수 있음을 보여주는 근거이기도 하다.
 
 ## 5. 강점, 한계
 
-**강점:**
+이 논문의 가장 큰 강점은 문제 정식화의 우아함이다. instance segmentation을 “픽셀별 label classification”이 아니라 “픽셀 embedding clustering”으로 바꿈으로써, instance 수 가변성과 permutation invariance를 자연스럽게 처리한다. proposal, bounding box, recurrent decoding, Hungarian matching 같은 별도 장치 없이도 작동한다는 점은 개념적 단순성과 구현 용이성 측면에서 매우 큰 장점이다. 또, bounding box 기반 방식이 취약한 복잡한 occlusion 상황을 더 잘 다룰 수 있다는 점을 논리적으로 설득력 있게 제시한다. 산업 영상, 세포·염색체 분할, overlapping object sorting 같은 분야에 특히 잘 맞을 가능성이 크다.
 
-- **복잡한 가려움(occlusion) 처리**: 제안된 방법은 이미지 전체를 총체적으로 처리하므로, 기존의 '탐지 및 분할' 접근 방식이 갖는 '객체의 분할 마스크가 경계 상자에서 모호함 없이 추출될 수 있다'는 암묵적인 가정에 의존하지 않습니다. 이로 인해 두 개의 막대기가 교차하는 예시와 같이 경계 상자가 크게 겹치는 복잡한 가려움 상황에서도 문제없이 처리할 수 있습니다. 이는 많은 실제 산업 또는 의료 응용 분야(컨베이어 벨트 정렬 시스템, 겹치는 세포 및 염색체 분할 등)에서 나타나는 유형의 가려움을 해결하는 데 유용합니다.
-- **개념적 단순성 및 유연성**: 객체 제안이나 순환 메커니즘에 의존하지 않고, 기성 의미론적 분할 네트워크 아키텍처에 판별 손실 함수를 적용하는 개념적으로 간단한 접근 방식입니다. 이는 구현을 용이하게 하고, 다양한 네트워크 아키텍처에 대한 유연성을 제공합니다.
-- **순열 불변성**: 손실 함수 자체가 순열 불변성을 내재하고 있어, 개별 인스턴스에 할당되는 특정 레이블에 관계없이 작동하며, 헝가리안 알고리즘(Hungarian algorithm)과 같은 추가적인 매칭 메커니즘이 필요 없습니다.
+또 다른 강점은 loss와 inference가 정합적이라는 점이다. 많은 방법들이 학습 목표와 추론 절차 사이에 간극이 있는데, 이 논문은 학습 시 margin 구조로 만들어진 embedding geometry를 추론 시 thresholding/mean-shift clustering이 직접 이용한다. 즉, 학습과 추론의 설계 철학이 맞물려 있다. 이런 일관성은 실제로 논문이 다양한 backbone에 쉽게 이식될 수 있었던 이유이기도 하다.
 
-**한계:**
+하지만 한계도 분명하다. 첫째, Cityscapes 결과와 ablation이 보여주듯 semantic segmentation quality에 크게 의존한다. multi-class setting에서는 semantic mask가 잘못되면 instance 분리는 그 위에서 아무리 잘해도 한계가 있다. 둘째, clustering이 완벽하지 않다. validation loss가 0이 아니므로 이론적 margin 조건이 완전히 충족되지 않고, 특히 작은 객체에서 splitting/merging 오류가 발생한다. 셋째, 데이터 분포가 일정하고 장면 구성이 비교적 규칙적인 경우에는 잘 맞지만, VOC나 MS COCO처럼 객체 배치가 매우 다양하고 등장 조합이 예측 불가능한 데이터에서는 detection 기반 접근보다 불리할 수 있다고 저자 스스로 인정한다. 즉, 이 방법은 모든 instance segmentation 문제의 보편 해법이라기보다, 특정 구조적 조건에서 특히 매력적인 proposal-free 해법이다.
 
-- **다양한 장면에서의 성능 저하**: 이미지 전반을 총체적으로 처리하기 때문에, Cityscapes의 교통 장면이나 CVPPP의 잎 배치와 같이 이미지 간 유사성이 높은 데이터셋에서는 잘 작동하지만, Pascal VOC 및 MSCOCO와 같이 객체가 임의의 배치와 다양한 설정으로 나타날 수 있는 데이터셋에서는 성능이 떨어집니다. 이러한 데이터셋에는 비최대 억제(non-max suppression)를 포함한 슬라이딩 윈도우(sliding-window) 기반의 탐지 접근 방식이 더 적합합니다. 예를 들어, 단일 객체 이미지만으로 훈련된 모델은 예상치 못하게 많은 객체를 포함하는 이미지에서 성능이 저하될 수 있습니다.
-- **의미론적 분할의 품질 의존성**: 전체 인스턴스 분할 성능이 의미론적 분할 마스크의 품질에 크게 영향을 받습니다. 의미론적 분할 네트워크의 오류는 인스턴스 분할 결과에 직접적인 영향을 미칠 수 있습니다.
+비판적으로 보면, 논문은 “간단한 후처리”를 강조하지만 사실 실제 성능은 semantic segmentation과 clustering의 정교함에 적지 않게 좌우된다. 따라서 논문의 실질적 기여는 end-to-end complete system이라기보다, instance separation을 위한 매우 강력한 embedding loss design에 있다고 보는 편이 정확하다. 또한 Cityscapes에서는 semantic segmentation을 별도 pretrained network에 의존하므로, instance와 semantic segmentation의 완전한 통합 학습은 아직 미완 상태다. 논문 마지막의 future work가 바로 이 지점을 향하고 있다는 점도 주목할 만하다.
 
 ## 6. 결론
 
-이 논문은 인스턴스 분할 작업을 위한 판별 손실 함수를 제안했습니다. 훈련 후, 네트워크의 출력은 손실 함수에 맞춰진 간단한 후처리 임계값 설정 작업을 통해 개별 인스턴스로 클러스터링될 수 있습니다. 또한, 이 방법은 대중적인 '탐지 및 분할' 접근 방식과 달리 복잡한 가려움 문제를 처리할 수 있음을 보여주었습니다. 제안된 방법은 두 가지 벤치마크에서 경쟁력 있는 성능을 달성했습니다.
+이 논문은 instance segmentation을 위해 discriminative embedding loss를 제안하고, 이를 통해 복잡한 proposal system 없이도 픽셀 임베딩을 cluster하여 instance를 복원할 수 있음을 보였다. 핵심 기여는 같은 instance는 모으고 다른 instance는 떼어놓는 간단한 margin-based objective를 픽셀 수준에 적용해, semantic segmentation backbone을 거의 그대로 활용하면서 instance-aware representation을 학습하게 만든 데 있다. 실험적으로는 CVPPP leaf segmentation에서 state-of-the-art에 근접한 성능을, Cityscapes에서는 구조 단순성 대비 경쟁력 있는 성능을 달성했다.
 
-향후 연구에서는 인스턴스 및 의미론적 분할의 공동 훈련을 제안된 손실 함수와 함께 탐구할 예정입니다.
+장기적으로 이 연구는 proposal-free instance segmentation 계열의 중요한 출발점 중 하나로 볼 수 있다. 특히 embedding-based grouping이라는 관점은 이후 panoptic/instance segmentation, medical image instance separation, metric-learning 기반 dense prediction 연구에 매우 큰 영향을 줄 수 있는 아이디어다. 논문 자체도 semantic segmentation과 instance segmentation의 joint training을 미래 과제로 제시하는데, 실제로 이후 연구 흐름을 생각해 보면 이 방향은 매우 타당하다. 정리하면, 이 논문은 “복잡한 구조 대신 잘 설계된 loss로 instance structure를 학습한다”는 강한 메시지를 남긴, 개념적으로도 실용적으로도 의미 있는 작업이다.
