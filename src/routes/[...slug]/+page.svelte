@@ -31,6 +31,27 @@
 
 	type PaperTagMap = Record<string, PaperTagEntry>;
 
+	type HighlightColor = 'yellow' | 'pink' | 'blue' | 'green';
+
+	type SummaryHighlightEntry = {
+		id: string;
+		groupId: string;
+		docPath: string;
+		color: HighlightColor;
+		text: string;
+		createdAt: number;
+	};
+
+	type HighlightPopoverMode = 'create' | 'edit';
+
+	type HighlightPopoverState = {
+		mode: HighlightPopoverMode;
+		left: number;
+		top: number;
+		groupId?: string;
+		blocks?: string[];
+	};
+
 	type PaperListItem =
 		| { kind: 'year'; yearLabel: string; yearValue: number | null; key: string }
 		| { kind: 'paper'; paper: Paper; key: string };
@@ -47,6 +68,11 @@
 	type RoutePaperMatch = { paper: Paper; type: 'summary' | 'slide' };
 	const PAPER_TAG_STORAGE_KEY = 'paper-tags-v1';
 	const PAPER_TAG_TTL_MS = 1000 * 60 * 60 * 24 * 30 * 6;
+	const SUMMARY_HIGHLIGHT_STORAGE_KEY = 'summary-highlights-v1';
+	const SUMMARY_HIGHLIGHT_COLORS: HighlightColor[] = ['yellow', 'pink', 'blue', 'green'];
+	const HIGHLIGHT_BLOCK_SELECTOR = 'p, li, blockquote, td, th, h1, h2, h3, h4, h5, h6';
+	const HIGHLIGHT_EXCLUDED_SELECTOR =
+		'a, pre, code, img, script, style, mjx-container, .MathJax, .summary-highlight';
 
 	let pdfjsModulePromise: Promise<
 		typeof import('pdfjs-dist') & { GlobalWorkerOptions: { workerSrc: string } }
@@ -127,10 +153,64 @@
 		}
 	}
 
+	function loadSummaryHighlights(): SummaryHighlightEntry[] {
+		if (typeof window === 'undefined') return [];
+
+		try {
+			const raw = localStorage.getItem(SUMMARY_HIGHLIGHT_STORAGE_KEY);
+			if (!raw) return [];
+			const parsed = JSON.parse(raw);
+			return Array.isArray(parsed) ? parsed : [];
+		} catch {
+			return [];
+		}
+	}
+
+	function persistSummaryHighlights(next: SummaryHighlightEntry[]) {
+		summaryHighlights = next;
+
+		if (typeof window === 'undefined') return;
+
+		try {
+			if (next.length === 0) {
+				localStorage.removeItem(SUMMARY_HIGHLIGHT_STORAGE_KEY);
+				return;
+			}
+			localStorage.setItem(SUMMARY_HIGHLIGHT_STORAGE_KEY, JSON.stringify(next));
+		} catch {
+			// Do nothing.
+		}
+	}
+
+	function normalizeHighlightText(text: string): string {
+		return text.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+	}
+
+	function currentSummaryHighlights(docPath: string | null): SummaryHighlightEntry[] {
+		if (!docPath) return [];
+		return summaryHighlights.filter((entry) => entry.docPath === docPath);
+	}
+
+	function buildHighlightGroupId(): string {
+		if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+			return crypto.randomUUID();
+		}
+		return `hl-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+	}
+
 	function tagsForPaper(topicId: string | undefined, paper: Paper | null): string[] {
 		const key = buildPaperTagKey(topicId, paper);
 		if (!key) return [];
 		return parseTagList(paperTags[key]?.raw ?? '');
+	}
+
+	function firstHighlightColorForPaper(
+		topicId: string | undefined,
+		paper: Paper | null
+	): HighlightColor | null {
+		const key = buildPaperTagKey(topicId, paper);
+		if (!key) return null;
+		return summaryHighlights.find((entry) => entry.docPath === key)?.color ?? null;
 	}
 
 	function findPaperBySlug(paperSlug: string, allPapers: Paper[]): RoutePaperMatch | null {
@@ -181,10 +261,15 @@
 	let skipTagBlurSave = $state(false);
 	let slidePreviewContentEl = $state<HTMLDivElement | null>(null);
 	let readerBodyEl = $state<HTMLDivElement | null>(null);
+	let highlightPopoverEl = $state<HTMLDivElement | null>(null);
+	let summaryHighlights = $state<SummaryHighlightEntry[]>([]);
+	let highlightPopover = $state<HighlightPopoverState | null>(null);
+	let renderedSummaryDocKey = $state<string | null>(null);
 	let touchStartX = 0;
 	let touchStartY = 0;
 	let selectedPaperTagKey = $derived(buildPaperTagKey(selectedTopic?.id, selectedPaper));
 	let selectedPaperTags = $derived(tagsForPaper(selectedTopic?.id, selectedPaper));
+	let selectedSummaryDocKey = $derived(buildPaperTagKey(selectedTopic?.id, selectedPaper));
 
 	async function openSearchPopover(kind: 'topic' | 'paper') {
 		if (kind === 'topic') {
@@ -462,6 +547,7 @@
 
 	// Preview State
 	let renderHtml = $state('');
+	let renderHtmlWithHighlights = $state('');
 	let renderType = $state<'none' | 'summary' | 'slide'>('none');
 	let isLoading = $state(false);
 	let appEl: HTMLDivElement | null = null;
@@ -824,8 +910,402 @@
 		}
 	}
 
+	function getSummaryContentElements(): HTMLElement[] {
+		if (!appEl) return [];
+		return Array.from(appEl.querySelectorAll<HTMLElement>('.summary-content'));
+	}
+
+	function isExcludedHighlightNode(node: Node | null, root: HTMLElement): boolean {
+		const parent = node instanceof HTMLElement ? node : node?.parentElement;
+		if (!parent) return true;
+		if (!root.contains(parent)) return true;
+		return !!parent.closest(HIGHLIGHT_EXCLUDED_SELECTOR);
+	}
+
+	function findHighlightBlock(node: Node, root: HTMLElement): HTMLElement | null {
+		const parent = node instanceof HTMLElement ? node : node.parentElement;
+		if (!parent) return null;
+		const block = parent.closest<HTMLElement>(HIGHLIGHT_BLOCK_SELECTOR);
+		if (!block || !root.contains(block)) return null;
+		return block;
+	}
+
+	function rangeIntersectsTextNode(range: Range, node: Text): boolean {
+		const text = node.textContent ?? '';
+		if (!text) return false;
+		const nodeRange = document.createRange();
+		nodeRange.selectNodeContents(node);
+		return (
+			range.compareBoundaryPoints(Range.END_TO_START, nodeRange) < 0 &&
+			range.compareBoundaryPoints(Range.START_TO_END, nodeRange) > 0
+		);
+	}
+
+	type FlattenedBlockText = {
+		raw: string;
+		normalized: string;
+		segments: Array<{ node: Text; start: number; end: number }>;
+		normalizedToRaw: number[];
+	};
+
+	function flattenBlockText(block: HTMLElement): FlattenedBlockText {
+		const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, {
+			acceptNode: (node) => {
+				const text = node.textContent ?? '';
+				if (!text) return NodeFilter.FILTER_REJECT;
+				if (isExcludedHighlightNode(node, block)) return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT;
+			}
+		});
+
+		const segments: Array<{ node: Text; start: number; end: number }> = [];
+		let raw = '';
+		let normalized = '';
+		const normalizedToRaw: number[] = [];
+		let pendingSpace = false;
+		let pendingSpaceRawIndex = -1;
+		let textNode = walker.nextNode() as Text | null;
+
+		while (textNode) {
+			const text = textNode.textContent ?? '';
+			if (text.length > 0) {
+				const start = raw.length;
+				raw += text;
+				segments.push({ node: textNode, start, end: raw.length });
+
+				for (let index = 0; index < text.length; index += 1) {
+					const char = text[index];
+					const rawIndex = start + index;
+					if (/\s/.test(char)) {
+						if (normalized.length === 0) continue;
+						if (!pendingSpace) pendingSpaceRawIndex = rawIndex;
+						pendingSpace = true;
+						continue;
+					}
+					if (pendingSpace) {
+						normalized += ' ';
+						normalizedToRaw.push(pendingSpaceRawIndex);
+						pendingSpace = false;
+					}
+					normalized += char;
+					normalizedToRaw.push(rawIndex);
+				}
+			}
+			textNode = walker.nextNode() as Text | null;
+		}
+
+		return { raw, normalized, segments, normalizedToRaw };
+	}
+
+	function collectSelectionBlocks(root: HTMLElement, range: Range): string[] {
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+			acceptNode: (node) => {
+				const text = node.textContent ?? '';
+				if (!text) return NodeFilter.FILTER_REJECT;
+				if (isExcludedHighlightNode(node, root)) return NodeFilter.FILTER_REJECT;
+				if (!rangeIntersectsTextNode(range, node as Text)) return NodeFilter.FILTER_REJECT;
+				return NodeFilter.FILTER_ACCEPT;
+			}
+		});
+
+		const byBlock = new Map<HTMLElement, string>();
+		let textNode = walker.nextNode() as Text | null;
+
+		while (textNode) {
+			const text = textNode.textContent ?? '';
+			let start = 0;
+			let end = text.length;
+
+			if (textNode === range.startContainer) start = range.startOffset;
+			if (textNode === range.endContainer) end = range.endOffset;
+
+			if (end > start) {
+				const block = findHighlightBlock(textNode, root);
+				if (block) {
+					const existing = byBlock.get(block) ?? '';
+					byBlock.set(block, existing + text.slice(start, end));
+				}
+			}
+
+			textNode = walker.nextNode() as Text | null;
+		}
+
+		return Array.from(byBlock.values())
+			.map((text) => normalizeHighlightText(text))
+			.filter(Boolean);
+	}
+
+	type HighlightMatch = {
+		rawStart: number;
+		fragments: Array<{ node: Text; startOffset: number; endOffset: number }>;
+	};
+
+	function findHighlightMatchesInBlock(
+		block: HTMLElement,
+		targetText: string
+	): HighlightMatch[] {
+		const normalizedTarget = normalizeHighlightText(targetText);
+		if (!normalizedTarget) return [];
+
+		const flattened = flattenBlockText(block);
+		if (!flattened.normalized) return [];
+
+		const matches: HighlightMatch[] = [];
+		let searchFrom = 0;
+
+		while (searchFrom <= flattened.normalized.length - normalizedTarget.length) {
+			const normalizedIndex = flattened.normalized.indexOf(normalizedTarget, searchFrom);
+			if (normalizedIndex < 0) break;
+
+			const rawStart = flattened.normalizedToRaw[normalizedIndex];
+			const rawEndInclusive =
+				flattened.normalizedToRaw[normalizedIndex + normalizedTarget.length - 1];
+			const rawEnd = rawEndInclusive + 1;
+			const fragments: Array<{ node: Text; startOffset: number; endOffset: number }> = [];
+
+			for (const segment of flattened.segments) {
+				if (segment.end <= rawStart) continue;
+				if (segment.start >= rawEnd) break;
+
+				const startOffset = Math.max(0, rawStart - segment.start);
+				const endOffset = Math.min(segment.end, rawEnd) - segment.start;
+				if (endOffset > startOffset) {
+					fragments.push({ node: segment.node, startOffset, endOffset });
+				}
+			}
+
+			if (fragments.length > 0) {
+				matches.push({ rawStart, fragments });
+			}
+
+			searchFrom = normalizedIndex + normalizedTarget.length;
+		}
+
+		return matches;
+	}
+
+	function wrapHighlightFragment(
+		node: Text,
+		startOffset: number,
+		endOffset: number,
+		entry: SummaryHighlightEntry
+	) {
+		if (endOffset <= startOffset) return;
+		const selected = node.splitText(startOffset);
+		selected.splitText(endOffset - startOffset);
+		const span = document.createElement('span');
+		span.className = `summary-highlight highlight-${entry.color}`;
+		span.dataset.highlightGroupId = entry.groupId;
+		span.dataset.highlightId = entry.id;
+		span.dataset.highlightColor = entry.color;
+		selected.parentNode?.insertBefore(span, selected);
+		span.appendChild(selected);
+	}
+
+	function applyHighlightEntryToContainer(container: ParentNode, entry: SummaryHighlightEntry): number {
+		const blocks = Array.from(container.querySelectorAll<HTMLElement>(HIGHLIGHT_BLOCK_SELECTOR));
+		let matchCount = 0;
+
+		for (const block of blocks) {
+			const matches = findHighlightMatchesInBlock(block, entry.text);
+			for (let index = matches.length - 1; index >= 0; index -= 1) {
+				const match = matches[index];
+				for (let fragmentIndex = match.fragments.length - 1; fragmentIndex >= 0; fragmentIndex -= 1) {
+					const fragment = match.fragments[fragmentIndex];
+					wrapHighlightFragment(fragment.node, fragment.startOffset, fragment.endOffset, entry);
+				}
+				matchCount += 1;
+			}
+		}
+
+		return matchCount;
+	}
+
+	function buildHighlightedSummaryHtml(
+		baseHtml: string,
+		entries: SummaryHighlightEntry[]
+	): { html: string; matchedIds: Set<string> } {
+		if (typeof document === 'undefined' || !baseHtml || entries.length === 0) {
+			return { html: baseHtml, matchedIds: new Set<string>() };
+		}
+
+		const template = document.createElement('template');
+		template.innerHTML = baseHtml;
+		const matchedIds = new Set<string>();
+
+		for (const entry of entries) {
+			const matches = applyHighlightEntryToContainer(template.content, entry);
+			if (matches > 0) matchedIds.add(entry.id);
+		}
+
+		return { html: template.innerHTML, matchedIds };
+	}
+
+	function closeHighlightPopover() {
+		highlightPopover = null;
+	}
+
+	async function positionHighlightPopover() {
+		if (!highlightPopoverEl || !highlightPopover) return;
+		await tick();
+		const rect = highlightPopoverEl.getBoundingClientRect();
+		const padding = 8;
+		let left = highlightPopover.left;
+		let top = highlightPopover.top;
+
+		const halfWidth = rect.width / 2;
+		if (left + halfWidth > window.innerWidth - padding) {
+			left = window.innerWidth - padding - halfWidth;
+		}
+		if (left - halfWidth < padding) left = padding + halfWidth;
+		if (top + rect.height > window.innerHeight - padding) {
+			top = Math.max(padding, highlightPopover.top - rect.height - 12);
+		}
+
+		highlightPopover = { ...highlightPopover, left, top };
+	}
+
+	async function openCreateHighlightPopover(blocks: string[], rect: DOMRect) {
+		if (blocks.length === 0) {
+			closeHighlightPopover();
+			return;
+		}
+
+		highlightPopover = {
+			mode: 'create',
+			blocks,
+			left: rect.left + rect.width / 2,
+			top: rect.bottom + 12
+		};
+		await positionHighlightPopover();
+	}
+
+	async function openEditHighlightPopover(groupId: string, rect: DOMRect) {
+		highlightPopover = {
+			mode: 'edit',
+			groupId,
+			left: rect.left + rect.width / 2,
+			top: rect.bottom + 12
+		};
+		await positionHighlightPopover();
+	}
+
+	function applyNewHighlight(color: HighlightColor) {
+		if (highlightPopover?.mode !== 'create' || !selectedSummaryDocKey || !highlightPopover.blocks) return;
+
+		const groupId = buildHighlightGroupId();
+		const createdAt = Date.now();
+		const next = [...summaryHighlights];
+
+		for (const text of highlightPopover.blocks) {
+			next.push({
+				id: `${groupId}:${next.length}`,
+				groupId,
+				docPath: selectedSummaryDocKey,
+				color,
+				text,
+				createdAt
+			});
+		}
+
+		persistSummaryHighlights(next);
+		window.getSelection()?.removeAllRanges();
+		closeHighlightPopover();
+	}
+
+	function updateHighlightGroupColor(groupId: string, color: HighlightColor) {
+		const next = summaryHighlights.map((entry) =>
+			entry.groupId === groupId ? { ...entry, color } : entry
+		);
+		persistSummaryHighlights(next);
+		closeHighlightPopover();
+	}
+
+	function deleteHighlightGroup(groupId: string) {
+		persistSummaryHighlights(summaryHighlights.filter((entry) => entry.groupId !== groupId));
+		closeHighlightPopover();
+	}
+
+	async function handleSummarySelectionChange(event: MouseEvent | KeyboardEvent) {
+		if (renderType !== 'summary') return;
+		const root = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+		if (!root) return;
+
+		await tick();
+		const selection = window.getSelection();
+		if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+			if (highlightPopover?.mode === 'create') closeHighlightPopover();
+			return;
+		}
+
+		const range = selection.getRangeAt(0);
+		if (!root.contains(range.commonAncestorContainer)) {
+			if (highlightPopover?.mode === 'create') closeHighlightPopover();
+			return;
+		}
+
+		const blocks = collectSelectionBlocks(root, range);
+		if (blocks.length === 0) {
+			if (highlightPopover?.mode === 'create') closeHighlightPopover();
+			return;
+		}
+
+		await openCreateHighlightPopover(blocks, range.getBoundingClientRect());
+	}
+
+	function handleSummaryClick(event: MouseEvent) {
+		const target = event.target instanceof HTMLElement ? event.target : null;
+		const highlight = target?.closest<HTMLElement>('.summary-highlight');
+		if (!highlight) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+		window.getSelection()?.removeAllRanges();
+
+		const groupId = highlight.dataset.highlightGroupId;
+		if (!groupId) return;
+		void openEditHighlightPopover(groupId, highlight.getBoundingClientRect());
+	}
+
+	function rebuildRenderedSummaryHtml() {
+		if (renderType !== 'summary') {
+			renderHtmlWithHighlights = renderHtml;
+			closeHighlightPopover();
+			return;
+		}
+
+		const entries = currentSummaryHighlights(renderedSummaryDocKey);
+		if (entries.length === 0) {
+			renderHtmlWithHighlights = renderHtml;
+			return;
+		}
+
+		const { html, matchedIds } = buildHighlightedSummaryHtml(renderHtml, entries);
+		renderHtmlWithHighlights = html;
+
+		if (matchedIds.size !== entries.length) {
+			const failedIds = new Set(
+				entries.filter((entry) => !matchedIds.has(entry.id)).map((entry) => entry.id)
+			);
+			if (failedIds.size > 0) {
+				persistSummaryHighlights(
+					summaryHighlights.filter((entry) => !failedIds.has(entry.id))
+				);
+			}
+		}
+	}
+
 	$effect(() => {
-		if (!renderHtml) return;
+		renderHtml;
+		summaryHighlights;
+		renderedSummaryDocKey;
+		renderType;
+		rebuildRenderedSummaryHtml();
+	});
+
+	$effect(() => {
+		const htmlForDisplay = renderType === 'summary' ? renderHtmlWithHighlights : renderHtml;
+		if (!htmlForDisplay) return;
 		void typesetMathJax();
 	});
 
@@ -872,6 +1352,18 @@
 			window.location.hostname === '127.0.0.1' ||
 			window.location.hostname === '0.0.0.0';
 
+		const onGlobalPointerDown = (event: PointerEvent | MouseEvent) => {
+			const target = event.target instanceof Node ? event.target : null;
+			if (target && highlightPopoverEl?.contains(target)) return;
+			closeHighlightPopover();
+		};
+
+		const onViewportChange = () => closeHighlightPopover();
+
+		document.addEventListener('mousedown', onGlobalPointerDown, true);
+		window.addEventListener('resize', onViewportChange);
+		window.addEventListener('scroll', onViewportChange, true);
+
 		void (async () => {
 			try {
 				const saved = localStorage.getItem('app-theme');
@@ -888,6 +1380,7 @@
 				}
 				hasLoadedNotoToggle = true;
 				paperTags = loadPaperTags();
+				summaryHighlights = loadSummaryHighlights();
 			} catch {
 				// Do nothing.
 			}
@@ -910,6 +1403,9 @@
 
 		return () => {
 			mql.removeEventListener('change', onMediaChange);
+			document.removeEventListener('mousedown', onGlobalPointerDown, true);
+			window.removeEventListener('resize', onViewportChange);
+			window.removeEventListener('scroll', onViewportChange, true);
 		};
 	});
 
@@ -1351,6 +1847,7 @@
 		selectedPaper = paper;
 		renderType = 'none';
 		renderHtml = '';
+		renderedSummaryDocKey = null;
 
 		if (paper.summary) {
 			loadPreview(paper, 'summary', { syncUrl: true });
@@ -1381,6 +1878,7 @@
 		selectedPaper = null;
 		renderType = 'none';
 		renderHtml = '';
+		renderedSummaryDocKey = null;
 		papers = [];
 		isLoading = true;
 
@@ -1423,15 +1921,21 @@
 		if (!selectedTopic) return;
 
 		selectedPaper = paper;
-		renderType = type;
 		isLoading = true;
-		renderHtml = '';
 
 		if (isMobile) mobileStage = 2;
 
 		const filename = type === 'summary' ? paper.summary : paper.slide;
+		let nextRenderType: 'summary' | 'slide' | 'none' = type;
+		let nextRenderHtml = renderHtml;
+		let nextRenderedSummaryDocKey: string | null =
+			type === 'summary' ? buildPaperTagKey(selectedTopic.id, paper) : null;
 		if (!filename) {
-			renderHtml = '<p>No file specified.</p>';
+			nextRenderType = 'none';
+			nextRenderHtml = '<p>No file specified.</p>';
+			renderType = nextRenderType;
+			renderHtml = nextRenderHtml;
+			renderedSummaryDocKey = null;
 			isLoading = false;
 			return;
 		}
@@ -1448,22 +1952,25 @@
 				const text = await res.text();
 				const processed = preProcessMath(text);
 				if (type === 'summary') {
-					renderHtml = postProcessImage(postProcessMath(md.render(processed)));
+					nextRenderHtml = postProcessImage(postProcessMath(md.render(processed)));
 				} else if (type === 'slide') {
 					const { html, css } = marp.render(processed);
 					const processedHtml = postProcessMath(html);
-					renderHtml = `<style>${css}</style><div class="marp-slide-wrapper">${processedHtml}</div>`;
+					nextRenderHtml = `<style>${css}</style><div class="marp-slide-wrapper">${processedHtml}</div>`;
 				}
 			} else {
-				renderHtml = `<p>File not found: ${filename}</p>`;
+				nextRenderHtml = `<p>File not found: ${filename}</p>`;
 			}
 		} catch (e) {
 			if (e instanceof Error) {
-				renderHtml = `<p>Error loading file: ${e.message}</p>`;
+				nextRenderHtml = `<p>Error loading file: ${e.message}</p>`;
 			} else {
-				renderHtml = `<p>Unknown error</p>`;
+				nextRenderHtml = `<p>Unknown error</p>`;
 			}
 		} finally {
+			renderType = nextRenderType;
+			renderHtml = nextRenderHtml;
+			renderedSummaryDocKey = nextRenderType === 'summary' ? nextRenderedSummaryDocKey : null;
 			isLoading = false;
 		}
 	}
@@ -1670,8 +2177,16 @@
 					>
 						<p class="title">{item.paper.title}</p>
 						<p class="meta">{item.paper.author} ({item.paper.year})</p>
-						{#if tagsForPaper(selectedTopic?.id, item.paper).length > 0}
+						{#if firstHighlightColorForPaper(selectedTopic?.id, item.paper) ||
+							tagsForPaper(selectedTopic?.id, item.paper).length > 0}
 							<div class="paper-tag-list" aria-label="Paper tags">
+								{#if firstHighlightColorForPaper(selectedTopic?.id, item.paper)}
+									<span
+										class={`highlight-dot color-${firstHighlightColorForPaper(selectedTopic?.id, item.paper)}`}
+										aria-label="This paper has highlights"
+										title="Has highlights"
+									></span>
+								{/if}
 								{#each tagsForPaper(selectedTopic?.id, item.paper) as tag (tag)}
 									<span class="tag-bubble">{tag}</span>
 								{/each}
@@ -2009,12 +2524,19 @@
 				ontouchend={onSlideTouchEnd}
 			>
 				{#if renderType === 'summary'}
-					<article class="summary-content markdown-body" style={`font-size: ${summaryScalePct}%`}>
+					<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+					<article
+						class="summary-content markdown-body"
+						style={`font-size: ${summaryScalePct}%`}
+						onmouseup={handleSummarySelectionChange}
+						onkeyup={handleSummarySelectionChange}
+						onclick={handleSummaryClick}
+					>
 						{#if isLoading}
 							<p>Loading content...</p>
 						{:else}
 							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-							{@html renderHtml}
+							{@html renderHtmlWithHighlights}
 						{/if}
 					</article>
 				{:else if renderType === 'slide'}
@@ -2030,12 +2552,19 @@
 			</div>
 		{:else if renderType === 'summary'}
 			<div class="preview-content markdown-body">
-				<article class="summary-content" style={`font-size: ${summaryScalePct}%`}>
+				<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+				<article
+					class="summary-content markdown-body"
+					style={`font-size: ${summaryScalePct}%`}
+					onmouseup={handleSummarySelectionChange}
+					onkeyup={handleSummarySelectionChange}
+					onclick={handleSummaryClick}
+				>
 					{#if isLoading}
 						<p>Loading content...</p>
 					{:else}
 						<!-- eslint-disable-next-line svelte/no-at-html-tags -->
-						{@html renderHtml}
+						{@html renderHtmlWithHighlights}
 					{/if}
 				</article>
 			</div>
@@ -2169,6 +2698,41 @@
 	</main>
 </div>
 
+{#if highlightPopover}
+	<div
+		class="highlight-popover"
+		bind:this={highlightPopoverEl}
+		style={`left: ${highlightPopover.left}px; top: ${highlightPopover.top}px;`}
+	>
+		<div class="highlight-popover-title">
+			{highlightPopover.mode === 'create' ? 'Highlight' : 'Edit highlight'}
+		</div>
+		<div class="highlight-color-row">
+			{#each SUMMARY_HIGHLIGHT_COLORS as color (color)}
+				<button
+					type="button"
+					class={`highlight-color-button color-${color}`}
+					aria-label={`Use ${color} highlight`}
+					onclick={() =>
+						highlightPopover?.mode === 'create'
+							? applyNewHighlight(color)
+							: highlightPopover?.groupId && updateHighlightGroupColor(highlightPopover.groupId, color)}
+				></button>
+			{/each}
+			{#if highlightPopover.mode === 'edit' && highlightPopover.groupId}
+				<button
+					type="button"
+					class="highlight-color-button highlight-delete-icon"
+					aria-label="Delete highlight"
+					onclick={() => highlightPopover?.groupId && deleteHighlightGroup(highlightPopover.groupId)}
+				>
+					x
+				</button>
+			{/if}
+		</div>
+	</div>
+{/if}
+
 <style>
 	/* Layout variables (theme-independent) */
 	:global(:root) {
@@ -2229,6 +2793,14 @@
 		--table-head-color: #2a2e45;
 		--table-border: #d0d5e0;
 		--table-row-hover: #f3f5fb;
+		--highlight-yellow: rgba(255, 232, 122, 0.72);
+		--highlight-pink: rgba(255, 173, 205, 0.78);
+		--highlight-blue: rgba(160, 209, 255, 0.78);
+		--highlight-green: rgba(185, 230, 140, 0.78);
+		--highlight-dot-yellow: #8a5a00;
+		--highlight-dot-pink: #8f2d5a;
+		--highlight-dot-blue: #1f5fa8;
+		--highlight-dot-green: #456b16;
 
 		/* Select widget */
 		--select-bg: #ffffff;
@@ -2285,6 +2857,14 @@
 		--table-head-color: #a8b0cc;
 		--table-border: #2e3448;
 		--table-row-hover: #222638;
+		--highlight-yellow: rgba(180, 125, 0, 0.58);
+		--highlight-pink: rgba(154, 53, 105, 0.62);
+		--highlight-blue: rgba(34, 92, 168, 0.62);
+		--highlight-green: rgba(69, 120, 28, 0.64);
+		--highlight-dot-yellow: #ffd86b;
+		--highlight-dot-pink: #ffb7da;
+		--highlight-dot-blue: #9fd0ff;
+		--highlight-dot-green: #c7ef8d;
 
 		--select-bg: #1c1f2a;
 		--select-border: rgba(255, 255, 255, 0.12);
@@ -2466,6 +3046,76 @@
 		opacity: 1;
 	}
 
+	.highlight-popover {
+		position: fixed;
+		z-index: 60;
+		transform: translateX(-50%);
+		background: var(--bg-panel);
+		border: 1px solid var(--border-default);
+		border-radius: 12px;
+		box-shadow: var(--shadow-md);
+		padding: 0.65rem 0.75rem;
+		min-width: 12rem;
+	}
+
+	.highlight-popover-title {
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+		color: var(--text-secondary);
+		margin-bottom: 0.55rem;
+	}
+
+	.highlight-color-row {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+	}
+
+	.highlight-color-button {
+		width: 1.45rem;
+		height: 1.45rem;
+		border-radius: 999px;
+		border: 1px solid var(--border-default);
+		cursor: pointer;
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		font: inherit;
+	}
+
+	.highlight-color-button.color-yellow {
+		background: #fff3a3;
+	}
+
+	.highlight-color-button.color-pink {
+		background: #ffd3e1;
+	}
+
+	.highlight-color-button.color-blue {
+		background: #cfe7ff;
+	}
+
+	.highlight-color-button.color-green {
+		background: #d9f3bf;
+	}
+
+	.highlight-delete-icon {
+		background: var(--bg-panel-alt);
+		color: var(--text-secondary);
+		font-size: 0.9rem;
+		font-weight: 700;
+		line-height: 1;
+		text-transform: lowercase;
+	}
+
+	.highlight-delete-icon:hover {
+		background: var(--bg-hover);
+		color: var(--text-primary);
+	}
+
 	/* Scrollbars */
 	.topic-content::-webkit-scrollbar,
 	.list-content::-webkit-scrollbar,
@@ -2611,6 +3261,7 @@
 		flex-wrap: wrap;
 		gap: 0.35rem;
 		margin-top: 0.45rem;
+		align-items: center;
 	}
 
 	.paper-tag-list .tag-bubble {
@@ -2619,6 +3270,30 @@
 		color: var(--paper-tag-text);
 		padding: 0.2rem 0.55rem;
 		font-weight: 700;
+	}
+
+	.paper-tag-list .highlight-dot {
+		width: 0.7rem;
+		height: 0.7rem;
+		border-radius: 999px;
+		flex: 0 0 auto;
+		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+	}
+
+	.paper-tag-list .highlight-dot.color-yellow {
+		background: var(--highlight-dot-yellow);
+	}
+
+	.paper-tag-list .highlight-dot.color-pink {
+		background: var(--highlight-dot-pink);
+	}
+
+	.paper-tag-list .highlight-dot.color-blue {
+		background: var(--highlight-dot-blue);
+	}
+
+	.paper-tag-list .highlight-dot.color-green {
+		background: var(--highlight-dot-green);
 	}
 
 	.summary-tag-panel {
@@ -3105,6 +3780,31 @@
 	.summary-content :global(p) {
 		line-height: 1.7;
 	}
+
+	.summary-content :global(.summary-highlight) {
+		border-radius: 0.18em;
+		padding: 0 0.05em;
+		cursor: pointer;
+		box-decoration-break: clone;
+		-webkit-box-decoration-break: clone;
+	}
+
+	.summary-content :global(.summary-highlight.highlight-yellow) {
+		background: var(--highlight-yellow);
+	}
+
+	.summary-content :global(.summary-highlight.highlight-pink) {
+		background: var(--highlight-pink);
+	}
+
+	.summary-content :global(.summary-highlight.highlight-blue) {
+		background: var(--highlight-blue);
+	}
+
+	.summary-content :global(.summary-highlight.highlight-green) {
+		background: var(--highlight-green);
+	}
+
 	.summary-content :global(p > img:only-of-type) {
     display: block;
 		max-height: 100dvh;
