@@ -92,6 +92,13 @@
     ]
   },
   {
+    "id": "federated_learning",
+    "title": "Federated Learning",
+    "keyword": [
+      "federated learning"
+    ]
+  },
+  {
     "id": "instance_segmentation",
     "title": "Instance Segmentation",
     "keyword": [
@@ -105,6 +112,13 @@
     "title": "Medical Image Segmentation",
     "keyword": [
       "Medical Image Segmentation"
+    ]
+  },
+  {
+    "id": "meta-learning",
+    "title": "Meta Learning",
+    "keyword": [
+      "meta learning"
     ]
   }
 ]
