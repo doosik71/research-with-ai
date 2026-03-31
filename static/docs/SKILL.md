@@ -12,10 +12,12 @@ Produce a detailed Korean markdown report for an arXiv paper from a paper title 
 ## Input Handling
 
 Accept either of the following user inputs:
+
 - paper title
 - URL for the paper page or PDF
 
 Normalize the input first:
+
 - if the user provides a PDF URL, recover the canonical arXiv abstract URL when possible
 - if the user provides an arXiv URL, extract the arXiv identifier
 - if the user provides a paper title, locate the matching arXiv paper first
@@ -36,6 +38,7 @@ Follow this workflow in order.
 ## Reading and Analysis Rules
 
 When reading the paper:
+
 - rely on the original paper content, not third-party summaries
 - preserve technical terms in English when Korean translation would reduce precision
 - infer the section structure from headings and content, even if the exact heading names differ
@@ -49,11 +52,13 @@ When reading the paper:
 The report must be detailed enough that a reader can understand the paper without reading the original paper.
 
 ### Output language and tone
+
 - write in korean
 - keep specialized technical terms in English when helpful
 - prefer precise, explanatory prose over short bullet fragments
 
 ### Required structure
+
 The first line must be the paper title as an h1 heading:
 
 ```markdown
@@ -63,48 +68,63 @@ The first line must be the paper title as an h1 heading:
 Then include these sections in a sensible order.
 
 ## 1. Paper Overview
+
 Include:
+
 - one-paragraph overview of what the paper tries to achieve
 - research problem
 - why the problem matters
 
 ## 2. Core Idea
+
 Include:
+
 - the central intuition or design idea
 - what is novel relative to prior approaches if the paper makes that clear
 
 ## 3. Detailed Method Explanation
+
 Include:
+
 - overall pipeline or system structure
 - each important component and its role
 - training objective, loss, inference procedure, or algorithmic flow when relevant
 - explanation of important equations
 
 ## 4. Experiments and Findings
+
 Include when present:
+
 - datasets, tasks, baselines, metrics
 - key quantitative or qualitative results
 - what the experiments actually demonstrate
 
 ## 5. Strengths, Limitations, and Interpretation
+
 Include:
+
 - strengths supported by the paper
 - limitations, assumptions, or open questions
 - brief critical interpretation grounded in the paper
 
 ## 6. Conclusion
+
 Include:
+
 - concise wrap-up of what the paper contributes
 - when this work is likely to matter in practice or future research
 
 ## Math Formatting
+
 When writing mathematical expressions:
+
 - tag inline math with `$...$`
 - tag display math with `$$...$$`
 - do not leave standalone equations untagged
 - if the source uses symbols but the rendering is ambiguous, rewrite the math clearly before explaining it
 
 ## Metadata Block
+
 At the very end of the report, append a JSON code block with this exact schema:
 
 ```json
@@ -124,6 +144,7 @@ Example:
 If the title includes punctuation or symbols that would make the filename awkward, simplify them conservatively into a readable lowercase filename.
 
 ## Source Attribution
+
 Before the JSON metadata block, add a final section that explicitly lists the paper source URL.
 
 Use this heading:
@@ -135,7 +156,9 @@ Use this heading:
 Then provide the canonical arXiv URL used for the report.
 
 ## Markdown Quality Check
+
 Before finishing:
+
 - ensure heading levels are consistent
 - ensure code fences are balanced
 - ensure lists are formatted correctly
@@ -143,6 +166,7 @@ Before finishing:
 - correct obvious markdown lint issues when possible
 
 ## Failure Handling
+
 - if the title search returns multiple plausible papers, choose the best match using title similarity and arXiv metadata
 - if the paper cannot be found on arXiv, say so clearly
 - if ar5iv fails and PDF extraction also fails, report the failure transparently and summarize what was successfully retrieved

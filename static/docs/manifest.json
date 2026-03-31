@@ -35,10 +35,45 @@
     ]
   },
   {
+    "id": "artificial_general_intelligence",
+    "title": "Artificial General Intelligence",
+    "keyword": [
+      "artificial general intelligence"
+    ]
+  },
+  {
+    "id": "autoencoder",
+    "title": "Autoencoder",
+    "keyword": [
+      "autoencoder"
+    ]
+  },
+  {
+    "id": "blood_pressure_estimation_ppg",
+    "title": "Blood Pressure Estimation using PPG",
+    "keyword": [
+      "blood pressure estimation ppg"
+    ]
+  },
+  {
+    "id": "chain_of_thought",
+    "title": "Chain Of Thought",
+    "keyword": [
+      "chain of thought"
+    ]
+  },
+  {
     "id": "continual_learning",
     "title": "Continual Learning",
     "keyword": [
       "continual learning"
+    ]
+  },
+  {
+    "id": "deep_learning",
+    "title": "Deep Learning",
+    "keyword": [
+      "deep learning"
     ]
   },
   {
@@ -49,12 +84,27 @@
     ]
   },
   {
+    "id": "explainable_ai",
+    "title": "Explainable AI",
+    "keyword": [
+      "explainable ai",
+      "xai"
+    ]
+  },
+  {
     "id": "instance_segmentation",
     "title": "Instance Segmentation",
     "keyword": [
       "instance segmentation",
       "mask r-cnn",
       "panoptic segmentation"
+    ]
+  },
+  {
+    "id": "medical_image_segmentation",
+    "title": "Medical Image Segmentation",
+    "keyword": [
+      "Medical Image Segmentation"
     ]
   }
 ]

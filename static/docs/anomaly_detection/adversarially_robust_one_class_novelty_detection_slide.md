@@ -4,7 +4,7 @@ title: Adversarially Robust One-class Novelty Detection
 paginate: true
 ---
 
-# Adversarially Robust One-class Novelty Detection
+## Adversarially Robust One-class Novelty Detection
 
 - Shao-Yuan Lo, Poojan Oza, Vishal M. Patel
 - IEEE TPAMI 2022 (arXiv:2108.11168)
@@ -12,7 +12,7 @@ paginate: true
 
 ---
 
-# 문제 배경
+## 문제 배경
 
 - 원클래스 novelty detection: 정상 클래스만 학습, 신규 클래스 탐지
 - AE 기반 모델이 주류
@@ -21,7 +21,7 @@ paginate: true
 
 ---
 
-# 연구 질문
+## 연구 질문
 
 - 원클래스 novelty detector는 적대적 공격에 얼마나 취약한가?
 - 기존 방어(AT, FD 등)는 충분한가?
@@ -29,7 +29,7 @@ paginate: true
 
 ---
 
-# 핵심 아이디어: PrincipaLS
+## 핵심 아이디어: PrincipaLS
 
 - 원클래스 문제는 정상 클래스 정보만 유지하면 됨
 - 잠재 공간을 크게 조작해도 성능 저하가 적음
@@ -37,7 +37,7 @@ paginate: true
 
 ---
 
-# PrincipaLS 구조
+## PrincipaLS 구조
 
 - Vector-PCA: 채널(벡터) 차원 정제
 - Spatial-PCA: 공간 차원 정제
@@ -46,7 +46,7 @@ paginate: true
 
 ---
 
-# 공격 설정
+## 공격 설정
 
 - AE 재구성 오류를 조작하는 공격 정의
 - 정상 데이터: 재구성 오류 증가
@@ -55,7 +55,7 @@ paginate: true
 
 ---
 
-# 실험 구성
+## 실험 구성
 
 - 데이터셋: MNIST, Fashion-MNIST, CIFAR-10, MVTec-AD, UCSD Ped2
 - 모델: AE, VAE, AAE, ALOCC, GPND, ARAE, OC-GAN 등 7종
@@ -63,7 +63,7 @@ paginate: true
 
 ---
 
-# 주요 결과
+## 주요 결과
 
 - 기존 모델은 공격 시 AUROC 급락
 - PrincipaLS는 다양한 공격/데이터셋에서 AUROC 유지
@@ -72,7 +72,7 @@ paginate: true
 
 ---
 
-# 추가 분석
+## 추가 분석
 
 - VQ-VAE 기반 방어 대비 PrincipaLS 우수
 - 공격 강도 증가 시에도 안정적
@@ -80,7 +80,7 @@ paginate: true
 
 ---
 
-# 한계
+## 한계
 
 - 원클래스 novelty detection에 특화
 - PCA 기반 정제의 표현력 한계 가능
@@ -88,7 +88,7 @@ paginate: true
 
 ---
 
-# 결론
+## 결론
 
 - 원클래스 novelty detector의 공격 취약성 체계 분석
 - PrincipaLS: 잠재공간 PCA 정제로 robust novelty detection 달성
@@ -96,7 +96,7 @@ paginate: true
 
 ---
 
-# 참고
+## 참고
 
 - arXiv: https://arxiv.org/abs/2108.11168
 - 코드: https://github.com/shaoyuanlo/PrincipaLS
