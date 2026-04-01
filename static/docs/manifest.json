@@ -108,6 +108,13 @@
     ]
   },
   {
+    "id": "keyword_spotting",
+    "title": "Keyword Spotting",
+    "keyword": [
+      "keyword spotting"
+    ]
+  },
+  {
     "id": "medical_image_segmentation",
     "title": "Medical Image Segmentation",
     "keyword": [
@@ -119,6 +126,34 @@
     "title": "Meta Learning",
     "keyword": [
       "meta learning"
+    ]
+  },
+  {
+    "id": "segment_anything",
+    "title": "Segment Anything",
+    "keyword": [
+      "segment anything"
+    ]
+  },
+  {
+    "id": "speech_recognition",
+    "title": "Speech Recognition",
+    "keyword": [
+      "speech recognition"
+    ]
+  },
+  {
+    "id": "surgical_instrument_segmentation",
+    "title": "Surgical Instrument Segmentation",
+    "keyword": [
+      "surgical instrument segmentation"
+    ]
+  },
+  {
+    "id": "zero-shot_learning",
+    "title": "Zero Shot Learning",
+    "keyword": [
+      "zero shot learning"
     ]
   }
 ]
