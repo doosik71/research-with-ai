@@ -4022,11 +4022,28 @@
 		font-family: 'Pretendard Variable', 'Pretendard';
 	}
 
+	.summary-content :global(h1) {
+		background: linear-gradient(to right, var(--accent), transparent) bottom;
+		background-size: 100% 3px;
+		background-repeat: no-repeat;
+	}
+
+	.summary-content :global(h2) {
+		background: linear-gradient(to right, var(--accent-dim), transparent) bottom;
+		background-size: 100% 2px;
+		background-repeat: no-repeat;
+	}
+
 	.summary-content :global(strong) {
 		font-weight: 600;
 	}
 	.summary-content :global(a) {
 		color: var(--link-color);
+	}
+
+	.summary-content :global(ul),
+	.summary-content :global(ol) {
+		padding-left: 2em;
 	}
 
 	.summary-content :global(table) {
@@ -4239,6 +4256,11 @@
 			padding: 1rem;
 			margin: 0.5rem auto;
 			border-radius: 8px;
+		}
+		
+		.summary-content :global(ul),
+		.summary-content :global(ol) {
+			padding-left: 1.5em;
 		}
 	}
 
