@@ -4031,7 +4031,7 @@
 
 	.summary-content :global(h2) {
 		background: linear-gradient(to right, var(--accent-dim), transparent) bottom;
-		background-size: 100% 2px;
+		background-size: 100% 1px;
 		background-repeat: no-repeat;
 	}
 
