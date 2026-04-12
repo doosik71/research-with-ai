@@ -15,6 +15,7 @@ node_modules/
 .opencode/
 git_commit_message.txt
 *.pdf
+/temp/
 temp.txt
 temp.md
 **/*.txt
