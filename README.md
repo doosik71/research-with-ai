@@ -69,49 +69,22 @@ paper_viewer.bat
 - 기본 바인딩 주소는 `127.0.0.1` 이다.
 - 수식 렌더링은 MathJax를 사용한다.
 
----
+## Script Usage
 
-## NEW README
+Added utility scripts can be run with `npm run`:
 
-# sv
+```bash
+# Generate static/docs/manifest.json
+npm run manifest
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+# Generate all missing paper analysis reports
+npm run update-docs
 
-## Creating a project
+# Generate one paper analysis report
+npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_speech_recognition_via_twopass_decoding
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project
-npx sv create my-app
+# Add an arXiv paper entry to a topic
+npm run add-doc -- instance_segmentation http://arxiv.org/abs/2210.12852v3
 ```
 
-To recreate this project with the same configuration:
-
-```sh
-# recreate this project
-pnpm dlx sv@0.12.7 create --template minimal --types ts --add prettier eslint --install pnpm research-with-ai
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+For `update-summary` and `add-doc`, pass script arguments after `--`.

@@ -4,10 +4,11 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, "..");
 
 function generateManifest() {
-  const docsDir = path.join(__dirname, "static", "docs");
-  const manifestPath = path.join(__dirname, "static", "docs", "manifest.json");
+  const docsDir = path.join(projectRoot, "static", "docs");
+  const manifestPath = path.join(projectRoot, "static", "docs", "manifest.json");
 
   if (!fs.existsSync(docsDir)) {
     console.error(`Error: Docs directory not found at ${docsDir}`);

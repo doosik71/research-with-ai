@@ -8,146 +8,9 @@ import { spawn } from "node:child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, "..");
 
-function ensureFileFetch() {
-	const originalFetch = globalThis.fetch;
-	if (!originalFetch) {
-		throw new Error("Global fetch is not available in this Node.js runtime.");
-	}
-	globalThis.fetch = async (input, init) => {
-		const url = typeof input === "string" ? input : input?.url;
-		if (url && url.startsWith("file://")) {
-			const filePath = fileURLToPath(url);
-			const data = await fs.readFile(filePath);
-			return new Response(data);
-		}
-		return originalFetch(input, init);
-	};
-}
-
-function usage() {
-	console.error("Usage: node update.js <folder/summary>");
-	process.exit(1);
-}
-
-function normalizeArg(arg) {
-	return arg.split(/[\\/]+/).filter(Boolean);
-}
-
-async function readJsonl(filePath) {
-	const raw = await fs.readFile(filePath, "utf8");
-	const lines = raw
-		.split(/\r?\n/)
-		.map((line) => line.trim())
-		.filter(Boolean);
-	const records = [];
-	for (const line of lines) {
-		try {
-			records.push(JSON.parse(line));
-		} catch {
-			throw new Error(`Invalid JSONL line in ${filePath}`);
-		}
-	}
-	return records;
-}
-
-async function extractPdfText(pdfUrl) {
-	ensureFileFetch();
-	const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
-	const res = await fetch(pdfUrl);
-	if (!res.ok) {
-		throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
-	}
-	const standardFontDir = path.join(
-		__dirname,
-		"node_modules",
-		"pdfjs-dist",
-		"standard_fonts",
-	);
-	const standardFontDataUrl = standardFontDir.replace(/\\/g, "/") + "/";
-	const arrayBuffer = await res.arrayBuffer();
-	const loadingTask = getDocument({
-		data: new Uint8Array(arrayBuffer),
-		standardFontDataUrl,
-	});
-	let pdf;
-	try {
-		pdf = await loadingTask.promise;
-	} catch (err) {
-		throw new Error(`Invalid PDF: ${err instanceof Error ? err.message : err}`);
-	}
-	if (!pdf?.numPages || pdf.numPages < 1) {
-		throw new Error("Invalid PDF: no pages found.");
-	}
-	let text = "";
-	for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
-		const page = await pdf.getPage(pageNum);
-		const content = await page.getTextContent();
-		const pageText = content.items.map((item) => item.str).join(" ");
-		text += `${pageText}\n\n`;
-	}
-	return text.trim();
-}
-
-async function runCodex(promptPath, outputPath) {
-	return new Promise((resolve, reject) => {
-		const command = "codex";
-		const args = ["exec", "-", "--model", "gpt-5.4", "--output-last-message", outputPath];
-		const child = spawn(command, args, {
-			stdio: ["pipe", "inherit", "inherit"],
-			shell: true,
-		});
-		child.on("error", (err) => {
-			reject(new Error(`Failed to start codex: ${err.message}`));
-		});
-		child.on("close", (code) => {
-			if (code === 0) {
-				resolve();
-			} else {
-				reject(new Error(`codex exited with code ${code}`));
-			}
-		});
-
-		createReadStream(promptPath).pipe(child.stdin);
-	});
-}
-
-async function main() {
-	const arg = process.argv[2];
-	if (!arg) usage();
-
-	const parts = normalizeArg(arg);
-	if (parts.length < 2) {
-		console.error("Argument must be in the form <folder/summary>");
-		process.exit(1);
-	}
-
-	let summary = parts.pop();
-	if (!summary.endsWith(".md")) {
-		summary = `${summary}.md`;
-	}
-	const folderRel = parts.join("/");
-	const docsDir = path.join(__dirname, "static", "docs", folderRel);
-	const jsonlPath = path.join(docsDir, "paper_list.jsonl");
-
-	const records = await readJsonl(jsonlPath);
-	const record = records.find((r) => r?.summary === summary);
-	if (!record) {
-		throw new Error(`No record found with summary: ${summary}`);
-	}
-	if (!record.url) {
-		throw new Error(`Record missing url for summary: ${summary}`);
-	}
-
-	const pdfUrl = String(record.url).replace("/abs/", "/pdf/");
-	const extractedText = await extractPdfText(pdfUrl);
-	if (extractedText.length < 1000) {
-		throw new Error(
-			`Invalid extracted text: length ${extractedText.length} is below 1000.`,
-		);
-	}
-
-	const reportPrompt = `# 논문 상세 분석 보고서 작성 프롬프트
+const reportPrompt = `# 논문 상세 분석 보고서 작성 프롬프트
 
 ## 역할 정의
 
@@ -261,8 +124,178 @@ async function main() {
 
 ---`;
 
+
+function ensureFileFetch() {
+	const originalFetch = globalThis.fetch;
+	if (!originalFetch) {
+		throw new Error("Global fetch is not available in this Node.js runtime.");
+	}
+	globalThis.fetch = async (input, init) => {
+		const url = typeof input === "string" ? input : input?.url;
+		if (url && url.startsWith("file://")) {
+			const filePath = fileURLToPath(url);
+			const data = await fs.readFile(filePath);
+			return new Response(data);
+		}
+		return originalFetch(input, init);
+	};
+}
+
+function usage() {
+	console.error("Usage: node update.js <folder/summary>");
+	process.exit(1);
+}
+
+function normalizeArg(arg) {
+	return arg.split(/[\\/]+/).filter(Boolean);
+}
+
+async function ensureCodexAvailable() {
+	return new Promise((resolve, reject) => {
+		const child = spawn("codex", ["--version"], {
+			stdio: "ignore",
+			shell: true,
+		});
+
+		child.on("error", () => {
+			reject(
+				new Error(
+					"codex command is not available. Install it with: npm i -g @openai/codex",
+				),
+			);
+		});
+
+		child.on("close", (code) => {
+			if (code === 0) {
+				resolve();
+				return;
+			}
+
+			reject(
+				new Error(
+					"codex command is not available. Install it with: npm i -g @openai/codex",
+				),
+			);
+		});
+	});
+}
+
+async function readJsonl(filePath) {
+	const raw = await fs.readFile(filePath, "utf8");
+	const records = [];
+	for (const rawLine of raw.split(/\r?\n/)) {
+		const line = rawLine.trim();
+		if (!line || line.startsWith("//")) {
+			continue;
+		}
+		try {
+			records.push(JSON.parse(line));
+		} catch {
+			throw new Error(`Invalid JSONL line in ${filePath}`);
+		}
+	}
+	return records;
+}
+
+async function extractPdfText(pdfUrl) {
+	ensureFileFetch();
+	const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
+	const res = await fetch(pdfUrl);
+	if (!res.ok) {
+		throw new Error(`Failed to fetch PDF: ${res.status} ${res.statusText}`);
+	}
+	const standardFontDir = path.join(
+		projectRoot,
+		"node_modules",
+		"pdfjs-dist",
+		"standard_fonts",
+	);
+	const standardFontDataUrl = standardFontDir.replace(/\\/g, "/") + "/";
+	const arrayBuffer = await res.arrayBuffer();
+	const loadingTask = getDocument({
+		data: new Uint8Array(arrayBuffer),
+		standardFontDataUrl,
+	});
+	let pdf;
+	try {
+		pdf = await loadingTask.promise;
+	} catch (err) {
+		throw new Error(`Invalid PDF: ${err instanceof Error ? err.message : err}`);
+	}
+	if (!pdf?.numPages || pdf.numPages < 1) {
+		throw new Error("Invalid PDF: no pages found.");
+	}
+	let text = "";
+	for (let pageNum = 1; pageNum <= pdf.numPages; pageNum += 1) {
+		const page = await pdf.getPage(pageNum);
+		const content = await page.getTextContent();
+		const pageText = content.items.map((item) => item.str).join(" ");
+		text += `${pageText}\n\n`;
+	}
+	return text.trim();
+}
+
+async function runCodex(promptPath, outputPath) {
+	return new Promise((resolve, reject) => {
+		const command = "codex";
+		const args = ["exec", "-", "--model", "gpt-5.4", "--output-last-message", outputPath];
+		const child = spawn(command, args, {
+			stdio: ["pipe", "inherit", "inherit"],
+			shell: true,
+		});
+		child.on("error", (err) => {
+			reject(new Error(`Failed to start codex: ${err.message}`));
+		});
+		child.on("close", (code) => {
+			if (code === 0) {
+				resolve();
+			} else {
+				reject(new Error(`codex exited with code ${code}`));
+			}
+		});
+
+		createReadStream(promptPath).pipe(child.stdin);
+	});
+}
+
+async function main() {
+	const arg = process.argv[2];
+	if (!arg) usage();
+	await ensureCodexAvailable();
+
+	const parts = normalizeArg(arg);
+	if (parts.length < 2) {
+		console.error("Argument must be in the form <folder/summary>");
+		process.exit(1);
+	}
+
+	let summary = parts.pop();
+	if (!summary.endsWith(".md")) {
+		summary = `${summary}.md`;
+	}
+	const folderRel = parts.join("/");
+	const docsDir = path.join(projectRoot, "static", "docs", folderRel);
+	const jsonlPath = path.join(docsDir, "paper_list.jsonl");
+
+	const records = await readJsonl(jsonlPath);
+	const record = records.find((r) => r?.summary === summary);
+	if (!record) {
+		throw new Error(`No record found with summary: ${summary}`);
+	}
+	if (!record.url) {
+		throw new Error(`Record missing url for summary: ${summary}`);
+	}
+
+	const pdfUrl = String(record.url).replace("/abs/", "/pdf/");
+	const extractedText = await extractPdfText(pdfUrl);
+	if (extractedText.length < 1000) {
+		throw new Error(
+			`Invalid extracted text: length ${extractedText.length} is below 1000.`,
+		);
+	}
+
 	const finalText = `${reportPrompt.trim()}\n\n${extractedText}\n`;
-	const tempDir = path.join(__dirname, "temp");
+	const tempDir = path.join(projectRoot, "temp");
 	await fs.mkdir(tempDir, { recursive: true });
 	const outPath = path.join(tempDir, "prompt.txt");
 	await fs.writeFile(outPath, finalText, "utf8");
@@ -280,8 +313,8 @@ async function main() {
 	}
 
 	const summaryPath = path.join(docsDir, summary);
-	await fs.writeFile(summaryPath, summaryText, "utf8");
-	console.log(`Wrote ${summaryPath}`);
+	await fs.writeFile(summaryPath, summaryText + "\n", "utf8");
+	// console.log(`Wrote ${summaryPath}`);
 }
 
 main().catch((err) => {
