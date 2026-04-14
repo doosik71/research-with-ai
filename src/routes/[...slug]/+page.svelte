@@ -239,7 +239,6 @@
 	let routeSegments = $derived((routeSlug ? routeSlug.split('/').filter(Boolean) : []) as string[]);
 	let routeTopicId = $derived(routeSegments[0]);
 	let routePaperSlug = $derived(routeSegments[1]);
-	let routeHasExtra = $derived(routeSegments.length > 2);
 
 	let appliedRouteKey = $state('');
 	let routeApplySeq = 0;
@@ -1404,10 +1403,10 @@
 	}
 
 	$effect(() => {
-		renderHtml;
-		summaryHighlights;
-		renderedSummaryDocKey;
-		renderType;
+		void renderHtml;
+		void summaryHighlights;
+		void renderedSummaryDocKey;
+		void renderType;
 		rebuildRenderedSummaryHtml();
 	});
 
@@ -1724,12 +1723,6 @@
 	});
 
 	$effect(() => {
-		// Disallow more than /{topic}/{paper}.
-		if (routeHasExtra) {
-			void goto(resolve('/'), { replaceState: true, noScroll: true, keepFocus: true });
-			return;
-		}
-
 		const topicId = routeTopicId;
 		const paperSlug = routePaperSlug;
 		const nextKey = `${topicId ?? ''}/${paperSlug ?? ''}`;
@@ -2109,7 +2102,7 @@
 							return null;
 						}
 					})
-					.filter((p): p is Paper => Boolean(p)); // null???�거??
+					.filter((p): p is Paper => Boolean(p));
 			}
 		} catch (e) {
 			console.error('Error fetching paper list:', e);
@@ -2133,7 +2126,7 @@
 
 		const filename = type === 'summary' ? paper.summary : paper.slide;
 		let nextRenderType: 'summary' | 'slide' | 'none' = type;
-		let nextRenderHtml = renderHtml;
+		let nextRenderHtml = '';
 		let nextRenderedSummaryDocKey: string | null =
 			type === 'summary' ? buildPaperTagKey(selectedTopic.id, paper) : null;
 		if (!filename) {
@@ -2154,6 +2147,7 @@
 
 		try {
 			const res = await fetch(`/docs/${selectedTopic.id}/${filename}`);
+
 			if (res.ok) {
 				const text = await res.text();
 				const processed = preProcessMath(text);
@@ -2799,6 +2793,7 @@
 
 					{#if selectedPaper}
 						<h2>{selectedPaper?.title}</h2>
+						<div>{selectedPaper?.title.toLowerCase().replaceAll(' ', '_')}</div>
 						<div class="clamp-5">
 							{selectedPaper?.author}
 							{#if selectedPaper?.year}
@@ -3541,24 +3536,30 @@
 		width: 0.7rem;
 		height: 0.7rem;
 		border-radius: 999px;
+		border-style: solid;
+		border-width: 1px;
 		flex: 0 0 auto;
 		box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
 	}
 
 	.paper-tag-list .highlight-dot.color-yellow {
-		background: var(--highlight-dot-yellow);
+		border-color: var(--highlight-dot-yellow);
+		background: var(--highlight-yellow);
 	}
 
 	.paper-tag-list .highlight-dot.color-pink {
-		background: var(--highlight-dot-pink);
+		border-color: var(--highlight-dot-yellow);
+		background: var(--highlight-pink);
 	}
 
 	.paper-tag-list .highlight-dot.color-blue {
-		background: var(--highlight-dot-blue);
+		background: var(--highlight-dot-pink);
+		background: var(--highlight-blue);
 	}
 
 	.paper-tag-list .highlight-dot.color-green {
-		background: var(--highlight-dot-green);
+		background: var(--highlight-dot-pink);
+		background: var(--highlight-green);
 	}
 
 	.summary-tag-panel {

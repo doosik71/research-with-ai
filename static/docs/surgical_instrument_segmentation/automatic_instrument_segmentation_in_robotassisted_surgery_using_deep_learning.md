@@ -1,76 +1,141 @@
 # Automatic Instrument Segmentation in Robot-Assisted Surgery Using Deep Learning
 
-Alexey A. Shvets, Alexander Rakhlin, Alexandr A. Kalinin, and Vladimir I. Iglovikov
+- **저자**: Alexey A. Shvets, Alexander Rakhlin, Alexandr A. Kalinin, Vladimir I. Iglovikov
+- **발표연도**: 2018
+- **arXiv**: https://arxiv.org/abs/1803.01207
 
-## 🧩 Problem to Solve
+## 1. 논문 개요
 
-로봇 보조 수술에서 수술 기구의 정확한 의미론적 분할(semantic segmentation)은 기구 추적 및 자세 추정(pose estimation)에 필수적인 중요한 문제입니다. 수술 장면은 그림자, 거울 반사, 혈액 및 카메라 렌즈 김서림과 같은 시각적 가림, 그리고 배경 조직의 복잡하고 역동적인 특성으로 인해 기구를 정확하게 픽셀 단위로 분할하기 어렵습니다. 신뢰할 수 있는 기구 추적 시스템을 위한 입력 데이터를 제공하기 위해 이러한 복잡한 환경에서 수술 기구를 정확하고 견고하게 분할하는 컴퓨터 비전 방법이 필요합니다.
+이 논문은 robot-assisted surgery 환경에서 수술 도구를 영상으로부터 자동으로 분할하는 문제를 다룬다. 더 구체적으로는 수술 영상의 각 픽셀에 대해 그것이 instrument인지 background인지 구분하는 binary segmentation과, instrument의 각 부분이나 서로 다른 도구 종류를 구분하는 multi-class segmentation을 동시에 다룬다.
 
-## ✨ Key Contributions
+연구 문제의 핵심은 수술 장면이 매우 복잡하다는 점이다. 실제 수술 영상에는 shadow, specular reflection, blood에 의한 occlusion, camera lens fogging, 그리고 조직 배경의 복잡한 질감 변화가 존재한다. 이런 환경에서는 단순한 색상 기반 또는 texture 기반 기법만으로는 instrument의 정확한 위치를 안정적으로 찾기 어렵다. 그러나 instrument segmentation은 이후 단계인 tracking, pose estimation, intra-operative guidance의 입력으로 매우 중요하므로, 정밀한 pixel-wise segmentation이 필수적이다.
 
-* **최첨단 성능 달성:** 이 논문은 이진(binary) 및 다중 클래스(multi-class) 로봇 기구 분할 문제 모두에서 최첨단(state-of-the-art) 결과를 달성하는 심층 학습 기반 접근 방식을 제시합니다.
-* **새로운 딥러닝 아키텍처 활용:** U-Net 모델을 기반으로 TernausNet(VGG11/16 인코더 사용) 및 수정된 LinkNet(ResNet18 인코더 사용)을 포함한 여러 새로운 심층 신경망 아키텍처를 도입하여 성능을 향상시켰습니다.
-* **MICCAI 2017 챌린지 우수 성과:** MICCAI 2017 Endoscopic Vision SubChallenge: Robotic Instrument Segmentation에서 상위권에 랭크되었습니다.
-* **오픈 소스 공개:** 개발된 솔루션의 소스 코드를 공개하여 연구 커뮤니티에 기여했습니다.
+논문은 이 문제를 해결하기 위해 deep learning 기반 segmentation 모델들을 적용하고 비교한다. 특히 U-Net 계열 구조를 중심으로, encoder를 ImageNet pretrained backbone으로 교체한 TernausNet과 LinkNet 변형을 사용해 성능을 개선하고, 당시 기준 state-of-the-art 수준의 결과를 보고한다.
 
-## 📎 Related Works
+## 2. 핵심 아이디어
 
-* **고전적인 기계 학습 방법:** 이전에는 색상 및/또는 텍스처 특징을 사용하여 기구-배경 분할을 이진 또는 인스턴스 분할 문제로 다루는 고전적인 기계 학습 알고리즘이 적용되었습니다.
-* **의미론적 분할 접근 방식:** 이후 기구 또는 기구의 다른 부분을 구별하는 것을 목표로 하는 의미론적 분할 방법이 연구되었습니다.
-* **심층 학습의 부상:** 최근 심층 학습 기반 접근 방식은 생체 의학 분야의 여러 문제(예: 유방암 조직학 이미지 분석, 뼈 질환 예측 및 연령 평가)에서 기존 기계 학습 방법보다 뛰어난 성능을 보였습니다.
-* **기존 딥러닝 기반 기구 분할:** 이전에 심층 학습 기반 기법이 로봇 기구의 이진 분할에서 경쟁력 있는 성능을, 다중 클래스 분할에서 유망한 결과를 보여주었습니다.
-* **U-Net 모델:** 본 논문의 접근 방식은 의료 영상 분할에서 성공적으로 사용된 U-Net 모델의 변형을 기반으로 합니다.
+이 논문의 중심 아이디어는 의료 영상 segmentation에서 강력한 encoder-decoder 구조를 robotic surgery instrument segmentation에 맞게 적용하고, 특히 pretrained encoder를 활용해 제한된 데이터셋에서도 더 좋은 성능을 얻는 것이다.
 
-## 🛠️ Methodology
+기본 직관은 다음과 같다. segmentation 문제에서는 한편으로는 장면의 큰 문맥 정보를 이해해야 하고, 다른 한편으로는 도구 경계를 정밀하게 복원해야 한다. U-Net 계열 구조는 contracting path에서 문맥 정보를 추출하고, expanding path에서 해상도를 복원하며, skip connection으로 encoder의 고해상도 특징을 decoder에 전달한다. 이 구조는 localization과 semantic understanding을 동시에 달성하는 데 적합하다.
 
-### 1. 데이터셋
+기존 접근과의 차별점은 두 가지로 볼 수 있다. 첫째, 단순한 handcrafted feature 기반 방법이 아니라 end-to-end deep network를 사용한다. 둘째, 원래의 U-Net뿐 아니라 pretrained VGG11, VGG16, ResNet34를 encoder로 사용하는 구조를 실험해, 데이터가 적은 상황에서 pretrained representation이 실제로 성능 개선에 기여함을 보여준다. 논문은 특히 TernausNet-16이 binary segmentation과 parts segmentation에서 가장 좋은 성능을 낸다고 보고한다.
 
-* **수술 영상:** da Vinci Xi 수술 시스템에서 획득한 8개의 225프레임 시퀀스로 구성된 고해상도 스테레오 카메라 이미지(돼지 시술).
-* **해상도 및 채널:** RGB 형식의 1920x1080 픽셀 해상도에서 1280x1024 픽셀 이미지로 잘라내어 사용했습니다.
-* **그라운드 트루스:** 왼쪽 채널 이미지에 대해서만 수동으로 라벨링된 그라운드 트루스가 제공되었습니다.
-* **다중 클래스 라벨:** 기구의 관절 부분(강체 샤프트, 관절 손목, 집게) 및 기구 유형(왼쪽/오른쪽 프로그라스프 겸자, 단극 곡선 가위, 큰 바늘 드라이버 등)에 대한 라벨이 포함됩니다.
+## 3. 상세 방법 설명
 
-### 2. 네트워크 아키텍처
+전체 파이프라인은 비교적 단순한 end-to-end semantic segmentation 시스템이다. 입력은 수술 비디오 프레임이고, 출력은 입력과 동일한 해상도의 segmentation mask이다. 각 픽셀에 대해 background 또는 특정 class의 확률을 예측한 뒤, 이를 thresholding 또는 class assignment로 최종 mask로 변환한다.
 
-* **U-Net:** 콘텍스트를 캡처하는 수축 경로(contracting path)와 정확한 위치를 가능하게 하는 대칭적인 확장 경로(expanding path)로 구성된 인코더-디코더 구조. 스킵 연결(skip-connection)을 사용하여 고해상도 특징을 전달합니다.
-* **TernausNet:** ImageNet으로 사전 학습된 VGG11 또는 VGG16 네트워크를 인코더로 사용하는 U-Net과 유사한 아키텍처.
-* **LinkNet:** 사전 학습된 ResNet18 아키텍처를 기반으로 하는 인코더를 사용합니다. 인코더에서 디코더 블록으로 정보가 추가되는 방식으로 스킵 연결이 이루어집니다. LinkNet은 경량 인코더 덕분에 추론 시간이 빠릅니다.
+### 데이터셋과 라벨 구조
 
-### 3. 훈련
+학습 데이터는 da Vinci Xi surgical system으로 획득한 고해상도 stereo camera 영상으로 구성된다. 논문에 따르면 training set은 `8 x 225-frame sequences`이며, 각 프레임은 RGB 형식의 `1920 x 1080` 해상도를 가진다. 원본 카메라 이미지를 얻기 위해 `(320, 28)` 위치부터 crop하여 `1280 x 1024` 이미지를 추출한다. ground truth label은 left frame에만 존재하므로, 실제 학습에는 left channel만 사용한다.
 
-* **평가 지표:** 자카드 지수(Jaccard index, IoU - Intersection Over Union)를 사용했습니다.
-    $$
-    J(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}
-    $$
-    픽셀 단위로 적용 시:
-    $$
-    J = \frac{1}{n} \sum_{i=1}^{n} \left( \frac{y_i \hat{y}_i}{y_i + \hat{y}_i - y_i \hat{y}_i} \right)
-    $$
-    여기서 $y_i$는 실제 이진 라벨, $\hat{y_i}$는 예측 확률입니다.
-* **손실 함수:** 픽셀 분류 문제로 간주하여, 교차 엔트로피(H)와 자카드 지수(J)를 결합한 일반화된 손실 함수를 사용했습니다.
-    $$
-    L = H - \log J
-    $$
-    이진 분할에는 이진 교차 엔트로피를, 다중 클래스 분할에는 범주형 교차 엔트로피를 사용했습니다.
-* **출력 및 임계값:** 모델의 출력은 각 픽셀이 관심 영역 또는 특정 클래스에 속할 확률을 나타내는 이미지입니다. 이진 분할의 경우 0.3의 임계값을 사용하여 픽셀 확률을 이진화했습니다.
+라벨은 두 가지 방식으로 사용된다.
 
-## 📊 Results
+첫째, binary segmentation에서는 모든 instrument pixel을 하나의 foreground class로 보고 background와 구분한다.
 
-* **이진 분할 (Instrument vs. Background):**
-  * TernausNet-16이 IoU=0.836, Dice=0.901로 가장 우수한 성능을 보였으며, 이는 당시 문헌에서 보고된 최상의 결과였습니다.
-* **다중 클래스 분할 (기구 부위별 - rigid shaft, articulated wrist, claspers):**
-  * TernausNet-16이 IoU=0.655, Dice=0.760로 가장 우수한 성능을 보였습니다.
-* **다중 클래스 분할 (기구 유형별):**
-  * TernausNet-11이 IoU=0.346, Dice=0.459로 가장 우수했습니다. 이 결과는 데이터셋 크기가 상대적으로 작고 일부 클래스가 훈련 데이터셋에 적게 나타난다는 점으로 인해 다른 문제에 비해 성능이 낮았습니다.
-* **추론 시간:**
-  * LinkNet-18은 경량 인코더 덕분에 가장 빨랐으며, 1280x1024 픽셀 이미지에 대해 약 7ms의 추론 시간을 기록하여 TernausNet보다 두 배 이상 빨랐습니다.
+둘째, multi-class segmentation에서는 두 설정이 있다.
+하나는 instrument의 part를 구분하는 설정으로, rigid shaft, articulated wrist, claspers 등의 부분을 분리한다.
+다른 하나는 instrument type을 구분하는 설정으로, left/right prograsp forceps, monopolar curved scissors, large needle driver, miscellaneous 등을 class로 둔다.
 
-## 🧠 Insights & Discussion
+논문에는 part label 값이 `(10, 20, 30, 40, 0)`으로 인코딩된다고 적혀 있는데, 추출 텍스트 품질상 정확히 몇 개의 전경 part class가 최종 실험에 쓰였는지는 약간 흐릿하다. 다만 Figure 설명에서는 `3 classes: rigid shaft, articulated wrist and claspers`라고 명시되어 있어, parts segmentation의 핵심 대상은 이 세 부분으로 이해하는 것이 자연스럽다.
 
-* **실시간 적용 가능성:** 개발된 종단 간(end-to-end) 파이프라인은 전체 이미지 해상도에서 효율적인 분석을 수행하여 실시간 수술 기구 위치 감지 문제에 좋은 기반을 제공할 수 있습니다. 이는 다시 수술 장면 근처에서 기구 추적 및 자세 추정에 활용될 수 있습니다.
-* **데이터셋 크기의 중요성:** 다중 클래스 기구 유형 분할의 경우 낮은 성능이 상대적으로 작은 데이터셋 크기(특히 일부 클래스의 부족한 출현)와 관련이 있음이 밝혀졌습니다. 이는 데이터셋 크기를 늘림으로써 성능을 개선할 수 있음을 시사합니다.
-* **성능과 속도의 균형:** TernausNet-16은 최고의 분할 정확도를 제공했지만, LinkNet-18은 더 빠른 추론 시간으로 실시간 시스템에 더 적합할 수 있음을 보여주어 정확도와 속도 간의 트레이드오프를 고려해야 함을 시사합니다.
+### 네트워크 구조
 
-## 📌 TL;DR
+논문은 네 가지 모델을 비교한다.
 
-이 논문은 로봇 보조 수술에서 수술 기구의 자동 의미론적 분할 문제를 해결하기 위해 심층 학습 기반의 최첨단 접근 방식을 제안합니다. U-Net을 기반으로 VGG 인코더를 사용한 TernausNet과 ResNet 인코더를 사용한 LinkNet을 포함한 다양한 신경망 아키텍처를 탐색했습니다. 이진 및 다중 클래스 분할 모두에서 최첨단 성능을 달성했으며, 특히 TernausNet-16은 높은 정확도를, LinkNet-18은 빠른 추론 속도를 보였습니다. 이 방법은 실시간 수술 기구 추적 및 자세 추정의 견고한 기반을 제공할 잠재력을 가지고 있습니다.
+첫 번째는 기본 U-Net이다. U-Net은 encoder-decoder 구조를 가지며, encoder에서는 convolution과 pooling을 반복해 feature map 해상도를 줄이고 channel 수를 늘린다. decoder에서는 upsampling과 convolution으로 해상도를 복원한다. 그리고 같은 단계의 encoder feature를 skip connection으로 decoder에 연결해 세밀한 경계 정보를 복원한다.
+
+두 번째와 세 번째는 TernausNet-11, TernausNet-16이다. 이는 U-Net-like 구조이지만 encoder로 각각 pretrained VGG11, VGG16을 사용한다. 논문 설명에 따르면 VGG11은 7개의 convolutional layer와 5개의 max-pooling으로 구성되며, 모든 convolution kernel은 `3 x 3`이다. TernausNet-16 역시 유사한 구조를 가지되 더 깊은 encoder를 사용한다. pretrained encoder의 목적은 ImageNet에서 학습된 일반 시각 특징을 활용해, 적은 의료 영상 데이터에서도 더 안정적인 feature extraction을 가능하게 하는 데 있다.
+
+네 번째는 LinkNet-34이다. 이 모델은 encoder로 pretrained ResNet34를 사용한다. 초기 블록은 `7 x 7` convolution과 stride 2, 이후 max-pooling으로 downsampling을 수행한다. 그 뒤에는 residual block들이 이어진다. 논문 설명에 따르면 각 residual block의 첫 convolution은 stride 2로 downsampling을 수행하고, 나머지는 stride 1을 사용한다. decoder는 여러 decoder block으로 구성되고, encoder의 대응 feature를 decoder에 더하는 방식으로 정보를 전달한다. 각 decoder block은 `1 x 1` convolution으로 filter 수를 4배 줄인 뒤, batch normalization과 transposed convolution으로 upsampling한다.
+
+즉, U-Net과 TernausNet은 skip connection을 통한 feature concatenation 중심의 encoder-decoder 계열이고, LinkNet은 residual encoder와 더 가벼운 decoder를 활용해 빠른 추론 속도를 노린 구조라고 이해할 수 있다.
+
+### 학습 목표와 손실 함수
+
+평가 지표로는 Jaccard index, 즉 IoU를 사용한다. 논문은 두 집합 $A$와 $B$에 대해 Jaccard index를 다음처럼 정의한다.
+
+$$
+J(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}
+$$
+
+이를 픽셀 단위의 예측 문제로 확장해, 정답 라벨 $y_i$와 예측 확률 $\hat{y}_i$를 사용한 형태로 표현한다.
+
+$$
+J = \frac{1}{n} \sum_{i=1}^{n} \left( \frac{y_i \hat{y}_i}{y_i + \hat{y}_i - y_i \hat{y}_i} \right)
+$$
+
+이 식은 segmentation mask와 prediction이 얼마나 겹치는지를 직접 반영한다. 다만 실제로는 segmentation을 픽셀 단위 classification 문제로도 볼 수 있으므로, 논문은 classification loss $H$도 함께 사용한다. binary segmentation에서는 binary cross entropy, multi-class segmentation에서는 categorical cross entropy를 사용한다.
+
+최종 loss는 다음과 같다.
+
+$$
+L = H - \log J
+$$
+
+이 손실 함수의 의미는 직관적이다. $H$는 각 픽셀의 class probability를 정확하게 맞추도록 만들고, $-\log J$는 전체 mask 차원에서 prediction과 ground truth의 overlap이 커지도록 유도한다. 즉, 픽셀 단위 정확도와 mask 수준의 형태적 일치를 동시에 최적화하려는 설계이다.
+
+### 추론 절차
+
+모델 출력은 입력 이미지와 같은 크기의 확률 맵이다. binary segmentation에서는 validation set에서 선택한 threshold `0.3`을 적용한다. 확률이 0.3 미만이면 0, 0.3 이상이면 255로 변환해 최종 binary mask를 만든다.
+
+multi-class segmentation에서는 비슷한 절차를 사용하되, 각 픽셀에 대해 class별 예측을 바탕으로 해당 정수 label을 할당한다. 논문은 구체적인 multi-class post-processing 세부 규칙까지는 길게 설명하지 않으며, 별도의 복잡한 후처리보다는 네트워크 출력 자체를 주로 사용한 것으로 보인다.
+
+## 4. 실험 및 결과
+
+### 실험 설정
+
+논문은 세 가지 task를 평가한다.
+
+첫째, binary segmentation이다. instrument 전체를 foreground로 간주한다.
+
+둘째, parts segmentation이다. instrument의 부분 구조를 여러 class로 나눈다.
+
+셋째, instrument segmentation이다. 서로 다른 종류의 instrument를 여러 class로 분류한다. 표와 본문을 보면 이 경우 `7 classes` 기준으로 평가한 것으로 보인다.
+
+평가 지표는 IoU와 Dice coefficient이며, 추가로 inference time도 측정했다. 추론 속도는 `1280 x 1024` 해상도 이미지 한 장 기준으로, `NVIDIA GTX 1080 Ti` GPU에서 측정했다고 적혀 있다.
+
+### 정량 결과
+
+표에 따르면 binary segmentation에서 가장 좋은 모델은 TernausNet-16이다. 성능은 $IoU = 0.836$, $Dice = 0.901$이다. 이는 논문 시점 기준으로 최고 수준의 결과라고 주장한다.
+
+parts segmentation에서도 TernausNet-16이 가장 좋다. 결과는 $IoU = 0.655$, $Dice = 0.760$이다. 이는 instrument 전체를 foreground로만 구분하는 것보다 훨씬 어려운 문제인데도 상당한 성능을 보인다.
+
+반면 instrument type segmentation에서는 성능이 눈에 띄게 낮아진다. 가장 좋은 모델은 TernausNet-11이며, $IoU = 0.346$, $Dice = 0.459$를 기록한다. 여기서는 더 깊은 TernausNet-16보다 TernausNet-11이 약간 더 좋았다.
+
+이 차이는 논문에서도 명시적으로 설명한다. instrument class 수가 많고, 일부 class는 training set에서 등장 빈도가 매우 적기 때문에 데이터 부족의 영향을 크게 받았다는 것이다. 즉, model capacity만 늘린다고 해결되지 않고 class imbalance와 sample scarcity가 중요한 병목이라는 해석이다.
+
+### 속도 비교
+
+속도 측면에서는 LinkNet-34가 가장 빠르다. 논문은 binary segmentation에서 이 모델이 약 `88 ms` 정도가 걸려, TernausNet보다 두 배 이상 빠르다고 말한다. 정확도는 TernausNet 계열보다 다소 낮지만, 실시간성이나 경량성 관점에서는 장점이 있다.
+
+즉, 성능만 보면 TernausNet-16이 가장 강력하고, 속도까지 고려하면 LinkNet-34가 유리한 선택지다. 이 비교는 실제 수술 보조 시스템처럼 latency가 중요한 응용에서 의미가 있다.
+
+### 결과의 해석
+
+이 실험은 pretrained encoder의 효과를 상당히 설득력 있게 보여준다. 단순 U-Net 대비 TernausNet 계열은 binary와 parts segmentation에서 뚜렷한 성능 향상을 보인다. 특히 의료 영상처럼 데이터가 적고 annotation 비용이 큰 환경에서, 자연영상으로 pretraining된 backbone이 실제로 유용하다는 점을 실증한다.
+
+동시에 논문은 class granularity가 높아질수록 문제 난도가 급격히 상승한다는 점도 보여준다. instrument 전체를 foreground로 보는 binary task는 비교적 성공적으로 해결되지만, instrument type까지 세분화하면 데이터 부족으로 인해 성능이 크게 떨어진다. 이는 이후 연구에서 더 큰 데이터셋, class balancing, stronger augmentation, temporal modeling이 필요함을 시사한다.
+
+## 5. 강점, 한계
+
+이 논문의 강점은 먼저 문제 설정이 매우 실용적이라는 점이다. robotic surgery에서 instrument segmentation은 tracking과 pose estimation의 기반이 되는 핵심 문제이며, 임상적 활용 가능성이 분명하다. 단순히 benchmark 성능만 높이려는 작업이 아니라, 실제 시스템의 perception module과 직접 연결되는 문제를 다룬다.
+
+둘째, 방법이 과도하게 복잡하지 않다. U-Net, TernausNet, LinkNet이라는 비교적 표준적이고 재현 가능한 구조를 사용하면서도, pretrained encoder와 적절한 loss 설계로 강한 성능을 끌어냈다. 특히 $L = H - \log J$ 형태의 손실은 segmentation에서 픽셀 분류 정확도와 overlap quality를 동시에 고려하려는 실용적 선택이다.
+
+셋째, binary, parts, instrument type segmentation을 함께 평가해 문제 난이도별 특성을 비교한 점이 좋다. 이를 통해 어떤 설정에서는 성능이 충분히 높고, 어떤 설정에서는 데이터 부족이 병목인지가 분명하게 드러난다. 또한 속도 비교까지 포함해 accuracy-speed tradeoff를 제시한 점도 응용 측면에서 의미가 있다.
+
+반면 한계도 분명하다. 가장 큰 한계는 데이터셋 규모가 작다는 점이다. 논문 자체도 이를 인정한다. 특히 instrument type segmentation에서는 드물게 등장하는 class가 있어 학습이 어렵다. 따라서 보고된 성능은 모델 자체의 한계라기보다 데이터 부족의 영향을 강하게 받은 결과일 수 있다.
+
+또 다른 한계는 temporal information을 사용하지 않는다는 점이다. 입력은 비디오이지만, 본 논문 모델은 프레임 단위 image segmentation으로 보인다. 수술 영상은 연속적인 motion과 temporal consistency가 매우 중요하므로, 시계열 정보를 활용하면 occlusion이나 blur 상황에서 더 강건해질 가능성이 있다. 그러나 논문은 이러한 temporal modeling을 다루지 않는다.
+
+또한 실험은 challenge dataset 중심으로 구성되어 있어 일반화 성능을 넓게 검증했다고 보기는 어렵다. 예를 들어 다른 수술 종류, 다른 병원, 다른 조명 조건, 다른 기기 세팅에서의 domain shift 문제는 여기서 다뤄지지 않는다.
+
+비판적으로 보면, 논문의 핵심 기여는 완전히 새로운 architecture 제안이라기보다 기존 segmentation architecture를 surgical instrument 문제에 효과적으로 적용하고 비교 평가한 데 있다. 따라서 방법론적 novelty는 상대적으로 제한적일 수 있다. 그러나 응용 문제에서의 강한 empirical contribution과 실용성은 충분히 가치가 있다.
+
+## 6. 결론
+
+이 논문은 robotic surgery 영상에서 surgical instrument를 자동 분할하기 위해 U-Net 계열의 deep learning 모델들을 적용하고, 특히 pretrained encoder를 사용하는 TernausNet과 LinkNet이 강력한 성능을 낼 수 있음을 보여준다. binary segmentation에서는 TernausNet-16이 매우 높은 성능을 기록했고, instrument parts segmentation에서도 가장 우수한 결과를 냈다. 반면 instrument type segmentation은 데이터 부족으로 인해 여전히 어려운 문제임을 확인했다.
+
+핵심 기여는 세 가지로 요약할 수 있다. 첫째, robotic instrument segmentation에 대한 end-to-end deep learning 파이프라인을 제시했다. 둘째, pretrained encoder 기반 구조가 제한된 의료 영상 데이터에서도 효과적임을 보였다. 셋째, 정확도뿐 아니라 추론 속도까지 비교해 실제 시스템 적용 관점의 통찰을 제공했다.
+
+이 연구는 실제 수술 보조 시스템에서 instrument detection, tracking, pose estimation으로 이어지는 비전 모듈의 기반 기술로 중요할 가능성이 크다. 향후에는 더 큰 데이터셋, class imbalance 완화, temporal modeling, domain generalization 같은 방향으로 발전할 수 있다. 즉, 이 논문은 robotic surgery perception에서 실용적인 segmentation 기준선을 제시한 초기이자 중요한 작업으로 볼 수 있다.
