@@ -80,6 +80,9 @@ npm run manifest
 # Generate all missing paper analysis reports
 npm run update-docs
 
+# Initialize missing summary file names interactively for a topic
+npm run init-summary -- semantic_segmentation
+
 # Generate one paper analysis report
 npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_speech_recognition_via_twopass_decoding
 
@@ -87,4 +90,6 @@ npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_spee
 npm run add-doc -- instance_segmentation http://arxiv.org/abs/2210.12852v3
 ```
 
-For `update-summary` and `add-doc`, pass script arguments after `--`.
+`init-summary` reads titles from standard input, updates `static/docs/<topic_id>/paper_list.jsonl`, and exits when you enter `/quit` or `/exit`.
+
+For `init-summary`, `update-summary`, and `add-doc`, pass script arguments after `--`.

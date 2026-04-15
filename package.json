@@ -9,6 +9,7 @@
 		"build": "vite build",
 		"add-doc": "node scripts/add-doc.js",
 		"manifest": "node scripts/generate-manifest.js",
+		"init-summary": "node scripts/init-summary.js",
 		"update-docs": "node scripts/update-docs.js",
 		"update-summary": "node scripts/update-summary.js",
 		"preview": "vite preview",

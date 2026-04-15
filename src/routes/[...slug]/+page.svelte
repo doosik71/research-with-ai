@@ -2793,7 +2793,7 @@
 
 					{#if selectedPaper}
 						<h2>{selectedPaper?.title}</h2>
-						<div>{selectedPaper?.title.toLowerCase().replaceAll(' ', '_')}</div>
+						<div>{selectedPaper?.title.toLowerCase().replaceAll(/[^a-z0-9]+/g, '_').replaceAll(/_+/g, '_').replaceAll(/^_|_$/g, '')}</div>
 						<div class="clamp-5">
 							{selectedPaper?.author}
 							{#if selectedPaper?.year}
