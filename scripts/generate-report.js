@@ -1,7 +1,29 @@
+/// <reference types="node" />
+
 import fs from "node:fs/promises";
 import path from "node:path";
+import process from "node:process";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+
+/**
+ * @typedef {{ title: string, year: number, summary: string }} PaperRecord
+ * @typedef {{ title?: string }} TopicMetadata
+ * @typedef {{ title?: unknown, year?: unknown, summary?: unknown } | null | undefined} PaperRecordCandidate
+ * @typedef {"report-01" | "report-04" | "report-07"} PerPaperStageLabel
+ * @typedef {{
+ *   report01: string,
+ *   report02: string,
+ *   report03: string,
+ *   report04: string,
+ *   report05: string,
+ *   report06: string,
+ *   report07: string,
+ *   report08: string,
+ *   report09: string,
+ *   report10: string,
+ * }} ReportDirs
+ */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +35,9 @@ function usage() {
 	process.exit(1);
 }
 
+/**
+ * @param {string} targetPath
+ */
 async function pathExists(targetPath) {
 	try {
 		await fs.access(targetPath);
@@ -22,16 +47,26 @@ async function pathExists(targetPath) {
 	}
 }
 
+/**
+ * @param {string} targetPath
+ */
 async function ensureDir(targetPath) {
 	await fs.mkdir(targetPath, { recursive: true });
 }
 
+/**
+ * @param {string} targetPath
+ * @param {string} label
+ */
 async function ensureFile(targetPath, label) {
 	if (!(await pathExists(targetPath))) {
 		throw new Error(`${label} not found: ${path.relative(projectRoot, targetPath)}`);
 	}
 }
 
+/**
+ * @param {string} filePath
+ */
 async function readJson(filePath) {
 	const raw = await fs.readFile(filePath, "utf8");
 	try {
@@ -43,8 +78,12 @@ async function readJson(filePath) {
 	}
 }
 
+/**
+ * @param {string} filePath
+ */
 async function readJsonl(filePath) {
 	const raw = await fs.readFile(filePath, "utf8");
+	/** @type {unknown[]} */
 	const records = [];
 
 	for (const [index, rawLine] of raw.split(/\r?\n/).entries()) {
@@ -67,25 +106,46 @@ async function readJsonl(filePath) {
 }
 
 function getClaudeCommand() {
-	if (process.platform === "win32") {
-		return {
-			command: "cmd.exe",
-			args: ["/d", "/s", "/c", "claude -p --output-format text"],
-		};
-	}
-
 	return {
-		command: "claude",
-		args: ["-p", "--output-format", "text"],
+		command: "ollama",
+		args: ["launch", "claude", "--model", "qwen3.5", "--", "--print", "--permission-mode", "acceptEdits"],
 	};
 }
 
-async function ensureClaudeAvailable() {
-	const runner =
-		process.platform === "win32"
-			? { command: "cmd.exe", args: ["/d", "/s", "/c", "claude --version"] }
-			: { command: "claude", args: ["--version"] };
+/**
+ * @param {string} stageLabel
+ * @param {string} message
+ */
+function logStageStart(stageLabel, message) {
+	console.log(`[${stageLabel}] start ${message}`);
+}
 
+/**
+ * @param {string} stageLabel
+ * @param {number} current
+ * @param {number} total
+ * @param {string} filePath
+ * @param {string} action
+ */
+function logFileProgress(stageLabel, current, total, filePath, action) {
+	console.log(`[${stageLabel}] [${current}/${total}] ${action} ${path.relative(projectRoot, filePath)}`);
+}
+
+/**
+ * @param {string} stageLabel
+ * @param {number} current
+ * @param {number} total
+ * @param {PaperRecord} paper
+ * @param {string} outputKind
+ */
+function logPaperProgress(stageLabel, current, total, paper, outputKind) {
+	console.log(`[${stageLabel}] [${current}/${total}] ${outputKind}: ${paper.title} (${paper.year})`);
+}
+
+async function ensureClaudeAvailable() {
+	const runner = { command: "ollama", args: ["--version"] };
+
+	/** @type {Promise<void>} */
 	await new Promise((resolve, reject) => {
 		const child = spawn(runner.command, runner.args, {
 			stdio: "ignore",
@@ -93,7 +153,7 @@ async function ensureClaudeAvailable() {
 		});
 
 		child.on("error", () => {
-			reject(new Error("claude command is not available."));
+			reject(new Error("ollama command is not available."));
 		});
 
 		child.on("close", (code) => {
@@ -101,11 +161,15 @@ async function ensureClaudeAvailable() {
 				resolve();
 				return;
 			}
-			reject(new Error("claude command is not available."));
+			reject(new Error("ollama command is not available."));
 		});
 	});
 }
 
+/**
+ * @param {string} prompt
+ * @returns {Promise<string>}
+ */
 async function runClaude(prompt) {
 	const { command, args } = getClaudeCommand();
 
@@ -118,16 +182,16 @@ async function runClaude(prompt) {
 		let stdout = "";
 		let stderr = "";
 
-		child.stdout.on("data", (chunk) => {
+		child.stdout.on("data", /** @param {Buffer|string} chunk */ (chunk) => {
 			stdout += String(chunk);
 		});
 
-		child.stderr.on("data", (chunk) => {
+		child.stderr.on("data", /** @param {Buffer|string} chunk */ (chunk) => {
 			stderr += String(chunk);
 		});
 
-		child.on("error", (error) => {
-			reject(new Error(`Failed to start claude: ${error.message}`));
+		child.on("error", /** @param {Error} error */ (error) => {
+			reject(new Error(`Failed to start ollama claude launcher: ${error.message}`));
 		});
 
 		child.on("close", (code) => {
@@ -137,37 +201,51 @@ async function runClaude(prompt) {
 			}
 
 			const detail = stderr.trim() || stdout.trim() || `exit code ${code}`;
-			reject(new Error(`claude failed: ${detail}`));
+			reject(new Error(`ollama claude launcher failed: ${detail}`));
 		});
 
 		child.stdin.end(prompt);
 	});
 }
 
+/**
+ * @param {PaperRecordCandidate} record
+ * @param {number} index
+ * @param {string} topicId
+ * @returns {PaperRecord}
+ */
 function normalizePaperRecord(record, index, topicId) {
-	if (typeof record?.title !== "string" || !record.title.trim()) {
+	const candidate = record ?? {};
+
+	if (typeof candidate.title !== "string" || !candidate.title.trim()) {
 		throw new Error(`Invalid paper record at entry ${index + 1} for topic "${topicId}": missing title`);
 	}
 
-	if (!Number.isInteger(record?.year)) {
+	if (!Number.isInteger(candidate.year)) {
 		throw new Error(`Invalid paper record at entry ${index + 1} for topic "${topicId}": missing or invalid year`);
 	}
 
+	const year = candidate.year;
+
 	return {
-		title: record.title.trim(),
-		year: record.year,
-		summary: typeof record?.summary === "string" ? record.summary.trim() : "",
+		title: candidate.title.trim(),
+		year,
+		summary: typeof candidate.summary === "string" ? candidate.summary.trim() : "",
 	};
 }
 
+/**
+ * @param {PaperRecord} paper
+ * @param {string} sourceText
+ */
 function buildStage1Prompt(paper, sourceText) {
 	return `다음은 논문 상세 분석 보고서다.
 
 이 보고서를 바탕으로 한국어 마크다운 요약문을 작성하라.
 반드시 아래 규칙을 지켜라.
 
-1. 첫 줄은 정확히 \`# ${paper.title}(${paper.year})\` 로 작성한다.
-2. 전체 분량은 첫 줄을 포함해 10줄 내외로 유지한다.
+1. 첫 줄은 정확히 \`# ${paper.title} (${paper.year})\` 로 작성한다.
+2. 전체 분량은 첫 줄을 포함해 20줄 내외로 유지한다.
 3. 각 줄은 짧고 밀도 있게 작성한다.
 4. 논문의 연구 문제, 핵심 아이디어, 방법론, 주요 결과, 의의를 빠뜨리지 않는다.
 5. 원문에 없는 내용을 추측해서 쓰지 않는다.
@@ -179,6 +257,10 @@ ${sourceText}
 `;
 }
 
+/**
+ * @param {string} topicTitle
+ * @param {string} mergedText
+ */
 function buildTaxonomyPrompt(topicTitle, mergedText) {
 	return `다음은 "${topicTitle}" 주제의 논문 요약 모음이다.
 
@@ -199,13 +281,17 @@ ${mergedText}
 `;
 }
 
+/**
+ * @param {PaperRecord} paper
+ * @param {string} sourceText
+ */
 function buildMethodPrompt(paper, sourceText) {
 	return `다음은 논문 상세 분석 보고서다.
 
 이 보고서에서 방법론에 해당하는 내용만 정리하여 한국어 마크다운 문서를 작성하라.
 반드시 다음 규칙을 지켜라.
 
-1. 첫 줄은 정확히 \`# ${paper.title}(${paper.year})\` 로 작성한다.
+1. 첫 줄은 정확히 \`# ${paper.title} (${paper.year})\` 로 작성한다.
 2. 방법론 중심으로만 작성하고 배경 설명은 최소화한다.
 3. 논문이 해결하려는 문제 설정, 제안 방법의 핵심 구성, 수식/구조/알고리즘/학습 절차가 있으면 포함한다.
 4. 실험 결과나 일반적인 의의 설명은 핵심 방법 이해에 필요한 최소한만 언급한다.
@@ -217,6 +303,10 @@ ${sourceText}
 `;
 }
 
+/**
+ * @param {string} topicTitle
+ * @param {string} mergedText
+ */
 function buildMethodSummaryPrompt(topicTitle, mergedText) {
 	return `다음은 "${topicTitle}" 주제 논문들의 방법론 정리 문서 모음이다.
 
@@ -235,13 +325,17 @@ ${mergedText}
 `;
 }
 
+/**
+ * @param {PaperRecord} paper
+ * @param {string} sourceText
+ */
 function buildResultPrompt(paper, sourceText) {
 	return `다음은 논문 상세 분석 보고서다.
 
 이 보고서에서 실험 결과에 해당하는 내용만 정리하여 한국어 마크다운 문서를 작성하라.
 반드시 다음 규칙을 지켜라.
 
-1. 첫 줄은 정확히 \`# ${paper.title}(${paper.year})\` 로 작성한다.
+1. 첫 줄은 정확히 \`# ${paper.title} (${paper.year})\` 로 작성한다.
 2. 사용 데이터셋, 비교 기준, 핵심 수치 결과, 저자 해석을 분명히 정리한다.
 3. 정량 결과가 있으면 가능한 한 수치 중심으로 쓴다.
 4. 방법론 설명은 실험 결과를 이해하는 데 필요한 최소한만 포함한다.
@@ -253,6 +347,10 @@ ${sourceText}
 `;
 }
 
+/**
+ * @param {string} topicTitle
+ * @param {string} mergedText
+ */
 function buildResultSummaryPrompt(topicTitle, mergedText) {
 	return `다음은 "${topicTitle}" 주제 논문들의 실험 결과 정리 문서 모음이다.
 
@@ -272,6 +370,10 @@ ${mergedText}
 `;
 }
 
+/**
+ * @param {string} targetPath
+ * @param {string} prompt
+ */
 async function writeClaudeOutput(targetPath, prompt) {
 	const output = await runClaude(prompt);
 	if (!output.trim()) {
@@ -280,6 +382,15 @@ async function writeClaudeOutput(targetPath, prompt) {
 	await fs.writeFile(targetPath, `${output.trim()}\n`, "utf8");
 }
 
+/**
+ * @param {{
+ *   papers: PaperRecord[],
+ *   topicDir: string,
+ *   outputDir: string,
+ *   stageLabel: string,
+ *   promptBuilder: (paper: PaperRecord, sourceText: string) => string,
+ * }} params
+ */
 async function createPerPaperOutputs({
 	papers,
 	topicDir,
@@ -291,8 +402,26 @@ async function createPerPaperOutputs({
 	let skippedMissingSource = 0;
 	let skippedExisting = 0;
 	let skippedMissingSummary = 0;
+	const totalFiles = papers.length;
+	/** @type {Record<PerPaperStageLabel, string>} */
+	const outputKindByStage = {
+		"report-01": "전체요약 생성",
+		"report-04": "방법론 요약 생성",
+		"report-07": "결과 요약 생성",
+	};
+	const outputKind =
+		stageLabel in outputKindByStage
+			? outputKindByStage[/** @type {PerPaperStageLabel} */ (stageLabel)]
+			: "논문 처리";
 
-	for (const paper of papers) {
+	logStageStart(stageLabel, `per-paper outputs (${totalFiles} files)`);
+
+	for (const [index, paper] of papers.entries()) {
+		const current = index + 1;
+		const targetPath = path.join(outputDir, paper.summary || `${paper.title}.md`);
+		logPaperProgress(stageLabel, current, totalFiles, paper, outputKind);
+		logFileProgress(stageLabel, current, totalFiles, targetPath, "process");
+
 		if (!paper.summary) {
 			skippedMissingSummary += 1;
 			continue;
@@ -304,7 +433,8 @@ async function createPerPaperOutputs({
 			continue;
 		}
 
-		const targetPath = path.join(outputDir, paper.summary);
+		logFileProgress(stageLabel, current, totalFiles, sourcePath, "read");
+
 		if (await pathExists(targetPath)) {
 			skippedExisting += 1;
 			continue;
@@ -322,24 +452,38 @@ async function createPerPaperOutputs({
 	);
 }
 
+/**
+ * @param {{
+ *   papers: PaperRecord[],
+ *   sourceDir: string,
+ *   targetPath: string,
+ *   stageLabel: string,
+ * }} params
+ */
 async function mergeStageFiles({
 	papers,
 	sourceDir,
 	targetPath,
 	stageLabel,
 }) {
+	logStageStart(stageLabel, `merge outputs into ${path.relative(projectRoot, targetPath)}`);
+
 	if (await pathExists(targetPath)) {
 		console.log(`[${stageLabel}] skip existing ${path.relative(projectRoot, targetPath)}`);
 		return;
 	}
 
 	const chunks = [];
-	for (const paper of papers) {
+	const totalFiles = papers.length;
+
+	for (const [index, paper] of papers.entries()) {
 		if (!paper.summary) {
 			continue;
 		}
 
 		const filePath = path.join(sourceDir, paper.summary);
+		logFileProgress(stageLabel, index + 1, totalFiles, filePath, "merge");
+
 		if (!(await pathExists(filePath))) {
 			continue;
 		}
@@ -360,7 +504,15 @@ async function mergeStageFiles({
 	console.log(`[${stageLabel}] wrote ${path.relative(projectRoot, targetPath)}`);
 }
 
+/**
+ * @param {string} targetPath
+ * @param {string} stageLabel
+ * @param {string} prompt
+ */
 async function writeIfMissing(targetPath, stageLabel, prompt) {
+	logStageStart(stageLabel, `single output ${path.relative(projectRoot, targetPath)}`);
+	logFileProgress(stageLabel, 1, 1, targetPath, "process");
+
 	if (await pathExists(targetPath)) {
 		console.log(`[${stageLabel}] skip existing ${path.relative(projectRoot, targetPath)}`);
 		return;
@@ -370,15 +522,25 @@ async function writeIfMissing(targetPath, stageLabel, prompt) {
 	console.log(`[${stageLabel}] wrote ${path.relative(projectRoot, targetPath)}`);
 }
 
+/**
+ * @param {ReportDirs} reportDirs
+ */
 async function stage10(reportDirs) {
 	const targetPath = path.join(reportDirs.report10, "report.md");
 	const taxonomyPath = path.join(reportDirs.report03, "taxonomy.md");
 	const methodSummaryPath = path.join(reportDirs.report06, "method-summary.md");
 	const resultSummaryPath = path.join(reportDirs.report09, "result-summary.md");
+	const sourcePaths = [taxonomyPath, methodSummaryPath, resultSummaryPath];
+
+	logStageStart("report-10", `final merge into ${path.relative(projectRoot, targetPath)}`);
 
 	await ensureFile(taxonomyPath, "taxonomy.md");
 	await ensureFile(methodSummaryPath, "method-summary.md");
 	await ensureFile(resultSummaryPath, "result-summary.md");
+
+	for (const [index, filePath] of sourcePaths.entries()) {
+		logFileProgress("report-10", index + 1, sourcePaths.length, filePath, "read");
+	}
 
 	const contents = await Promise.all([
 		fs.readFile(taxonomyPath, "utf8"),
@@ -405,6 +567,7 @@ async function main() {
 	await ensureFile(paperListPath, "paper_list.jsonl");
 	await ensureClaudeAvailable();
 
+	/** @type {TopicMetadata} */
 	const metadata = await readJson(metadataPath);
 	const topicTitle =
 		typeof metadata?.title === "string" && metadata.title.trim()
@@ -431,6 +594,7 @@ async function main() {
 		await ensureDir(dirPath);
 	}
 
+	logStageStart("report-01", "generate per-paper summaries");
 	await createPerPaperOutputs({
 		papers,
 		topicDir,
@@ -440,6 +604,7 @@ async function main() {
 	});
 
 	const summaryMergedPath = path.join(reportDirs.report02, "summary-merged.md");
+	logStageStart("report-02", "merge per-paper summaries");
 	await mergeStageFiles({
 		papers,
 		sourceDir: reportDirs.report01,
@@ -447,12 +612,14 @@ async function main() {
 		stageLabel: "report-02",
 	});
 
+	logStageStart("report-03", "generate taxonomy");
 	await writeIfMissing(
 		path.join(reportDirs.report03, "taxonomy.md"),
 		"report-03",
 		buildTaxonomyPrompt(topicTitle, await fs.readFile(summaryMergedPath, "utf8")),
 	);
 
+	logStageStart("report-04", "generate per-paper method summaries");
 	await createPerPaperOutputs({
 		papers,
 		topicDir,
@@ -462,6 +629,7 @@ async function main() {
 	});
 
 	const methodMergedPath = path.join(reportDirs.report05, "method-merged.md");
+	logStageStart("report-05", "merge method summaries");
 	await mergeStageFiles({
 		papers,
 		sourceDir: reportDirs.report04,
@@ -469,12 +637,14 @@ async function main() {
 		stageLabel: "report-05",
 	});
 
+	logStageStart("report-06", "generate method summary");
 	await writeIfMissing(
 		path.join(reportDirs.report06, "method-summary.md"),
 		"report-06",
 		buildMethodSummaryPrompt(topicTitle, await fs.readFile(methodMergedPath, "utf8")),
 	);
 
+	logStageStart("report-07", "generate per-paper result summaries");
 	await createPerPaperOutputs({
 		papers,
 		topicDir,
@@ -484,6 +654,7 @@ async function main() {
 	});
 
 	const resultMergedPath = path.join(reportDirs.report08, "result-merged.md");
+	logStageStart("report-08", "merge result summaries");
 	await mergeStageFiles({
 		papers,
 		sourceDir: reportDirs.report07,
@@ -491,6 +662,7 @@ async function main() {
 		stageLabel: "report-08",
 	});
 
+	logStageStart("report-09", "generate result summary");
 	await writeIfMissing(
 		path.join(reportDirs.report09, "result-summary.md"),
 		"report-09",
