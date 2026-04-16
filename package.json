@@ -11,6 +11,7 @@
 		"arxiv2json": "node scripts/arxiv2json.js",
 		"manifest": "node scripts/generate-manifest.js",
 		"init-summary": "node scripts/init-summary.js",
+		"update-index": "node scripts/update-index.js",
 		"update-docs": "node scripts/update-docs.js",
 		"update-summary": "node scripts/update-summary.js",
 		"preview": "vite preview",

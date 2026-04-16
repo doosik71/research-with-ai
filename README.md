@@ -80,6 +80,9 @@ npm run manifest
 # Generate all missing paper analysis reports
 npm run update-docs
 
+# Generate index.md for one topic from metadata.json and paper_list.jsonl
+npm run update-index -- activation_function
+
 # Initialize missing summary file names interactively for a topic
 npm run init-summary -- semantic_segmentation
 
@@ -95,6 +98,8 @@ npm run arxiv2json -- https://arxiv.org/abs/2004.06632v1
 
 `init-summary` reads titles from standard input, updates `static/docs/<topic_id>/paper_list.jsonl`, and exits when you enter `/quit` or `/exit`.
 
+`update-index` reads `static/docs/<topic_id>/metadata.json` and `paper_list.jsonl`, then writes `static/docs/<topic_id>/index.md` sorted by newest year first and title within the same year.
+
 `arxiv2json` fetches an arXiv abs page and prints a single-line JSON object with `title`, `author`, `year`, `url`, `summary`, and `slide` fields.
 
-For `init-summary`, `update-summary`, `arxiv2json`, and `add-doc`, pass script arguments after `--`.
+For `init-summary`, `update-index`, `update-summary`, `arxiv2json`, and `add-doc`, pass script arguments after `--`.

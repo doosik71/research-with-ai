@@ -1,20 +1,28 @@
-# Index
+# Continual Learning
 
-- [Energy-Based Models for Continual Learning](energy_based_models_for_continual_learning.md)
-- [Energy-Based Models for Continual Learning (Slides)](energy_based_models_for_continual_learning_slide.md)
-- [Continual Learning in Practice](continual_learning_in_practice.md)
-- [Continual Learning in Practice (Slides)](continual_learning_in_practice_slide.md)
-- [Continual Classification Learning Using Generative Models](continual_classification_learning_using_generative_models.md)
-- [Continual Classification Learning Using Generative Models (Slides)](continual_classification_learning_using_generative_models_slide.md)
-- [Continual State Representation Learning for Reinforcement Learning using Generative Replay](continual_state_representation_learning_for_reinforcement_learning_using_generative_replay.md)
-- [Continual State Representation Learning for Reinforcement Learning using Generative Replay (Slides)](continual_state_representation_learning_for_reinforcement_learning_using_generative_replay_slide.md)
-- [Meta-Learning Representations for Continual Learning](meta_learning_representations_for_continual_learning.md)
-- [Meta-Learning Representations for Continual Learning (Slides)](meta_learning_representations_for_continual_learning_slide.md)
-- [Routing Networks with Co-training for Continual Learning](routing_networks_with_co_training_for_continual_learning.md)
-- [Routing Networks with Co-training for Continual Learning (Slides)](routing_networks_with_co_training_for_continual_learning_slide.md)
-- [StackNet: Stacking Parameters for Continual Learning](stacknet_stacking_parameters_for_continual_learning.md)
-- [StackNet: Stacking Parameters for Continual Learning (Slides)](stacknet_stacking_parameters_for_continual_learning_slide.md)
-- [TAME: Task Agnostic Continual Learning using Multiple Experts](tame_task_agnostic_continual_learning_using_multiple_experts.md)
-- [TAME: Task Agnostic Continual Learning using Multiple Experts (Slides)](tame_task_agnostic_continual_learning_using_multiple_experts_slide.md)
-- [Optimization and Generalization of Regularization-Based Continual Learning: a Loss Approximation Viewpoint](optimization_and_generalization_of_regularization_based_continual_learning_a_loss_approximation_viewpoint.md)
-- [Optimization and Generalization of Regularization-Based Continual Learning: a Loss Approximation Viewpoint (Slides)](optimization_and_generalization_of_regularization_based_continual_learning_a_loss_approximation_viewpoint_slide.md)
+## 2023
+
+- [A Definition of Continual Reinforcement Learning](a_definition_of_continual_reinforcement_learning.md) ([arXiv](https://arxiv.org/abs/2307.11046))
+
+## 2022
+
+- [A Closer Look at Rehearsal-Free Continual Learning](a_closer_look_at_rehearsalfree_continual_learning.md) ([arXiv](https://arxiv.org/abs/2203.17269))
+
+## 2020
+
+- [Continual Learning for Anomaly Detection in Surveillance Videos](continual_learning_for_anomaly_detection_in_surveillance_videos.md) ([arXiv](https://arxiv.org/abs/2004.07941))
+- [Learning to Continually Learn](learning_to_continually_learn.md) ([arXiv](https://arxiv.org/abs/2002.09571))
+
+## 2019
+
+- [Continual Learning in Practice](continual_learning_in_practice.md) ([arXiv](https://arxiv.org/abs/1903.05202))
+- [Meta-Learning Representations for Continual Learning](metalearning_representations_for_continual_learning.md) ([arXiv](https://arxiv.org/abs/1905.12588))
+- [Three scenarios for continual learning](three_scenarios_for_continual_learning.md) ([arXiv](https://arxiv.org/abs/1904.07734))
+
+## 2018
+
+- [Continual Classification Learning Using Generative Models](continual_classification_learning_using_generative_models.md) ([arXiv](http://arxiv.org/abs/1810.10612v1))
+
+## 2017
+
+- [Variational Continual Learning](variational_continual_learning.md) ([arXiv](https://arxiv.org/abs/1710.10628))
