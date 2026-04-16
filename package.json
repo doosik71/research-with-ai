@@ -8,6 +8,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"add-doc": "node scripts/add-doc.js",
+		"arxiv2json": "node scripts/arxiv2json.js",
 		"manifest": "node scripts/generate-manifest.js",
 		"init-summary": "node scripts/init-summary.js",
 		"update-docs": "node scripts/update-docs.js",

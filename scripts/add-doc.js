@@ -91,6 +91,19 @@ function createSummaryFilename(title) {
 	return `${summaryBase}.md`;
 }
 
+function normalizeAuthorName(name) {
+	const parts = name
+		.split(",")
+		.map((part) => part.trim())
+		.filter(Boolean);
+
+	if (parts.length <= 1) {
+		return name.trim();
+	}
+
+	return `${parts.slice(1).join(" ")} ${parts[0]}`.trim();
+}
+
 async function parsePaperList(filePath) {
 	const raw = await fs.readFile(filePath, "utf8");
 	const entries = [];
@@ -161,7 +174,7 @@ async function fetchPaperInfo(url) {
 
 	return {
 		title,
-		author: authors.join(", "),
+		author: authors.map(normalizeAuthorName).join(", "),
 		year,
 	};
 }

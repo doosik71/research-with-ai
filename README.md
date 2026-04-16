@@ -88,8 +88,13 @@ npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_spee
 
 # Add an arXiv paper entry to a topic
 npm run add-doc -- instance_segmentation http://arxiv.org/abs/2210.12852v3
+
+# Convert one arXiv abs URL to a JSON line for paper_list.jsonl
+npm run arxiv2json -- https://arxiv.org/abs/2004.06632v1
 ```
 
 `init-summary` reads titles from standard input, updates `static/docs/<topic_id>/paper_list.jsonl`, and exits when you enter `/quit` or `/exit`.
 
-For `init-summary`, `update-summary`, and `add-doc`, pass script arguments after `--`.
+`arxiv2json` fetches an arXiv abs page and prints a single-line JSON object with `title`, `author`, `year`, `url`, `summary`, and `slide` fields.
+
+For `init-summary`, `update-summary`, `arxiv2json`, and `add-doc`, pass script arguments after `--`.
