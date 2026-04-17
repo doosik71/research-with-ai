@@ -347,7 +347,6 @@ function normalizeMarkdown(markdown, options = {}) {
 		let line = lines[index];
 
 		if (/^```$/.test(line.trim())) {
-			line = inFence ? "```" : "```text";
 			inFence = !inFence;
 			activeTableColumns = 0;
 			normalized.push(line);
