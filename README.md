@@ -89,6 +89,12 @@ npm run init-summary -- semantic_segmentation
 # Generate one paper analysis report
 npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_speech_recognition_via_twopass_decoding
 
+# Generate topic-level report artifacts for all 10 stages
+npm run generate-report -- activation_function
+
+# Generate only one stage for a topic
+npm run generate-report -- --4 activation_function
+
 # Add an arXiv paper entry to a topic
 npm run add-doc -- instance_segmentation http://arxiv.org/abs/2210.12852v3
 
@@ -100,6 +106,8 @@ npm run arxiv2json -- https://arxiv.org/abs/2004.06632v1
 
 `update-index` reads `static/docs/<topic_id>/metadata.json` and `paper_list.jsonl`, then writes `static/docs/<topic_id>/index.md` sorted by newest year first and title within the same year.
 
+`generate-report` creates topic report artifacts under `static/docs/<topic_id>/report-01` through `report-10`. Without options it runs every stage in order. With `--1` to `--10`, it runs only that stage. For example, `npm run generate-report -- --4 activation_function` runs only stage 4 for the `activation_function` topic.
+
 `arxiv2json` fetches an arXiv abs page and prints a single-line JSON object with `title`, `author`, `year`, `url`, `summary`, and `slide` fields.
 
-For `init-summary`, `update-index`, `update-summary`, `arxiv2json`, and `add-doc`, pass script arguments after `--`.
+For `init-summary`, `update-index`, `update-summary`, `generate-report`, `arxiv2json`, and `add-doc`, pass script arguments after `--`.
