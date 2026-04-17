@@ -89,8 +89,14 @@ npm run init-summary -- semantic_segmentation
 # Generate one paper analysis report
 npm run update-summary -- speech_recognition/adapting_whisper_for_streaming_speech_recognition_via_twopass_decoding
 
-# Generate topic-level report artifacts for all 10 stages
+# Generate topic-level report artifacts for all 12 stages for one topic
 npm run generate-report -- activation_function
+
+# Generate topic-level report artifacts for multiple topics in the given order
+npm run generate-report -- activation_function anomaly_detection
+
+# Generate report artifacts for every topic under static/docs that has metadata.json
+npm run generate-report
 
 # Generate only one stage for a topic
 npm run generate-report -- --4 activation_function
@@ -106,7 +112,7 @@ npm run arxiv2json -- https://arxiv.org/abs/2004.06632v1
 
 `update-index` reads `static/docs/<topic_id>/metadata.json` and `paper_list.jsonl`, then writes `static/docs/<topic_id>/index.md` sorted by newest year first and title within the same year.
 
-`generate-report` creates topic report artifacts under `static/docs/<topic_id>/report-01` through `report-10`. Without options it runs every stage in order. With `--1` to `--10`, it runs only that stage. For example, `npm run generate-report -- --4 activation_function` runs only stage 4 for the `activation_function` topic.
+`generate-report` creates topic report artifacts under `static/docs/<topic_id>/report-01` through `report-12`. With no arguments it scans every subdirectory under `static/docs` and runs all stages for each topic that contains `metadata.json`, continuing past failures and summarizing failed topics at the end. With one or more `<topic_id>` arguments, it runs all stages for those topics in the given argument order and skips any topic missing `metadata.json`. With `--1` to `--12` plus a single `<topic_id>`, it runs only that stage for that topic. For example, `npm run generate-report -- --4 activation_function` runs only stage 4 for the `activation_function` topic.
 
 `arxiv2json` fetches an arXiv abs page and prints a single-line JSON object with `title`, `author`, `year`, `url`, `summary`, and `slide` fields.
 

@@ -33,8 +33,33 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 const docsRoot = path.join(projectRoot, "static", "docs");
 
+function formatTimestamp() {
+	const now = new Date();
+	const pad = (value) => String(value).padStart(2, "0");
+	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+}
+
+function withTimestamp(message) {
+	return `[${formatTimestamp()}] ${message}`;
+}
+
+const originalConsoleLog = console.log.bind(console);
+const originalConsoleWarn = console.warn.bind(console);
+const originalConsoleError = console.error.bind(console);
+
+console.log = (...args) => originalConsoleLog(withTimestamp(args.map((arg) => String(arg)).join(" ")));
+console.warn = (...args) => originalConsoleWarn(withTimestamp(args.map((arg) => String(arg)).join(" ")));
+console.error = (...args) => originalConsoleError(withTimestamp(args.map((arg) => String(arg)).join(" ")));
+
 function usage() {
-	console.error("Usage: node scripts/generate-report.js [--1|--2|--3|--4|--5|--6|--7|--8|--9|--10|--11|--12] <topic_id>");
+	console.error("Usage: node scripts/generate-report.js");
+	console.error("   or: node scripts/generate-report.js <topic_id...>");
+	console.error("   or: node scripts/generate-report.js <stage> <topic_id>");
+	console.error("");
+	console.error("Modes:");
+	console.error("  (no args)        Generate reports for every topic under static/docs with metadata.json");
+	console.error("  <topic_id...>    Generate all stages for one or more topics in the given order");
+	console.error("  --N <topic_id>   Generate only stage N for one topic");
 	console.error("");
 	console.error("Stages:");
 	console.error("  --1   Generate per-paper overall summaries into report-01");
@@ -54,29 +79,35 @@ function usage() {
 
 /**
  * @param {string[]} argv
- * @returns {{ topicId: string, stageNumber: number | null }}
+ * @returns {{ topicIds: string[], stageNumber: number | null, runAllTopics: boolean }}
  */
 function parseArgs(argv) {
 	const args = argv.slice(2);
-	if (args.length < 1 || args.length > 2) {
-		usage();
+	if (args.length === 0) {
+		return { topicIds: [], stageNumber: null, runAllTopics: true };
 	}
 
-	if (args.length === 1) {
-		const [topicId] = args;
+	const [firstArg] = args;
+	const stageMatch = /^--([1-9]|1[0-2])$/.exec(firstArg || "");
+
+	if (stageMatch) {
+		if (args.length !== 2) {
+			usage();
+		}
+
+		const topicId = args[1];
 		if (!topicId || topicId.startsWith("--")) {
 			usage();
 		}
-		return { topicId, stageNumber: null };
+
+		return { topicIds: [topicId], stageNumber: Number(stageMatch[1]), runAllTopics: false };
 	}
 
-	const [stageArg, topicId] = args;
-	const match = /^--([1-9]|1[0-2])$/.exec(stageArg || "");
-	if (!match || !topicId || topicId.startsWith("--")) {
+	if (args.some((arg) => !arg || arg.startsWith("--"))) {
 		usage();
 	}
 
-	return { topicId, stageNumber: Number(match[1]) };
+	return { topicIds: args, stageNumber: null, runAllTopics: false };
 }
 
 /**
@@ -89,6 +120,44 @@ async function pathExists(targetPath) {
 	} catch {
 		return false;
 	}
+}
+
+async function listRunnableTopicIds() {
+	const entries = await fs.readdir(docsRoot, { withFileTypes: true });
+	const topicIds = [];
+
+	for (const entry of entries) {
+		if (!entry.isDirectory()) {
+			continue;
+		}
+
+		const topicId = entry.name;
+		const metadataPath = path.join(docsRoot, topicId, "metadata.json");
+		if (!(await pathExists(metadataPath))) {
+			console.log(`[topic:${topicId}] skip missing metadata.json`);
+			continue;
+		}
+
+		topicIds.push(topicId);
+	}
+
+	return topicIds.sort((left, right) => left.localeCompare(right));
+}
+
+async function filterRunnableTopicIds(topicIds) {
+	const runnableTopicIds = [];
+
+	for (const topicId of topicIds) {
+		const metadataPath = path.join(docsRoot, topicId, "metadata.json");
+		if (!(await pathExists(metadataPath))) {
+			console.log(`[topic:${topicId}] skip missing metadata.json`);
+			continue;
+		}
+
+		runnableTopicIds.push(topicId);
+	}
+
+	return runnableTopicIds;
 }
 
 /**
@@ -1294,9 +1363,7 @@ async function stage12(reportDirs) {
 	console.log(`[report-12] wrote ${path.relative(projectRoot, targetPath)}`);
 }
 
-async function main() {
-	const { topicId, stageNumber } = parseArgs(process.argv);
-
+async function runTopic(topicId, stageNumber) {
 	const topicDir = path.join(docsRoot, topicId);
 	const metadataPath = path.join(topicDir, "metadata.json");
 	const paperListPath = path.join(topicDir, "paper_list.jsonl");
@@ -1556,6 +1623,43 @@ async function main() {
 	await stage10(reportDirs);
 	await stage11(topicTitle, reportDirs);
 	await stage12(reportDirs);
+}
+
+async function main() {
+	const { topicIds, stageNumber, runAllTopics } = parseArgs(process.argv);
+	const runnableTopicIds = runAllTopics
+		? await listRunnableTopicIds()
+		: await filterRunnableTopicIds(topicIds);
+	if (runnableTopicIds.length === 0) {
+		console.log("[all-topics] no runnable topics found");
+		return;
+	}
+
+	console.log(`[all-topics] start ${runnableTopicIds.length} topics`);
+	const failedTopics = [];
+
+	for (const currentTopicId of runnableTopicIds) {
+		console.log(`[topic:${currentTopicId}] start`);
+		try {
+			await runTopic(currentTopicId, stageNumber);
+			console.log(`[topic:${currentTopicId}] completed`);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			failedTopics.push({ topicId: currentTopicId, message });
+			console.error(`[topic:${currentTopicId}] failed ${message}`);
+		}
+	}
+
+	if (failedTopics.length > 0) {
+		console.error(`[all-topics] failed ${failedTopics.length}/${runnableTopicIds.length}`);
+		for (const failedTopic of failedTopics) {
+			console.error(`[all-topics] failed topic ${failedTopic.topicId}: ${failedTopic.message}`);
+		}
+		process.exitCode = 1;
+		return;
+	}
+
+	console.log(`[all-topics] completed ${runnableTopicIds.length} topics`);
 }
 
 main().catch((error) => {
