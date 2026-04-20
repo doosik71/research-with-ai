@@ -156,7 +156,6 @@ async function ensureCodexAvailable() {
 	return new Promise((resolve, reject) => {
 		const child = spawn("codex", ["--version"], {
 			stdio: "ignore",
-			shell: true,
 		});
 
 		child.on("error", () => {
@@ -242,11 +241,16 @@ async function runCodex(promptPath, outputPath) {
 		const command = "codex";
 		const args = ["exec", "-", "--model", "gpt-5.4", "--output-last-message", outputPath];
 		const child = spawn(command, args, {
-			stdio: ["pipe", "inherit", "inherit"],
-			shell: true,
+			stdio: ["pipe", "pipe", "pipe"],
 		});
 		child.on("error", (err) => {
 			reject(new Error(`Failed to start codex: ${err.message}`));
+		});
+		child.stdout.on("data", (chunk) => {
+			process.stdout.write(chunk);
+		});
+		child.stderr.on("data", (chunk) => {
+			process.stderr.write(chunk);
 		});
 		child.on("close", (code) => {
 			if (code === 0) {

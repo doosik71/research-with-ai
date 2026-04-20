@@ -6,6 +6,7 @@
 	"scripts": {
 		"predev": "node scripts/generate-manifest.js",
 		"dev": "vite dev",
+		"docs:dev": "node scripts/docs-dev-server.js",
 		"build": "vite build",
 		"add-doc": "node scripts/add-doc.js",
 		"arxiv2json": "node scripts/arxiv2json.js",

@@ -44,6 +44,17 @@ Windows에서는 아래 배치 파일로도 실행할 수 있다.
 paper_viewer.bat
 ```
 
+### 개발용 문서 서버
+
+`static/docs` 아래의 마크다운 파일을 직접 만들고 수정하는 로컬 전용 서버도 사용할 수 있다.
+이 서버는 Cloudflare Pages 배포 경로에 포함되지 않는다.
+
+```bash
+npm run docs:dev
+```
+
+기본 실행 주소는 `http://127.0.0.1:8787` 이다.
+
 ### 데이터 소스
 
 뷰어는 기본적으로 `static/docs` 폴더를 읽는다.
@@ -60,7 +71,7 @@ paper_viewer.bat
 .
 ├─ src/           # 클라이언트 UI
 ├─ static/docs/   # 논문 문서 저장소
-├─ server.js      # Express 서버 및 렌더링 API
+├─ scripts/docs-dev-server.js  # 로컬 전용 문서 관리 서버
 └─ paper_viewer.bat
 ```
 
