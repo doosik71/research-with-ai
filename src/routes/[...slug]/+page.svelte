@@ -4018,10 +4018,13 @@
 	.summary-content :global(h4),
 	.summary-content :global(h5),
 	.summary-content :global(em),
-	.summary-content :global(strong),
+	.summary-content :global(strong) {
+		font-family: 'Pretendard Variable', 'Pretendard';
+	}
+
 	.summary-content :global(pre),
 	.summary-content :global(code) {
-		font-family: 'Pretendard Variable', 'Pretendard';
+		font-family: 'D2Coding', 'Ubuntu Mono', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
 	}
 
 	.summary-content :global(h1) {
