@@ -40,6 +40,8 @@ Ju Xu, Mengzhang Li, and Zhanxing Zhu (2020)
 
 ### 전체 파이프라인 또는 시스템 구조
 
+![Figure 1: The framework of our proposed method.](https://ar5iv.labs.arxiv.org/html/2010.11695/assets/x1.png)
+
 제안하는 방법론 ASNG (Automatic Stochastic Natural Gradient)의 프레임워크는 Fig. 1에 제시되어 있다. 이 프레임워크는 훈련 데이터셋($D_{train}$)과 검증 데이터셋($D_{val}$)을 사용하여 네트워크 가중치 $w$와 증강 정책 파라미터 $\theta$를 번갈아 업데이트하는 이중 최적화 과정이다.
 
 1. **네트워크 훈련 단계:** 미니배치($D_{train}$)에 대해 현재 정책 분포 $p_\theta$에서 샘플링된 $N_w$개의 정책 $c_i$를 적용하여 훈련 데이터를 증강한다. 이 증강된 데이터를 사용하여 네트워크 $w$를 업데이트한다.
@@ -63,25 +65,27 @@ Ju Xu, Mengzhang Li, and Zhanxing Zhu (2020)
 | Operation  | LB Range      | RB Range      | Probability Range  |
 | :--------- | :------------ | :------------ | :----------------- |
 | Scale      | [0.5, 1.0]    | [1.0, 1.5]    | $p_{scale}$ [0, 1] |
-| RotationX  | $[-\pi/6, 0]$ | $[0, \pi/6]$  | $p_{rot}$ [0, 1]   |
-| RotationY  | $[-\pi/6, 0]$ | $[0, \pi/6]$  | $p_{rot}$ [0, 1]   |
-| RotationZ  | $[-\pi/6, 0]$ | $[0, \pi/6]$  | $p_{rot}$ [0, 1]   |
+| RotationX  | [-$\pi$/6, 0] | [0, $\pi$/6]  | $p_{rot}$ [0, 1]   |
+| RotationY  | [-$\pi$/6, 0] | [0, $\pi$/6]  | $p_{rot}$ [0, 1]   |
+| RotationZ  | [-$\pi$/6, 0] | [0, $\pi$/6]  | $p_{rot}$ [0, 1]   |
 | Alpha      | [0, 450]      | [450, 900]    | $p_{eldef}$ [0, 1] |
 | Sigma      | [0, 7]        | [7, 14]       | $p_{eldef}$ [0, 1] |
 | Gamma      | [0.5, 1]      | [1, 1.5]      | $p_{gamma}$ [0, 1] |
 
 이러한 검색 공간은 11의 11승($11^{11}$)가지 가능성을 가지는 방대한 공간이므로 효율적인 검색 알고리즘이 필수적이다.
 
+![Figure 2: Visualization of the proposed data augmentation on certain 2D section of Task01 BrainTumour dataset.](https://ar5iv.labs.arxiv.org/html/2010.11695/assets/figures/data_aug.png)
+
 #### 2.2 정책 샘플링을 위한 확률적 완화 최적화 (Stochastic Relaxation Optimization of Policy Sampling)
 
 네트워크 파라미터 $w \in W$와 데이터 증강 전략 $c \in C$에 대한 목적 함수를 $f(w,c)$로 정의한다. 훈련 손실 $f_{train}$과 검증 손실 $f_{val}$은 $c$뿐만 아니라 $w$에 의해서도 결정된다. 증강 전략 검색의 목표는 검증 손실 $f_{val}(w^*(c^*), c^*)$을 최소화하는 최적의 전략 $c^*$를 찾는 것이며, 여기서 $w^*(c) = \text{argmin}_w f_{train}(w,c)$는 주어진 $c$에 대해 훈련 손실을 최소화하여 얻은 네트워크 가중치이다. 이는 다음과 같은 이중 최적화 문제로 표현된다.
 
 $$
-\min_{c} f_{val}(w^*(c), c) \quad (1)
+\min_{c} f_{val}(w^*(c), c) \tag{1}
 $$
 
 $$
-\text{s.t. } w^*(c) = \text{argmin}_{w} f_{train}(w, c) \quad (2)
+\text{s.t. } w^*(c) = \text{argmin}_{w} f_{train}(w, c) \tag{2}
 $$
 
 이 문제를 직접 해결하기는 어렵다. $c$에 대한 그래디언트를 얻을 수 없으므로 그래디언트 하강을 통해 $c$를 최적화하기가 어렵다. 단순 그리드 탐색(grid search)이나 강화 학습은 계산 비용이 매우 높다.
@@ -127,18 +131,18 @@ $$
 1. **초기화:** 네트워크 가중치 $w_0$, 정책 파라미터 $\theta_0$, 학습률 $\eta_w, \eta_{\theta}$, 샘플링 횟수 $N_w, N_{\theta}$ 및 데이터셋 $D_{train}, D_{val}, D_{test}$를 입력받는다.
 2. **Epoch 반복:** 각 epoch 동안 다음 단계를 반복한다.
 3. **내부 루프 (T번):**
-    a.  **네트워크 가중치 업데이트 ($w_{t+1}$):**
-        *현재 정책 분포 $p_{\theta_t}$에서 $N_w$개의 정책 $c$를 생성한다.
-        *   $D_{train}$에서 $N_w$개의 정책으로 훈련 데이터를 증강하고, 이에 대한 훈련 손실 $f_{train}(w_t, c_i)$를 얻는다.
-        *방정식 (6)에 따라 $w_t$를 업데이트하여 $w_{t+1}$을 얻는다.
-    b.  **정책 파라미터 업데이트 ($\theta_{t+1}$):**
-        *   현재 정책 분포 $p_{\theta_t}$에서 $N_{\theta}$개의 정책 $c$를 생성한다.
-        *각 $c_j$에 대해:
-            *   $c_j$ 정책에 따라 훈련 데이터를 증강한다.
-            *$w_t$를 업데이트하여 $\hat{w}_t$를 얻는다 (이 단계에서 네트워크 파라미터를 임시로 업데이트하고 다시 복원하는 과정이 포함된다).
-            *   $D_{val}$에서 검증 손실 $f_{val}(\hat{w}_t)_j$를 얻는다.
-            *네트워크 파라미터를 $w_t$로 복원한다 ($\hat{w}_t=w_t$).
-        *   $N_{\theta}$개의 검증 손실 $f_{val}(\hat{w}_t)_j$와 정책 $c_j$를 사용하여 방정식 (8)에 따라 $\theta_t$를 업데이트하여 $\theta_{t+1}$을 얻는다.
+   1. **네트워크 가중치 업데이트 ($w_{t+1}$):**
+      - 현재 정책 분포 $p_{\theta_t}$에서 $N_w$개의 정책 $c$를 생성한다.
+      - $D_{train}$에서 $N_w$개의 정책으로 훈련 데이터를 증강하고, 이에 대한 훈련 손실 $f_{train}(w_t, c_i)$를 얻는다.
+      - 방정식 (6)에 따라 $w_t$를 업데이트하여 $w_{t+1}$을 얻는다.
+   2. **정책 파라미터 업데이트 ($\theta_{t+1}$):**
+      - 현재 정책 분포 $p_{\theta_t}$에서 $N_{\theta}$개의 정책 $c$를 생성한다.
+      - 각 $c_j$에 대해:
+          - $c_j$ 정책에 따라 훈련 데이터를 증강한다.
+          *$w_t$를 업데이트하여 $\hat{w}_t$를 얻는다 (이 단계에서 네트워크 파라미터를 임시로 업데이트하고 다시 복원하는 과정이 포함된다).
+          - $D_{val}$에서 검증 손실 $f_{val}(\hat{w}_t)_j$를 얻는다.
+          - 네트워크 파라미터를 $w_t$로 복원한다 ($\hat{w}_t=w_t$).
+      - $N_{\theta}$개의 검증 손실 $f_{val}(\hat{w}_t)_j$와 정책 $c_j$를 사용하여 방정식 (8)에 따라 $\theta_t$를 업데이트하여 $\theta_{t+1}$을 얻는다.
 4. 모든 epoch 완료 후, $D_{test}$에서 최종 네트워크를 테스트하고 반환한다.
 
 ### 훈련 목표 및 손실 함수
@@ -181,6 +185,8 @@ $$
 - **정성적 결과:** Fig. 3은 Prostate 태스크에서 분할 결과의 예시와 검증 세트 손실의 경향을 보여준다. ASNG는 다른 비교 방법론들보다 더 나은 예측을 생성하며, 훈련 중에 더 안정적인 개선을 보인다. (Fig. 3의 Left는 녹색 마스크가 주변 영역, 빨간색 마스크가 이행 영역을 나타낸다. Right는 검증 세트 손실의 추세 그래프이다.)
 
 - **효율성 비교:** [16]에서 제안된 강화 학습 기반 증강 검색 방법은 768 GPU 시간을 소모하고 Dice 점수 0.92를 달성하는 반면, ASNG는 100 GPU 시간 미만을 소모하며 Task 02 (Heart)에서 0.933의 더 높은 Dice 점수를 달성했다. 또한 [16]이 각 증강 전략의 확률만 검색하는 것과 달리, ASNG는 확률과 크기(magnitude) 모두를 검색한다.
+
+![Figure 3: Results on Task05 Prostate of selected architectures.](https://ar5iv.labs.arxiv.org/html/2010.11695/assets/figures/figure2.png)
 
 ### 실험의 실제 결과
 
