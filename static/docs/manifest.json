@@ -129,6 +129,13 @@
     ]
   },
   {
+    "id": "reports",
+    "title": "[Research Summary Reports]",
+    "keyword": [
+      ""
+    ]
+  },
+  {
     "id": "segment_anything",
     "title": "Segment Anything",
     "keyword": [
