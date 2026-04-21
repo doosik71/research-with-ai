@@ -293,7 +293,7 @@ Anomaly detection 방법론에 대한 체계적 정리.
 
 - 한 방법은 표현 학습, 다른 방법은 판정 기준 역할
 - Joint loss 또는 alternating optimization 으로 최적화
-- 장점 조합: 표현学习能力 + 판정 신뢰성
+- 장점 조합: 표현 학습능력 + 판정 신뢰성
 
 **해당 논문**:
 
@@ -332,7 +332,7 @@ Anomaly detection 방법론에 대한 체계적 정리.
 | 패턴                              | 내용                                                         | 적용 논문 예시                                             |
 | --------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------- |
 | 정상 데이터만 학습                | One-class 또는 unsupervised 설정에서 normal-only 데이터 사용 | Reconstruction-based, Discriminative, Generative 계열 모두 |
-| Threshold 결정                    | Quantile(ν-quantile) 또는 validation set 기반 임계값 설정    | OC-NN, DPLAN, SVDD 기반 모두                               |
+| Threshold 결정                    | Quantile(v-quantile) 또는 validation set 기반 임계값 설정    | OC-NN, DPLAN, SVDD 기반 모두                               |
 | Active Learning / Semi-supervised | 소량 labeled data 로 모델 개선                               | Deep Active Learning, Toward Supervised, DPLAN             |
 
 #### (2) Loss Function Design
@@ -369,7 +369,7 @@ Anomaly detection 방법론에 대한 체계적 정리.
 | 비교 차원     | 재구성 기반                           | 판별기 기반                 | 생성 모델 기반              | SVDD 기반              |
 | ------------- | ------------------------------------- | --------------------------- | --------------------------- | ---------------------- |
 | **문제 접근** | Normal 분포 복원                      | 정상/비정상 분류            | Normal manifold 학습        | Latent compact cluster |
-| **주요 신호** | $‖\hat{x} − x‖^2$                     | Softmax / decision boundary | Reconstruction chain error  | $‖z − c‖^2$            |
+| **주요 신호** | $\vert\vert\hat{x} − x\vert\vert^2$   | Softmax / decision boundary | Reconstruction chain error  | $‖z − c‖^2$            |
 | **복잡도**    | 중간 (Encoder+Decoder)                | 낮음 (Classifier)           | 높음 (Adversarial dynamics) | 낮음 (Hypersphere)     |
 | **확장성**    | 이미지/시계열 모두 가능               | 대규모 데이터 효율적        | GPU 메모리 요구 큼          | 중간                   |
 | **Weakness**  | Trivial solution, Over-reconstruction | Normal-only class imbalance | GAN 불안정성                | Hypersphere collapse   |
@@ -424,7 +424,7 @@ Anomaly detection 방법론에 대한 체계적 정리.
 **방법론 계층**:
 
 1. **기저**: SVDD, OC-SVM (수학적 최적화 기반)
-2. **확장**: AE, GAN, VAE (표현学习能力 추가)
+2. **확장**: AE, GAN, VAE (표현 학습능력 추가)
 3. **통합**: Hybrid, End-to-End (joint objective)
 4. **특화**: Fairness, Streaming, Group-level, Frequency
 

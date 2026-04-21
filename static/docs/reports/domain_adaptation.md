@@ -1029,7 +1029,7 @@ SOTA 방법들
 
 - Unsupervised Domain Adaptation Without Target Labels (2019): empirical ranking 약함
 - Source-Free Adaptation: theory 증명 appendix 에 있음
-- Bound 내 λ는 계산되지 않는 problem-dependent constant
+- Bound 내 $\lambda$는 계산되지 않는 problem-dependent constant
 
 **2. Assumption Validation 제한적**
 

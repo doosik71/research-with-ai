@@ -579,13 +579,13 @@ Gated: content ⊗ gate (GLU 계열)
 
 #### (1) 표현력 vs 계산 효율성
 
-| 함수      | 표현력    | 계산 비용      | Trade-off          |
-| --------- | --------- | -------------- | ------------------ |
-| **ReLU**  | 중간      | 매우 낮음      | 계산 효율성 우선   |
-| **GELU**  | 높음      | 높음 (soft)    | 표현력 우선        |
-| **GLU**   | 높음      | 매우 높음 (2×) | 표현력 vs 파라미터 |
-| **Mish**  | 높음      | 높음           | 계산 효율성 희생   |
-| **MPELU** | 매우 높음 | 중간           | 표현력 vs 파라미터 |
+| 함수      | 표현력    | 계산 비용             | Trade-off          |
+| --------- | --------- | --------------------- | ------------------ |
+| **ReLU**  | 중간      | 매우 낮음             | 계산 효율성 우선   |
+| **GELU**  | 높음      | 높음 (soft)           | 표현력 우선        |
+| **GLU**   | 높음      | 매우 높음 (2$\times$) | 표현력 vs 파라미터 |
+| **Mish**  | 높음      | 높음                  | 계산 효율성 희생   |
+| **MPELU** | 매우 높음 | 중간                  | 표현력 vs 파라미터 |
 
 **Trade-off 관계**:
 
@@ -645,8 +645,8 @@ Gated: content ⊗ gate (GLU 계열)
 | 활성화 함수 | 권장 초기화  | 고정 조건          | 비고                 |
 | ----------- | ------------ | ------------------ | -------------------- |
 | ReLU        | He Normal    | -                  | 기본값               |
-| Leaky ReLU  | He (1+a²)    | -                  | 음수 구간 slope 고정 |
-| **PReLU**   | He (1+a²)    | -                  | slope 학습           |
+| Leaky ReLU  | He ($1+a^2$) | -                  | 음수 구간 slope 고정 |
+| **PReLU**   | He ($1+a^2$) | -                  | slope 학습           |
 | **ELU**     | LeCun Normal | -                  | bias shift 완화      |
 | **SELU**    | LeCun Normal | fixed point        | explicit norm 불필요 |
 | **CELU**    | LeCun Normal | bounded derivative | ELU 일반화           |
