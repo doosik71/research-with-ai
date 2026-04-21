@@ -122,7 +122,7 @@
     ]
   },
   {
-    "id": "meta-learning",
+    "id": "meta_learning",
     "title": "Meta Learning",
     "keyword": [
       "meta learning"
@@ -173,7 +173,7 @@
     ]
   },
   {
-    "id": "zero-shot_learning",
+    "id": "zero_shot_learning",
     "title": "Zero Shot Learning",
     "keyword": [
       "zero shot learning"
