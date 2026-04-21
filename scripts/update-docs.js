@@ -10,6 +10,12 @@ const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 const docsRoot = path.join(projectRoot, "static", "docs");
 
+function help() {
+	console.log("Usage: node scripts/update-docs.js");
+	console.log("");
+	console.log("Finds missing summary markdown files referenced by paper_list.jsonl and generates them.");
+}
+
 async function pathExists(targetPath) {
 	try {
 		await fs.access(targetPath);
@@ -159,6 +165,11 @@ async function runUpdateSummary(targetArg) {
 }
 
 async function main() {
+	if (process.argv.includes("--help") || process.argv.includes("-h")) {
+		help();
+		return;
+	}
+
 	await ensureCodexAvailable();
 	const { missingTargets, parseErrorCount } = await collectMissingSummaries();
 

@@ -11,6 +11,7 @@ import { spawn } from "node:child_process";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
+const useShellForCodex = process.platform === "win32";
 
 const reportPrompt = `# 논문 상세 분석 보고서 작성 프롬프트
 
@@ -148,6 +149,12 @@ function usage() {
 	process.exit(1);
 }
 
+function help() {
+	console.log("Usage: node scripts/update-summary.js <folder/summary>");
+	console.log("");
+	console.log("Generates a summary markdown file for one paper using the matching record in paper_list.jsonl.");
+}
+
 function normalizeArg(arg) {
 	return arg.split(/[\\/]+/).filter(Boolean);
 }
@@ -156,6 +163,7 @@ async function ensureCodexAvailable() {
 	return new Promise((resolve, reject) => {
 		const child = spawn("codex", ["--version"], {
 			stdio: "ignore",
+			shell: useShellForCodex,
 		});
 
 		child.on("error", () => {
@@ -242,6 +250,7 @@ async function runCodex(promptPath, outputPath) {
 		const args = ["exec", "-", "--model", "gpt-5.4", "--output-last-message", outputPath];
 		const child = spawn(command, args, {
 			stdio: ["pipe", "pipe", "pipe"],
+			shell: useShellForCodex,
 		});
 		child.on("error", (err) => {
 			reject(new Error(`Failed to start codex: ${err.message}`));
@@ -265,6 +274,11 @@ async function runCodex(promptPath, outputPath) {
 }
 
 async function main() {
+	if (process.argv.includes("--help") || process.argv.includes("-h")) {
+		help();
+		return;
+	}
+
 	const arg = process.argv[2];
 	if (!arg) usage();
 	await ensureCodexAvailable();

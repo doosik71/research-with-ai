@@ -8,6 +8,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, "..");
 
+function help() {
+  console.log("Usage: node scripts/generate-manifest.js");
+  console.log("");
+  console.log("Scans static/docs for topic metadata.json files and writes static/docs/manifest.json.");
+}
+
 function generateManifest() {
   const docsDir = path.join(projectRoot, "static", "docs");
   const manifestPath = path.join(projectRoot, "static", "docs", "manifest.json");
@@ -43,4 +49,13 @@ function generateManifest() {
   );
 }
 
-generateManifest();
+function main() {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    help();
+    return;
+  }
+
+  generateManifest();
+}
+
+main();

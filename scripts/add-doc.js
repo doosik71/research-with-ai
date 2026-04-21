@@ -12,6 +12,12 @@ function usage() {
 	process.exit(1);
 }
 
+function help() {
+	console.log("Usage: node scripts/add-doc.js <topic> <arxiv-abs-url>");
+	console.log("");
+	console.log("Fetches arXiv metadata and appends a paper record to static/docs/<topic>/paper_list.jsonl.");
+}
+
 async function pathExists(targetPath) {
 	try {
 		await fs.access(targetPath);
@@ -180,6 +186,11 @@ async function fetchPaperInfo(url) {
 }
 
 async function main() {
+	if (process.argv.includes("--help") || process.argv.includes("-h")) {
+		help();
+		return;
+	}
+
 	const topic = process.argv[2];
 	const inputUrl = process.argv[3];
 	if (!topic || !inputUrl) {

@@ -7,6 +7,13 @@ function printUsage() {
 	console.error('Usage: node import-arxivdata.js <old-data-path> [new-data-path]');
 }
 
+function printHelp() {
+	console.log('Usage: node scripts/import-arxivdata.js <old-data-path> [new-data-path]');
+	console.log('');
+	console.log('Imports legacy arXiv JSON/Markdown pairs into a new paper_list.jsonl and summary markdown set.');
+	console.log(`Default output directory: ${DEFAULT_OUTPUT_DIR}`);
+}
+
 function slugifyTitle(title) {
 	const normalized = title
 		.toLowerCase()
@@ -51,6 +58,11 @@ async function collectLegacyPapers(oldDataPath) {
 }
 
 async function main() {
+	if (process.argv.includes('--help') || process.argv.includes('-h')) {
+		printHelp();
+		return;
+	}
+
 	const [, , oldDataArg, newDataArg] = process.argv;
 
 	if (!oldDataArg) {

@@ -14,6 +14,12 @@ function usage() {
 	process.exit(1);
 }
 
+function help() {
+	console.log("Usage: node scripts/update-index.js [topic]");
+	console.log("");
+	console.log("Rebuilds index.md for one topic or for every topic under static/docs with metadata.json.");
+}
+
 async function pathExists(targetPath) {
 	try {
 		await fs.access(targetPath);
@@ -165,6 +171,11 @@ async function findTopicsWithMetadata() {
 }
 
 async function main() {
+	if (process.argv.includes("--help") || process.argv.includes("-h")) {
+		help();
+		return;
+	}
+
 	const topic = process.argv[2];
 	if (process.argv.length > 3) {
 		usage();

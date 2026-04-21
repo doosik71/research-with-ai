@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+
+set -eu
+
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+usage() {
+	printf '%s\n' "Usage:"
+	printf '%s\n' "  rwa command [options]"
+	printf '%s\n' ""
+	printf '%s\n' "Commands:"
+
+	for file in "$ROOT"/scripts/*.js; do
+		[ -e "$file" ] || continue
+		basename "$file" .js
+	done
+}
+
+if [ "${1-}" = "" ]; then
+	usage
+	exit 1
+fi
+
+COMMAND=$1
+shift
+
+SCRIPT_PATH=$ROOT/scripts/$COMMAND.js
+
+if [ ! -f "$SCRIPT_PATH" ]; then
+	printf 'Unknown command: %s\n\n' "$COMMAND" >&2
+	usage >&2
+	exit 1
+fi
+
+node "$SCRIPT_PATH" "$@"

@@ -2,8 +2,6 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import readline from 'node:readline/promises';
-import { stdin as input, stdout as output } from 'node:process';
 
 function normalizeTitleToFilename(title) {
 	return (
@@ -15,7 +13,18 @@ function normalizeTitleToFilename(title) {
 	);
 }
 
+function help() {
+	console.log('Usage: node scripts/init-summary.js <topic_id>');
+	console.log('');
+	console.log('Fills missing summary filenames in static/docs/<topic_id>/paper_list.jsonl from each paper title.');
+}
+
 async function main() {
+	if (process.argv.includes('--help') || process.argv.includes('-h')) {
+		help();
+		return;
+	}
+
 	const topicId = process.argv[2];
 
 	if (!topicId) {
@@ -27,55 +36,31 @@ async function main() {
 	const paperListPath = path.join('static', 'docs', topicId, 'paper_list.jsonl');
 	const fileContent = await fs.readFile(paperListPath, 'utf8');
 	const lines = fileContent.split(/\r?\n/);
-	const rl = readline.createInterface({ input, output });
 
-	try {
-		while (true) {
-			const title = (await rl.question('title> ')).trim();
+	let updatedCount = 0;
 
-			if (title === '/q' || title === '/quit' || title === 'quit' || title === '/exit' || title === 'exit') {
-				break;
-			}
+	for (const [index, line] of lines.entries()) {
+		const trimmedLine = line.trim();
 
-			let matchedLineIndex = -1;
-			let matchedPaper = null;
-
-			for (const [index, line] of lines.entries()) {
-				const trimmedLine = line.trim();
-
-				if (!trimmedLine || trimmedLine.startsWith('//')) {
-					continue;
-				}
-
-				const paper = JSON.parse(line);
-				if (paper.title === title) {
-					matchedLineIndex = index;
-					matchedPaper = paper;
-					break;
-				}
-			}
-
-			if (matchedLineIndex === -1 || !matchedPaper) {
-				console.log('[ERROR] No matching title found.\n');
-				continue;
-			}
-
-			if (matchedPaper.summary) {
-				console.log(matchedPaper.summary);
-				console.log('[ERROR] A file name already exists.\n');
-				continue;
-			}
-
-			matchedPaper.summary = normalizeTitleToFilename(title);
-			lines[matchedLineIndex] = JSON.stringify(matchedPaper);
-			await fs.writeFile(paperListPath, lines.join('\n'), 'utf8');
-
-			console.log(matchedPaper.summary);
-			console.log('[SUCCESS] Saved the file name.\n');
+		if (!trimmedLine || trimmedLine.startsWith('//')) {
+			continue;
 		}
-	} finally {
-		rl.close();
+
+		const paper = JSON.parse(line);
+		const title = typeof paper.title === 'string' ? paper.title.trim() : '';
+		const summary = typeof paper.summary === 'string' ? paper.summary.trim() : '';
+
+		if (!title || summary) {
+			continue;
+		}
+
+		paper.summary = normalizeTitleToFilename(title);
+		lines[index] = JSON.stringify(paper);
+		updatedCount += 1;
 	}
+
+	await fs.writeFile(paperListPath, lines.join('\n'), 'utf8');
+	console.log(`[DONE] Filled ${updatedCount} summary value(s).`);
 }
 
 main().catch((error) => {

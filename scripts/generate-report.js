@@ -77,6 +77,31 @@ function usage() {
 	process.exit(1);
 }
 
+function help() {
+	console.log("Usage: node scripts/generate-report.js");
+	console.log("   or: node scripts/generate-report.js <topic_id...>");
+	console.log("   or: node scripts/generate-report.js <stage> <topic_id>");
+	console.log("");
+	console.log("Modes:");
+	console.log("  (no args)        Generate reports for every topic under static/docs with metadata.json");
+	console.log("  <topic_id...>    Generate all stages for one or more topics in the given order");
+	console.log("  --N <topic_id>   Generate only stage N for one topic");
+	console.log("");
+	console.log("Stages:");
+	console.log("  --1   Generate per-paper overall summaries into report-01");
+	console.log("  --2   Merge report-01 summaries into report-02/summary-merged.md");
+	console.log("  --3   Generate taxonomy.md from report-02/summary-merged.md");
+	console.log("  --4   Generate per-paper methodology summaries into report-04");
+	console.log("  --5   Merge report-04 summaries into report-05/method-merged.md");
+	console.log("  --6   Generate method-summary.md from report-05/method-merged.md");
+	console.log("  --7   Generate per-paper result summaries into report-07");
+	console.log("  --8   Merge report-07 summaries into report-08/result-merged.md");
+	console.log("  --9   Generate result-summary.md from report-08/result-merged.md");
+	console.log("  --10  Merge taxonomy, method-summary, and result-summary into report-10/report.md");
+	console.log("  --11  Generate introduction.md from report-10/report.md into report-11");
+	console.log("  --12  Merge report-11/introduction.md and report-10/report.md into report-12/final-report.md");
+}
+
 /**
  * @param {string[]} argv
  * @returns {{ topicIds: string[], stageNumber: number | null, runAllTopics: boolean }}
@@ -1626,6 +1651,11 @@ async function runTopic(topicId, stageNumber) {
 }
 
 async function main() {
+	if (process.argv.includes("--help") || process.argv.includes("-h")) {
+		help();
+		return;
+	}
+
 	const { topicIds, stageNumber, runAllTopics } = parseArgs(process.argv);
 	const runnableTopicIds = runAllTopics
 		? await listRunnableTopicIds()

@@ -57,7 +57,7 @@
   },
   {
     "id": "chain_of_thought",
-    "title": "Chain Of Thought",
+    "title": "Chain-of-Thought",
     "keyword": [
       "chain of thought"
     ]
@@ -96,6 +96,13 @@
     "title": "Federated Learning",
     "keyword": [
       "federated learning"
+    ]
+  },
+  {
+    "id": "few_shot_learning",
+    "title": "Few-Shot Learning",
+    "keyword": [
+      "few shot learning"
     ]
   },
   {
@@ -174,7 +181,7 @@
   },
   {
     "id": "zero_shot_learning",
-    "title": "Zero Shot Learning",
+    "title": "Zero-Shot Learning",
     "keyword": [
       "zero shot learning"
     ]

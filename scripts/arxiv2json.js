@@ -3,6 +3,12 @@ function usage() {
 	process.exit(1);
 }
 
+function help() {
+	console.log('Usage: node scripts/arxiv2json.js <arxiv-abs-url>');
+	console.log('');
+	console.log('Fetches metadata from an arXiv abs URL and prints a JSON record for paper_list.jsonl.');
+}
+
 function normalizeArxivUrl(url) {
 	try {
 		const parsed = new URL(url);
@@ -121,6 +127,11 @@ async function fetchPaperInfo(url) {
 }
 
 async function main() {
+	if (process.argv.includes('--help') || process.argv.includes('-h')) {
+		help();
+		return;
+	}
+
 	const inputUrl = process.argv[2];
 
 	if (!inputUrl) {

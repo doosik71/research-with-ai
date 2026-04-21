@@ -15,6 +15,16 @@ const host = process.env.DOCS_DEV_HOST ?? '127.0.0.1';
 const port = Number(process.env.DOCS_DEV_PORT ?? process.env.PORT ?? 8787);
 let markdownItPromise = null;
 
+function help() {
+  console.log('Usage: node scripts/docs-dev-server.js');
+  console.log('');
+  console.log('Starts the local docs maintenance server.');
+  console.log('Environment variables:');
+  console.log('  DOCS_DEV_HOST  Server host (default: 127.0.0.1)');
+  console.log('  DOCS_DEV_PORT  Server port (default: 8787)');
+  console.log('  PORT           Fallback port when DOCS_DEV_PORT is not set');
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll('&', '&amp;')
@@ -2227,6 +2237,11 @@ async function handleRequest(request) {
 }
 
 async function main() {
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    help();
+    return;
+  }
+
   const server = http.createServer((request, response) => {
     handleRequest(request)
       .then(async (result) => {
