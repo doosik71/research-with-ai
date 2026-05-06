@@ -123,12 +123,12 @@ Segment Anything Model 이나 파운데이션 모델 활용 연구들이다.
 
 실시간 처리 속도와 계산 효율성 확보에 중점을 둔 연구들이다.
 
-| 분류                                              | 논문명                                                                                                        | 분류 근거                                                                   |
-| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| 실시간 및 효율성 최적화 > 경량화 모델             | Attention-Guided Lightweight Network for Real-Time Segmentation of Robotic Surgical Instruments (2019)        | MobileNetV2 인코더와 경량 디코더, 어텐션 퓨전 블록으로 39.49 fps 달성       |
-| 실시간 및 효율성 최적화 > ELA/AGA 메모리 통합     | Efficient Global-Local Memory for Real-time Instrument Segmentation of Robotic Surgical Video (2021)          | ELA 와 AGA 를 통한 지역/전역 정보 통합으로 EndoVis17/18 에서 평균 26ms 추론 |
-| 실시간 및 효율성 최적화 > YOLACT++ 실시간 분할    | Real-time Instance Segmentation of Surgical Instruments using Attention and Multi-scale Feature Fusion (2021) | MSFF 와 CBAM 통합, 도메인 타겟 데이터 증강으로 69 fps→24 fps 실시간 달성    |
-| 실시간 및 효율성 최적화 > Efficient Frame Pruning | Surgical SAM 2: Real-time Segment Anything in Surgical Video by Efficient Frame Pruning (2024)                | cosine similarity 기반 프레임 유사성 제거로 vanilla SAM2 대비 3 배 FPS 향상 |
+| 분류                                              | 논문명                                                                                                        | 분류 근거                                                                          |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 실시간 및 효율성 최적화 > 경량화 모델             | Attention-Guided Lightweight Network for Real-Time Segmentation of Robotic Surgical Instruments (2019)        | MobileNetV2 인코더와 경량 디코더, 어텐션 퓨전 블록으로 39.49 fps 달성              |
+| 실시간 및 효율성 최적화 > ELA/AGA 메모리 통합     | Efficient Global-Local Memory for Real-time Instrument Segmentation of Robotic Surgical Video (2021)          | ELA 와 AGA 를 통한 지역/전역 정보 통합으로 EndoVis17/18 에서 평균 26ms 추론        |
+| 실시간 및 효율성 최적화 > YOLACT++ 실시간 분할    | Real-time Instance Segmentation of Surgical Instruments using Attention and Multi-scale Feature Fusion (2021) | MSFF 와 CBAM 통합, 도메인 타겟 데이터 증강으로 69 fps(실시간)/24 fps(정확도) 달성  |
+| 실시간 및 효율성 최적화 > Efficient Frame Pruning | Surgical SAM 2: Real-time Segment Anything in Surgical Video by Efficient Frame Pruning (2024)                | cosine similarity 기반 프레임 유사성 제거로 vanilla SAM2 대비 3 배 FPS 향상        |
 
 #### 2.9 Tip Detection 및 Keypoint Detection
 
@@ -178,13 +178,13 @@ heatmap regression 기반의 dense prediction과 추적 연구들이다.
 
 ## 1.1 문제 정의의 공통성
 
-모든 연구에서 공통되는 핵심 문제: **내시경 영상에서 수술 도구의 정확한 분할 (Segmentation)
+모든 연구에서 공통되는 핵심 문제: 내시경 영상에서 수술 도구의 정확한 분할 (Segmentation)
 
-| 구성 요소         | 기술적 표현                                   | 역할                              |
-| ----------------- | --------------------------------------------- | --------------------------------- |
-| 입력 (Input)      | 내시경 영상 \(I\), 프레임 시퀀스              | 도구, 조직, 배경 시각 정보        |
-| 처리 (Processing) | 딥러닝 모델, 특징 추출, 예측                  | 시각적 패턴 → 클래스/마스크 매핑  |
-| 출력 (Output)     | 분할 맵 \(\Sigma\), 이진/유형/인스턴스 마스킹 | 픽셀 단위 또는 인스턴스 단위 식별 |
+| 구성 요소         | 기술적 표현                                 | 역할                              |
+| ----------------- | ------------------------------------------- | --------------------------------- |
+| 입력 (Input)      | 내시경 영상$I$, 프레임 시퀀스               | 도구, 조직, 배경 시각 정보        |
+| 처리 (Processing) | 딥러닝 모델, 특징 추출, 예측                | 시각적 패턴 → 클래스/마스크 매핑  |
+| 출력 (Output)     | 분할 맵 $\Sigma$, 이진/유형/인스턴스 마스킹 | 픽셀 단위 또는 인스턴스 단위 식별 |
 
 ## 1.2 방법론적 접근의 공통 구조
 

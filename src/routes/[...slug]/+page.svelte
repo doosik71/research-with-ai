@@ -1849,6 +1849,19 @@
 		return '';
 	}
 
+	function buildAlphaxivUrl(url: string | undefined) {
+		if (!url) return '';
+		const regex = /arxiv\.org\/(abs|pdf)\/(\d+\.\d+)(v\d+)?/;
+		const match = url.match(regex);
+
+		if (match) {
+			const arxivId = match[2];
+			return `https://www.alphaxiv.org/abs/${arxivId}`;
+		}
+
+		return '';
+	}
+
 	function buildPdfUrl(url: string | undefined) {
 		if (!url) return '';
 		if (url.includes('/pdf/')) return url.replace(/^http:\/\//, 'https://');
@@ -2057,12 +2070,18 @@
 		if (isMobile) mobileStage = 2;
 	}
 
-	function openExternal(kind: 'arxiv' | 'ar5iv' | 'pdf') {
+	function hasArxivLinks(url: string | undefined) {
+		const arxivUrl = buildArxivUrl(url);
+		return arxivUrl.startsWith('https://arxiv.org/');
+	}
+
+	function openExternal(kind: 'arxiv' | 'alphaxiv' | 'ar5iv' | 'pdf') {
 		if (!selectedPaper?.url) return;
 
 		let targetUrl;
 
 		if (kind === 'arxiv') targetUrl = buildArxivUrl(selectedPaper.url);
+		else if (kind === 'alphaxiv') targetUrl = buildAlphaxivUrl(selectedPaper.url);
 		else if (kind === 'ar5iv') targetUrl = buildAr5ivUrl(selectedPaper.url);
 		else if (kind === 'pdf') targetUrl = buildPdfUrl(selectedPaper.url);
 
@@ -2504,28 +2523,41 @@
 							/>
 						</svg>
 					</button>
-					<button
-						id="preview-toolbar-open-arxiv"
-						type="button"
-						class="toolbar-button"
-						title="Open arXiv page"
-						aria-label="Open arXiv page"
-						disabled={!selectedPaper?.url}
-						onclick={() => openExternal('arxiv')}
-					>
-						arXiv
-					</button>
-					<button
-						id="preview-toolbar-open-ar5iv"
-						type="button"
-						class="toolbar-button"
-						title="Open ar5iv page"
-						aria-label="Open ar5iv page"
-						disabled={!selectedPaper?.url}
-						onclick={() => openExternal('ar5iv')}
-					>
-						ar5iv
-					</button>
+					{#if hasArxivLinks(selectedPaper?.url)}
+						<button
+							id="preview-toolbar-open-arxiv"
+							type="button"
+							class="toolbar-button"
+							title="Open arXiv page"
+							aria-label="Open arXiv page"
+							disabled={!selectedPaper?.url}
+							onclick={() => openExternal('arxiv')}
+						>
+							arXiv
+						</button>
+						<button
+							id="preview-toolbar-open-alphaxiv"
+							type="button"
+							class="toolbar-button"
+							title="Open alphaxiv page"
+							aria-label="Open alphaxiv page"
+							disabled={!selectedPaper?.url}
+							onclick={() => openExternal('alphaxiv')}
+						>
+							alphaxiv
+						</button>
+						<button
+							id="preview-toolbar-open-ar5iv"
+							type="button"
+							class="toolbar-button"
+							title="Open ar5iv page"
+							aria-label="Open ar5iv page"
+							disabled={!selectedPaper?.url}
+							onclick={() => openExternal('ar5iv')}
+						>
+							ar5iv
+						</button>
+					{/if}
 					<button
 						id="preview-toolbar-open-pdf"
 						type="button"
@@ -2802,23 +2834,33 @@
 						</div>
 						<div>
 							Select
-							<button
-								type="button"
-								class="toolbar-button"
-								disabled={!selectedPaper?.url}
-								onclick={() => openExternal('arxiv')}
-							>
-								arXiv
-							</button>,
-							<button
-								type="button"
-								class="toolbar-button"
-								disabled={!selectedPaper?.url}
-								onclick={() => openExternal('ar5iv')}
-							>
-								ar5iv
-							</button>
-							or
+							{#if hasArxivLinks(selectedPaper?.url)}
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('arxiv')}
+								>
+									arXiv
+								</button>,
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('alphaxiv')}
+								>
+									alphaxiv
+								</button>,
+								<button
+									type="button"
+									class="toolbar-button"
+									disabled={!selectedPaper?.url}
+									onclick={() => openExternal('ar5iv')}
+								>
+									ar5iv
+								</button>
+								or
+							{/if}
 							<button
 								type="button"
 								class="toolbar-button"
