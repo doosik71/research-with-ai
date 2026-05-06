@@ -35,7 +35,9 @@ GloGen의 핵심 설계는 두 종류의 prompt를 동시에 사용하는 dual-p
 
 ## 3. 상세 방법 설명
 
-## 3.1 전체 파이프라인
+### 3.1 전체 파이프라인
+
+![Fig. 1. Overview of GloGen model.](https://ars.els-cdn.com/content/image/1-s2.0-S0010482524013015-gr1.jpg)
 
 GloGen의 전체 흐름은 다음과 같다. 먼저 입력 PPG 신호 $x_i$가 주어진다. 이 신호는 encoder $h$를 통과하여 embedding $z_i$로 변환된다. 이 embedding은 Prompt Generator $g_\phi$에 입력되어 해당 샘플에 맞는 Instance-wise Prompt $x_i^{IP}$를 생성한다. 동시에 모든 샘플에 공통적으로 적용되는 Global Prompt $x^{GP}$가 학습된다. 최종적으로 원본 PPG 신호에 GP와 IP를 더한 $x_i^{GloGen}$이 사전학습된 혈압 추정 모델 $f$에 입력되고, 모델은 SBP와 DBP를 예측한다.
 
@@ -49,7 +51,7 @@ $$
 
 이 구조의 중요한 특징은 backbone feature extractor를 크게 변경하지 않는다는 점이다. 따라서 사전학습 모델이 이미 학습한 PPG representation을 보존하면서, target dataset에 필요한 보정만 prompt를 통해 수행한다.
 
-## 3.2 Global Prompt와 Instance-wise Prompt
+### 3.2 Global Prompt와 Instance-wise Prompt
 
 입력 PPG 신호를 $x_i$라고 하자. GP와 IP는 모두 입력 PPG 신호와 같은 차원을 가진다. 이는 prompt가 원본 신호에 직접 더해질 수 있도록 하기 위함이다.
 
@@ -65,7 +67,7 @@ $$
 
 Prompt Generator의 구조는 deconvolution layer, 즉 transposed convolution layer, batch normalization, ReLU activation으로 구성된다. 논문은 Prompt Generator를 encoder-decoder 구조에서 decoder에 해당한다고 설명한다. 입력 embedding은 상대적으로 압축된 representation이고, Prompt Generator는 이를 원래 PPG 신호와 같은 차원의 prompt로 복원한다.
 
-## 3.3 최종 GloGen 입력 구성
+### 3.3 최종 GloGen 입력 구성
 
 GloGen이 생성하는 최종 입력은 원본 PPG 신호, GP, IP의 합으로 구성된다.
 
@@ -79,7 +81,7 @@ $$
 
 이 방식은 data augmentation과도 유사한 면이 있다. 다만 일반적인 augmentation이 hand-crafted transformation을 적용하는 반면, GloGen의 prompt는 target task의 supervised signal, 즉 SBP와 DBP label을 이용해 직접 학습된다.
 
-## 3.4 Encoder 선택과 Trigger Vector
+### 3.4 Encoder 선택과 Trigger Vector
 
 GloGen은 Prompt Generator에 입력할 embedding을 만드는 방식으로 두 가지 선택지를 제시한다.
 
@@ -103,7 +105,7 @@ $$
 
 GP와 trigger vector는 모두 모든 샘플에 공유된다는 점에서 비슷해 보일 수 있지만, 역할이 다르다. GP는 최종 PPG 입력에 직접 더해지는 signal-level prompt이다. 반면 trigger vector는 Prompt Generator의 입력 embedding에 추가되는 latent-level vector이다. 즉 GP는 입력 신호를 직접 수정하고, trigger vector는 IP를 더 잘 생성하기 위한 조건 정보로 사용된다.
 
-## 3.5 학습 목표와 MSE Loss
+### 3.5 학습 목표와 MSE Loss
 
 GloGen은 SBP와 DBP를 직접 예측하는 regression task로 학습된다. 기본 손실 함수는 Mean Squared Error(MSE)이다.
 
@@ -119,7 +121,7 @@ $$
 
 이러한 학습 방식은 full fine-tuning보다 업데이트되는 파라미터 수가 적고, few-shot 환경에서 과적합 위험을 줄이는 방향으로 설계되어 있다.
 
-## 3.6 Prompt Normalization과 Clipping
+### 3.6 Prompt Normalization과 Clipping
 
 논문은 prompt가 원본 PPG 신호보다 지나치게 큰 값을 가지면 원본 신호 정보가 가려질 수 있다고 지적한다. 예를 들어 $x^{GP}$나 $x_i^{IP}$의 magnitude가 너무 커지면, 모델은 실제 PPG waveform보다 prompt에 의해 왜곡된 신호를 보게 된다. 이는 학습 불안정성과 예측 오류로 이어질 수 있다.
 
@@ -143,7 +145,7 @@ $$
 
 이 clipping은 prompt learning의 안정성을 높이기 위한 장치이다. 논문은 어떤 prompt를 normalize할지, clipping을 적용할지를 hyperparameter로 설정한다.
 
-## 3.7 Variance Penalty
+### 3.7 Variance Penalty
 
 Variance Penalty는 이 논문의 방법론에서 가장 중요한 regularization이다. 의료 데이터는 혈압 그룹별 데이터 수가 불균형하기 때문에, 사전학습 모델이 특정 BP group에 편향될 가능성이 높다. 예를 들어 Normal group 데이터가 압도적으로 많으면 모델은 Normal group에 대해서는 비교적 좋은 성능을 보이지만 Hypo 또는 Hyper2 group에서는 큰 오차를 낼 수 있다.
 
@@ -183,7 +185,7 @@ $$
 
 이 loss의 의미는 명확하다. 만약 $VP$가 $m$보다 작으면 $ReLU(m - VP)$가 양수가 되어 penalty가 발생한다. 따라서 모델은 IP 다양성을 높이도록 학습된다. 반면 $VP$가 이미 $m$ 이상이면 penalty가 0이 되어, 더 이상 무리하게 VP를 키우지 않고 MSE를 줄이는 데 집중할 수 있다. 이 설계는 prompt diversity와 학습 안정성 사이의 균형을 잡기 위한 실용적인 방법이다.
 
-## 3.8 추론 절차
+### 3.8 추론 절차
 
 추론 시에는 입력 PPG 신호 $x_i$가 encoder를 통과하여 embedding $z_i$를 만든다. Prompt Generator는 이 embedding을 바탕으로 IP를 생성한다. 학습된 GP와 생성된 IP를 원본 PPG 신호에 더해 $x_i^{GloGen}$을 만들고, 이를 사전학습 모델에 입력하여 SBP와 DBP를 예측한다.
 
@@ -191,7 +193,7 @@ $$
 
 ## 4. 실험 및 결과
 
-## 4.1 실험 설정
+### 4.1 실험 설정
 
 논문은 PPG 신호로 SBP와 DBP를 예측하는 regression task를 수행한다. Few-shot transfer learning을 평가하기 위해 BCG, Sensors, UCI라는 세 benchmark dataset을 재구성한다. 이 데이터셋들은 기존 연구에서 PPG 기반 비침습 혈압 추정 benchmark로 사용된 데이터셋이다.
 
@@ -212,7 +214,7 @@ Few-shot 설정에서는 target task training set에서 각 BP group별로 5개 
 
 Backbone architecture로는 ResNet1D를 사용한다. ResNet1D는 이미지용 ResNet의 2D convolution을 1D convolution으로 바꾼 구조이며, time-series data 처리에 적합하다. Residual block, skip connection, batch normalization, ReLU activation을 포함한다. 논문은 여러 transfer learning 방법을 공정하게 비교하기 위해 모든 실험에서 동일한 ResNet1D architecture를 사용한다.
 
-## 4.2 비교 대상
+### 4.2 비교 대상
 
 논문은 GloGen을 다음 세 baseline과 비교한다.
 
@@ -224,7 +226,7 @@ Backbone architecture로는 ResNet1D를 사용한다. ResNet1D는 이미지용 R
 
 **GloGen**은 제안 방법이다. 사전학습 모델의 feature extractor를 기본적으로 freeze한 상태에서 GP, Prompt Generator, regression layer 등을 학습한다.
 
-## 4.3 평가 지표
+### 4.3 평가 지표
 
 논문은 Mean Absolute Error(MAE)를 주요 평가 지표로 사용한다. 전체 test distribution에 대한 평균 MAE를 $L_{Data}$로 정의한다.
 
@@ -244,7 +246,9 @@ $$
 
 또한 논문은 실제 혈압값과 예측 혈압값 사이의 관계를 보기 위해 coefficient of determination인 $R^2$도 보고한다. 다만 표의 $R^2$ 값은 여러 경우에서 음수로 나타나며, 이는 few-shot transfer setting이 매우 어렵고 baseline 예측이 단순 평균 예측보다 나쁠 수 있음을 보여준다.
 
-## 4.4 주요 정량 결과
+### 4.4 주요 정량 결과
+
+![Fig. 2. Performance by BP group.](https://ars.els-cdn.com/content/image/1-s2.0-S0010482524013015-gr2.jpg)
 
 논문은 BCG, Sensors, UCI 세 데이터셋 사이의 가능한 모든 pre-trained dataset과 target dataset 조합을 평가한다. 즉 BCG에서 사전학습 후 Sensors로 전이, BCG에서 사전학습 후 UCI로 전이, Sensors에서 사전학습 후 BCG로 전이, Sensors에서 사전학습 후 UCI로 전이, UCI에서 사전학습 후 BCG로 전이, UCI에서 사전학습 후 Sensors로 전이하는 여섯 가지 조합을 실험한다. 각 조합에서 5-shot과 10-shot setting을 모두 평가한다.
 
@@ -264,7 +268,7 @@ $$
 
 이러한 결과는 GloGen이 dataset pair가 바뀌어도 비교적 일관되게 좋은 성능을 보인다는 점을 뒷받침한다. 특히 target task 데이터가 group별 5개 또는 10개에 불과한 상황에서도 robust adaptation이 가능하다는 점이 논문의 핵심 실험적 주장이다.
 
-## 4.5 BP group별 성능 분석
+### 4.5 BP group별 성능 분석
 
 논문은 Hypo와 Hyper2를 high-risk group(HG), Normal과 Prehyper를 low-risk group(LG)으로 묶어 분석한다. Figure 2에 따르면 대부분의 방법에서 HG의 MAE가 LG보다 높다. 이는 저혈압과 고혈압 구간의 예측이 정상 또는 전고혈압 구간보다 어렵다는 것을 의미한다.
 
@@ -272,7 +276,7 @@ GloGen은 일반적으로 LG 성능을 유지하면서 HG 성능을 개선하는
 
 이 결과는 GloGen의 실질적 의미를 잘 보여준다. 의료 AI 모델은 평균 오차만 낮으면 충분하지 않다. 실제로 위험도가 높은 환자군에서 성능이 낮으면 임상적 가치가 떨어질 수 있다. GloGen은 group average MAE를 개선함으로써 고위험군 성능을 평가하고 개선하려는 방향성을 명확히 제시한다.
 
-## 4.6 GloGen Prompt의 역할 분석
+### 4.6 GloGen Prompt의 역할 분석
 
 논문은 Figure 4를 통해 GloGen prompt가 실제로 PPG 신호를 어떻게 바꾸는지 분석한다. 같은 SBP와 DBP 값을 갖더라도 PPG waveform은 측정 환경, 개인 특성, 센서 차이 등으로 인해 서로 다를 수 있다. 논문은 training set과 test set에서 SBP/DBP가 유사한 두 PPG 신호를 비교하고, GloGen prompt를 추가한 후 두 신호 간 cosine similarity가 증가하는 사례를 제시한다.
 
@@ -282,7 +286,7 @@ GloGen은 일반적으로 LG 성능을 유지하면서 HG 성능을 개선하는
 
 다만 이 해석은 시각화와 similarity 분석에 기반한 것이다. 논문은 IP의 특정 waveform 패턴이 어떤 생리학적 의미를 갖는지까지는 설명하지 않는다. 따라서 prompt의 생리학적 해석 가능성은 추가 연구가 필요한 부분이다.
 
-## 4.7 Ablation Study
+### 4.7 Ablation Study
 
 논문은 GloGen의 구성 요소가 각각 성능에 어떤 영향을 미치는지 ablation study를 통해 분석한다. 주요 분석 대상은 GP normalization, GP, IP, VP이다. 실험은 UCI에서 사전학습하고 Sensors를 target dataset으로 사용하는 5-shot setting에서 수행된다.
 
@@ -294,7 +298,9 @@ VP를 제거한 경우 total average MAE는 33.84이고 group average MAE는 30.
 
 Figure 3에서는 $\lambda$와 $\gamma$의 크기, 즉 GP와 IP의 영향력에 따른 성능 변화를 분석한다. GP 또는 IP가 없는 경우보다 두 prompt를 적절히 함께 사용할 때 average MAE와 group average MAE가 모두 좋아진다. 이는 GloGen의 dual-prompt design이 단순한 구성 요소 추가가 아니라 실제로 상호보완적인 역할을 한다는 것을 뒷받침한다.
 
-## 4.8 Large-scale Pretraining 실험
+![Fig. 3. Ablation Study on $\gamma$ and $\lambda$ with UCI dataset pre-training and Sensors Dataset as the target.](https://ars.els-cdn.com/content/image/1-s2.0-S0010482524013015-gr3.jpg)
+
+### 4.8 Large-scale Pretraining 실험
 
 논문은 MIMIC dataset으로 사전학습한 모델을 VitalDB dataset으로 전이하는 추가 실험을 수행한다. 이는 GloGen이 작은 benchmark dataset뿐 아니라 대규모 의료 데이터로 학습된 pretrained model에도 적용 가능한지를 검증하기 위한 실험이다.
 
@@ -304,7 +310,7 @@ MIMIC과 VitalDB는 서로 다른 환자 정보를 갖는 non-overlapping datase
 
 이 실험은 GloGen의 practical relevance를 강화한다. 실제 의료 AI에서는 대규모 공용 데이터셋이나 병원 데이터로 사전학습된 모델을 새로운 병원 또는 새로운 장비에 적응시키는 상황이 많다. GloGen은 target dataset이 매우 작을 때도 이러한 전이가 가능함을 보여준다.
 
-## 4.9 Classification 실험
+### 4.9 Classification 실험
 
 논문은 GloGen이 SBP/DBP regression뿐 아니라 BP group classification에도 적용 가능함을 보인다. 이 실험에서는 Sensors dataset으로 사전학습한 모델을 BCG dataset의 few-shot classification task에 적용한다. 평가 지표는 accuracy, group accuracy, precision, recall, F1-score이다.
 
@@ -312,7 +318,7 @@ MIMIC과 VitalDB는 서로 다른 환자 정보를 갖는 non-overlapping datase
 
 이 결과는 GloGen이 단순히 연속값 회귀에만 맞춘 방법이 아니라, PPG 신호 transformation을 통해 BP-related representation을 개선할 수 있음을 시사한다. 다만 classification 실험의 F1-score에서는 모든 setting에서 완전히 우월하지는 않으므로, classification task에서의 효과는 regression 결과보다 다소 제한적으로 해석할 필요가 있다.
 
-## 4.10 Failure Case 분석
+### 4.10 Failure Case 분석
 
 논문은 실패 사례로 PPG signal의 peak 수가 모델 성능에 큰 영향을 미친다는 점을 제시한다. BCG dataset 일부 샘플을 peak 수에 따라 나누어 분석했을 때, peak 수가 8개인 신호에서는 Scratch, LP, FT, GloGen 모두 매우 높은 MAE를 보인다.
 
@@ -322,7 +328,7 @@ MIMIC과 VitalDB는 서로 다른 환자 정보를 갖는 non-overlapping datase
 
 ## 5. 강점, 한계
 
-## 5.1 강점
+### 5.1 강점
 
 이 논문의 가장 큰 강점은 PPG 기반 혈압 추정 문제를 단순한 평균 성능 경쟁이 아니라 few-shot transfer learning과 group robustness 관점에서 재정의했다는 점이다. 실제 의료 환경에서는 정상 혈압군에 대한 평균 오차보다 저혈압 및 고혈압 고위험군에서의 안정적 성능이 중요하다. 논문은 Hypo, Normal, Prehyper, Hyper2로 그룹을 나누고, group average MAE를 통해 모델의 robustness를 정량적으로 평가한다. 이는 기존 연구에서 자주 간과되던 부분이다.
 
@@ -334,7 +340,7 @@ MIMIC과 VitalDB는 서로 다른 환자 정보를 갖는 non-overlapping datase
 
 다섯 번째 강점은 모델 구조에 대한 의존성이 비교적 낮다는 점이다. 논문에서는 ResNet1D를 사용했지만, 방법론 자체는 입력 prompt를 추가하고 embedding 기반 Prompt Generator를 사용하는 구조이므로, embedding을 얻을 수 있는 다른 PPG model에도 확장 가능하다고 주장한다. 이는 향후 다양한 backbone에 적용할 가능성을 제공한다.
 
-## 5.2 한계
+### 5.2 한계
 
 첫 번째 한계는 prompt의 생리학적 해석 가능성이 부족하다는 점이다. 논문은 prompt가 PPG 신호 간 cosine similarity를 증가시키고, IP가 BP group별로 cluster를 형성한다는 분석을 제공한다. 그러나 특정 prompt pattern이 실제 혈류, 혈관 탄성, pulse transit 관련 특성과 어떤 관계를 갖는지는 설명하지 않는다. 의료 AI에서 interpretability가 중요한 만큼, GP와 IP가 어떤 physiological meaning을 갖는지 분석하는 후속 연구가 필요하다.
 
@@ -348,7 +354,7 @@ MIMIC과 VitalDB는 서로 다른 환자 정보를 갖는 non-overlapping datase
 
 여섯 번째 한계는 demographic factor나 sensor/device variability에 대한 별도 분석이 없다는 점이다. 기존 연구에서 혈압 추정 성능은 질병, 인종, 성별 등 subgroup에 따라 달라질 수 있다고 언급되지만, 이 논문은 주로 BP group 기준으로 robustness를 평가한다. 데이터셋 내 demographic subgroup에 대한 fairness나 cross-device generalization은 본문에서 다루지 않는다.
 
-## 5.3 비판적 해석
+### 5.3 비판적 해석
 
 이 논문은 PPG 기반 혈압 추정에서 중요한 문제를 잘 포착한 연구이다. 특히 평균 MAE 중심 평가의 한계를 지적하고, group average MAE를 통해 high-risk BP group에서의 성능을 분석했다는 점은 의료 AI 관점에서 매우 적절하다. 또한 prompt learning을 생체 시계열 신호에 적용하여, 모델 전체를 fine-tuning하지 않고 입력 신호를 학습적으로 재구성하는 접근은 흥미롭고 실용적이다.
 

@@ -31,7 +31,7 @@
 
 	type PaperTagMap = Record<string, PaperTagEntry>;
 
-	type HighlightColor = 'yellow' | 'pink' | 'blue' | 'green';
+	type HighlightColor = 'yellow' | 'pink' | 'blue' | 'green' | 'orange' | 'teal';
 
 	type SummaryHighlightEntry = {
 		id: string;
@@ -78,7 +78,14 @@
 	const PAPER_TAG_STORAGE_KEY = 'paper-tags-v1';
 	const PAPER_TAG_TTL_MS = 1000 * 60 * 60 * 24 * 30 * 6;
 	const SUMMARY_HIGHLIGHT_STORAGE_KEY = 'summary-highlights-v1';
-	const SUMMARY_HIGHLIGHT_COLORS: HighlightColor[] = ['yellow', 'pink', 'blue', 'green'];
+	const SUMMARY_HIGHLIGHT_COLORS: HighlightColor[] = [
+		'yellow',
+		'pink',
+		'blue',
+		'green',
+		'orange',
+		'teal'
+	];
 	const HIGHLIGHT_BLOCK_SELECTOR = 'p, li, blockquote, td, th, h1, h2, h3, h4, h5, h6';
 	const HIGHLIGHT_EXCLUDED_SELECTOR =
 		'a, pre, code, img, script, style, mjx-container, .MathJax, .summary-highlight';
@@ -1028,7 +1035,7 @@
 			}
 		});
 
-		const byBlock = new Map<HTMLElement, string>();
+		const byBlock: Array<{ block: HTMLElement; text: string }> = [];
 		let textNode = walker.nextNode() as Text | null;
 
 		while (textNode) {
@@ -1042,16 +1049,18 @@
 			if (end > start) {
 				const block = findHighlightBlock(textNode, root);
 				if (block) {
-					const existing = byBlock.get(block) ?? '';
-					byBlock.set(block, existing + text.slice(start, end));
+					const slice = text.slice(start, end);
+					const existing = byBlock.find((entry) => entry.block === block);
+					if (existing) existing.text += slice;
+					else byBlock.push({ block, text: slice });
 				}
 			}
 
 			textNode = walker.nextNode() as Text | null;
 		}
 
-		return Array.from(byBlock.values())
-			.map((text) => normalizeHighlightText(text))
+		return byBlock
+			.map((entry) => normalizeHighlightText(entry.text))
 			.filter(Boolean);
 	}
 
@@ -3057,10 +3066,14 @@
 		--highlight-pink: rgba(255, 173, 205, 0.78);
 		--highlight-blue: rgba(160, 209, 255, 0.78);
 		--highlight-green: rgba(185, 230, 140, 0.78);
+		--highlight-orange: rgba(255, 194, 120, 0.78);
+		--highlight-teal: rgba(136, 226, 214, 0.76);
 		--highlight-dot-yellow: #8a5a00;
 		--highlight-dot-pink: #8f2d5a;
 		--highlight-dot-blue: #1f5fa8;
 		--highlight-dot-green: #456b16;
+		--highlight-dot-orange: #9a4f00;
+		--highlight-dot-teal: #0f6b63;
 
 		/* Select widget */
 		--select-bg: #ffffff;
@@ -3121,10 +3134,14 @@
 		--highlight-pink: rgba(154, 53, 105, 0.62);
 		--highlight-blue: rgba(34, 92, 168, 0.62);
 		--highlight-green: rgba(69, 120, 28, 0.64);
+		--highlight-orange: rgba(176, 91, 16, 0.62);
+		--highlight-teal: rgba(20, 118, 109, 0.64);
 		--highlight-dot-yellow: #ffd86b;
 		--highlight-dot-pink: #ffb7da;
 		--highlight-dot-blue: #9fd0ff;
 		--highlight-dot-green: #c7ef8d;
+		--highlight-dot-orange: #ffc18a;
+		--highlight-dot-teal: #8de8de;
 
 		--select-bg: #1c1f2a;
 		--select-border: rgba(255, 255, 255, 0.12);
@@ -3401,6 +3418,14 @@
 		background: #d9f3bf;
 	}
 
+	.highlight-color-button.color-orange {
+		background: #ffd9b0;
+	}
+
+	.highlight-color-button.color-teal {
+		background: #c6f3ed;
+	}
+
 	.highlight-delete-icon {
 		background: var(--bg-panel-alt);
 		color: var(--text-secondary);
@@ -3590,18 +3615,28 @@
 	}
 
 	.paper-tag-list .highlight-dot.color-pink {
-		border-color: var(--highlight-dot-yellow);
+		border-color: var(--highlight-dot-pink);
 		background: var(--highlight-pink);
 	}
 
 	.paper-tag-list .highlight-dot.color-blue {
-		background: var(--highlight-dot-pink);
+		border-color: var(--highlight-dot-blue);
 		background: var(--highlight-blue);
 	}
 
 	.paper-tag-list .highlight-dot.color-green {
-		background: var(--highlight-dot-pink);
+		border-color: var(--highlight-dot-green);
 		background: var(--highlight-green);
+	}
+
+	.paper-tag-list .highlight-dot.color-orange {
+		border-color: var(--highlight-dot-orange);
+		background: var(--highlight-orange);
+	}
+
+	.paper-tag-list .highlight-dot.color-teal {
+		border-color: var(--highlight-dot-teal);
+		background: var(--highlight-teal);
 	}
 
 	.summary-tag-panel {
@@ -4148,6 +4183,16 @@
 	.summary-content :global(.summary-highlight.highlight-green) {
 		background: var(--highlight-green);
 		border-bottom-color: var(--highlight-dot-green);
+	}
+
+	.summary-content :global(.summary-highlight.highlight-orange) {
+		background: var(--highlight-orange);
+		border-bottom-color: var(--highlight-dot-orange);
+	}
+
+	.summary-content :global(.summary-highlight.highlight-teal) {
+		background: var(--highlight-teal);
+		border-bottom-color: var(--highlight-dot-teal);
 	}
 
 	.summary-content :global(p > img:only-of-type) {
