@@ -1420,8 +1420,9 @@
 	});
 
 	$effect(() => {
+		void isLoading;
 		const htmlForDisplay = renderType === 'summary' ? renderHtmlWithHighlights : renderHtml;
-		if (!htmlForDisplay) return;
+		if (isLoading || !htmlForDisplay) return;
 		void typesetMathJax();
 	});
 
