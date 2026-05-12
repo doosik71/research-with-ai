@@ -44,8 +44,8 @@ Andros Tjandra, Sakriani Sakti, Satoshi Nakamura
        - TTS 모델이 $\hat{y}_U$로부터 음성 $\hat{x}_U$를 재구성합니다.
        - 재구성된 음성 $\hat{x}_U$와 원본 음성 $x_U$ 간의 TTS 손실 $L_{TTS}^U$을 계산합니다.
   3. **손실 결합:** 모든 손실을 가중합하여 최종 손실 $L$을 계산합니다.
-     $$ L = \alpha \cdot (L*{TTS}^P + L*{ASR}^P) + \beta \cdot (L*{TTS}^U + L*{ASR}^U) $$
-        여기서 $\alpha$는 지도 손실 계수, $\beta$는 비지도 손실 계수입니다. 이 최종 손실을 통해 ASR 및 TTS 모델의 파라미터를 업데이트합니다.
+     $$ L = \alpha \cdot (L_{TTS}^P + L_{ASR}^P) + \beta \cdot (L_{TTS}^U + L_{ASR}^U) $$
+     여기서 $\alpha$는 지도 손실 계수, $\beta$는 비지도 손실 계수입니다. 이 최종 손실을 통해 ASR 및 TTS 모델의 파라미터를 업데이트합니다.
 
 ## 📊 Results
 

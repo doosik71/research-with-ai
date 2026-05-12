@@ -28,21 +28,21 @@ Jacob Kahn, Ann Lee, Awni Hannun
 1. **베이스라인 모델 훈련**: 작은 양의 레이블링된 데이터 $D = \{(X_1, Y_1), \dots, (X_n, Y_n)\}$를 사용하여 강력한 음향 모델(AM)을 훈련합니다. 이 AM은 어텐션(attention) 메커니즘을 갖춘 인코더-디코더 구조이며, 인코더는 TDS 블록을 활용합니다. 동시에 대규모 텍스트 코퍼스를 사용하여 외부 언어 모델(LM)을 훈련합니다.
 2. **의사 레이블 생성**:
    - 미학습 오디오 데이터 $\mathcal{X}$의 각 발화 $X_i$에 대해, 훈련된 AM과 LM을 결합하여 빔 서치(beam search) 디코딩을 수행하여 의사 레이블 $\bar{Y}_i$를 생성합니다. 디코딩 식은 다음과 같습니다.
-     $$ \bar{Y} = \underset{Y}{\operatorname{argmax}} \log P*{AM}(Y|X) + \alpha \log P*{LM}(Y) + \beta |Y| $$
+     $$ \bar{Y} = \underset{Y}{\operatorname{argmax}} \log P_{AM}(Y|X) + \alpha \log P_{LM}(Y) + \beta |Y| $$
    - 조기 종료를 방지하기 위해 EOS(end-of-sentence) 토큰 확률 임계값과 같은 안정적인 디코딩 기술 [3]이 적용됩니다.
 3. **의사 레이블 필터링**:
    - **시퀀스-투-시퀀스 모델 특정 휴리스틱 필터**:
      - $c$번 이상 반복되는 $n$-그램을 포함하는 의사 레이블을 제거하여 루핑 오류를 방지합니다.
      - 빔 서치가 완전한 가설을 찾지 못하고 종료되는 예제를 필터링하여 조기 종료 오류를 방지합니다.
    - **신뢰도 기반 필터링**: 각 의사 레이블 $\bar{Y}_i$에 대해 음향 모델의 길이 정규화된 로그 가능도를 신뢰도 점수로 계산합니다:
-     $$ \text{ConfidenceScore}(\bar{Y}_i) = \frac{\log P_{AM}(\bar{Y}\_i|X_i)}{|\bar{Y}\_i|} $$
+     $$ \text{ConfidenceScore}(\bar{Y}_i) = \frac{\log P_{AM}(\bar{Y}_i|X_i)}{|\bar{Y}_i|} $$
      이후 신뢰도 임계값보다 낮은 의사 레이블을 제거합니다.
 4. **앙상블 자기 훈련 (샘플 앙상블)**:
    - $M$개의 부트스트랩된(bootstrapped) AM을 각각 다른 무작위 초기값으로 $D$에서 훈련합니다.
    - 각 모델 $m$은 자체적으로 의사 레이블 데이터셋 $\bar{D}_m$을 생성합니다.
    - 모든 $M$개의 의사 레이블 세트를 균등하게 결합합니다.
    - 훈련 중에는 매 에포크(epoch)마다 $M$개 모델 중 하나에서 의사 레이블을 균등하게 샘플링하여 타겟으로 사용합니다. 학습 목표는 다음과 같습니다:
-     $$ \sum*{(X,Y) \in D} \log P(Y|X) + \frac{1}{M} \sum*{m=1}^{M} \sum\_{(X,\bar{Y}) \in \bar{D}\_m} \log P(\bar{Y}|X) $$
+     $$ \sum_{(X,Y) \in D} \log P(Y|X) + \frac{1}{M} \sum_{m=1}^{M} \sum_{(X,\bar{Y}) \in \bar{D}_m} \log P(\bar{Y}|X) $$
 5. **최종 모델 훈련**: 레이블링된 데이터 $D$와 필터링된 의사 레이블 데이터셋 $\bar{D}$ (또는 앙상블의 경우 $\bigcup_{m=1}^M \bar{D}_m$)를 결합하여 새로운 음향 모델을 훈련합니다. 이때 모델은 무작위 초기화부터 시작합니다.
 
 ## 📊 Results

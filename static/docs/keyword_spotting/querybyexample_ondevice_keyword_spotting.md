@@ -47,7 +47,7 @@ Byeonggeun Kim, Mingu Lee, Jinkyu Lee, Yeonseok Kim, and Kyuwoong Hwang
      - FST는 $L$개의 상태 $S = [s^{(i)}]$를 가지며, $y'_k \in S$인 순서화된 가설 $Y'$를 따릅니다.
      - 상태 전이 확률 $a_{ij}(t)$는 가설을 따르도록 정의됩니다.
      - 로그 가능도 점수는 다음 근사식을 따릅니다:
-       $$ \log p(X'|Y') \propto \max*{q, t_0} \left[ \log\left\{\pi \prod*{t=t*0+1}^T a*{q*{t-1}q_t} \prod*{t=t_0}^T p(q_t|x'\_t)\right\} \right] $$
+       $$ \log p(X'|Y') \propto \max_{q, t_0} \left[ \log\left\{\pi \prod_{t=t*0+1}^T a_{q_{t-1}q_t} \prod_{t=t_0}^T p(q_t|x'\_t)\right\} \right] $$
        여기서 $\pi$는 초기 상태 확률이고 $p(q_t|x'_t)$는 AM의 후방확률에 비례합니다.
      - 빔 서치(beam search)를 통해 $q$와 $t_0$를 최적화하여 점수를 최대화합니다.
      - 점수는 비-빈 상태(non-blank state)의 수로 정규화됩니다.
@@ -57,7 +57,7 @@ Byeonggeun Kim, Mingu Lee, Jinkyu Lee, Yeonseok Kim, and Kyuwoong Hwang
    - **해결책**:
      - **쿼리별 음성 예제 생성**: 쿼리 발화를 파형(waveform)에서 세 부분으로 나누고, 이들을 섞어서 원래 신호와 다른 새로운 음성(negative) 발화를 생성합니다 (예: 그림 1 참조). 각 부분 경계에서 16개 샘플을 오버랩하고 한쪽 삼각형 윈도우를 적용하여 부드러운 전환을 보장합니다.
      - **임계값 결정**: 임계값 $\delta^{(Q,H)}$는 양성(positive) 점수 평균과 음성(negative) 점수 평균의 가중 평균으로 정의됩니다:
-       $$ \delta^{(Q,H)} = \frac{\tau}{A(A-1)} \sum*{(a,a') | a \neq a'} F*{Y'_a}(X'_{a'}) + \frac{(1-\tau)}{A \cdot B} \sum*{(a,b)} F*{Y'_a}(Z_b) $$
+       $$ \delta^{(Q,H)} = \frac{\tau}{A(A-1)} \sum_{(a,a') | a \neq a'} F_{Y'_a}(X'_{a'}) + \frac{(1-\tau)}{A \cdot B} \sum_{(a,b)} F_{Y'_a}(Z_b) $$
        여기서 $F_{Y}(X)$는 테스트 발화 $X$에 대한 가설 $Y$의 로그 가능도 점수입니다. $\tau$는 하이퍼파라미터이며, $A$는 쿼리 수, $B$는 음성 예제 수입니다. 이 방법은 생성된 음성 예제 $Z_b$를 사용하여 임계값을 예측합니다.
 
 ## 📊 Results

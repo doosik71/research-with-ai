@@ -31,9 +31,9 @@ Nanyi Fei, Zhiwu Lu, Yizhao Gao, Guoxing Yang, Yuqi Huo, Jingyuan Wen, Haoyu Lu,
 3. **MoCo 기반 교차 모달 대조 학습:**
    - **4-타워(Four-Tower) 아키텍처:** 기본 투-타워 외에, 두 개의 모멘텀 인코더($f_{\text{m}}^{(\text{i})}$ 및 $f_{\text{m}}^{(\text{t})}$)를 추가하여 동적으로 음성 샘플 큐($Q^{(\text{i})}$, $Q^{(\text{t})}$)를 유지합니다. 모멘텀 업데이트($\theta_{\text{m}} = m \cdot \theta_{\text{m}} + (1-m) \cdot \theta$)를 통해 부드럽게 업데이트되는 모멘텀 인코더로 음성 샘플을 인코딩합니다.
    - **InfoNCE 손실:** 이미지-텍스트 쌍 간의 교차 모달 대조 손실($L_{\text{i2t}}, L_{\text{t2i}}$)을 사용하여 양성 쌍의 유사도를 최대화하고 음성 쌍의 유사도를 최소화합니다.
-     $$ L*{\text{i2t}} = -\frac{1}{N*{\text{b}}} \sum*{i} \log \frac{\exp(z*{\text{i}}^{(\text{i})} \cdot p*{\text{i}}^{(\text{t})} / \tau)}{\exp(z*{\text{i}}^{(\text{i})} \cdot p*{\text{i}}^{(\text{t})} / \tau) + \sum*{n^{(\text{t})}} \exp(z*{\text{i}}^{(\text{i})} \cdot n^{(\text{t})} / \tau)} $$
-        $$ L*{\text{t2i}} = -\frac{1}{N*{\text{b}}} \sum*{i} \log \frac{\exp(z*{\text{i}}^{(\text{t})} \cdot p*{\text{i}}^{(\text{i})} / \tau)}{\exp(z*{\text{i}}^{(\text{t})} \cdot p*{\text{i}}^{(\text{i})} / \tau) + \sum*{n^{(\text{i})}} \exp(z*{\text{i}}^{(\text{t})} \cdot n^{(\text{i})} / \tau)} $$
-        총 손실은 $L_{\text{total}} = L_{\text{i2t}} + L_{\text{t2i}}$입니다.
+     $$ L_{\text{i2t}} = -\frac{1}{N_{\text{b}}} \sum_{i} \log \frac{\exp(z_{\text{i}}^{(\text{i})} \cdot p_{\text{i}}^{(\text{t})} / \tau)}{\exp(z_{\text{i}}^{(\text{i})} \cdot p_{\text{i}}^{(\text{t})} / \tau) + \sum_{n^{(\text{t})}} \exp(z_{\text{i}}^{(\text{i})} \cdot n^{(\text{t})} / \tau)} $$
+     $$ L_{\text{t2i}} = -\frac{1}{N_{\text{b}}} \sum_{i} \log \frac{\exp(z_{\text{i}}^{(\text{t})} \cdot p_{\text{i}}^{(\text{i})} / \tau)}{\exp(z_{\text{i}}^{(\text{t})} \cdot p_{\text{i}}^{(\text{i})} / \tau) + \sum_{n^{(\text{i})}} \exp(z_{\text{i}}^{(\text{t})} \cdot n^{(\text{i})} / \tau)} $$
+     총 손실은 $L_{\text{total}} = L_{\text{i2t}} + L_{\text{t2i}}$입니다.
    - 이를 통해 적은 배치 크기로도 대규모 음성 샘플을 활용할 수 있어 GPU 자원을 절약합니다.
 4. **모델 해석 도구:**
    - **신경망 시각화:** 임의의 노이즈 이미지($x^{(\text{i})}$)를 텍스트 임베딩($z^{(\text{t})}$)과 일치하도록 역전파를 통해 업데이트하여 모델이 텍스트에 대해 '상상하는' 이미지를 생성합니다. 손실 함수는 $L_{\text{vis}} = -\cos(z^{(\text{i})}, z^{(\text{t})})$입니다.

@@ -42,74 +42,74 @@ Shafin Rahman, Salman H. Khan and Fatih Porikli
 
 **문제 공식화:**
 
-- 모든 클래스 레이블 집합은 관측(seen) 클래스 `$y_S$`와 미관측(unseen) 클래스 `$y_U$`로 구성된 `$y = y_S \cup y_U$`이다.
-- 각 클래스에는 시맨틱 클래스 임베딩 `$e_s \in R^d$`와 `$e_u \in R^d$`가 할당된다.
-- 관측 클래스 `$s$`의 이미지 특징은 `$X_s = [x_1^s, ..., x_{n_s}^s]$`로 표현된다.
+- 모든 클래스 레이블 집합은 관측(seen) 클래스  $y_S$ 와 미관측(unseen) 클래스  $y_U$ 로 구성된  $y = y_S \cup y_U$ 이다.
+- 각 클래스에는 시맨틱 클래스 임베딩  $e_s \in R^d$ 와  $e_u \in R^d$ 가 할당된다.
+- 관측 클래스  $s$ 의 이미지 특징은  $X_s = [x_1^s, ..., x_{n_s}^s]$ 로 표현된다.
 
 ### A. 클래스 적응형 주성분 방향(CAPD)
 
 1. **관측 클래스 CAPD 학습($p_s$)**:
 
-   - 주어진 이미지 특징 `$x_s$`에 대해, CAPD `$p_s$`는 선형 매핑 `$p_s = W_s^T x_s$`로 정의되며, `$W_s$`는 클래스별 가중치 행렬이다.
-   - `$W_s$`는 다음 목적 함수를 최소화하여 학습된다 (Eq. 2):
-     $$ \min*{W_s} \frac{1}{\kappa} \sum*{c=1}^{S} \sum\_{m=1}^{n_c} \log \left( 1 + \exp \left\{ L(x_m^c;W_s) \right\} \right) + \frac{\lambda_s}{2} \|W_s\|\_2^2 $$
-        여기서 `$L$`은 비용 함수로, 올바른 시맨틱 임베딩 `$e_s$`에 대한 `$p_s$`의 투영(`$\langle p_s, e_s \rangle$`)을 최대화하고, 잘못된 임베딩에 대한 투영을 최소화하도록 설계되었다.
-   - SGD를 사용하여 최적화되며, 각 관측 클래스에 대한 `$W_s$` 학습은 병렬로 독립적으로 수행될 수 있다.
+   - 주어진 이미지 특징  $x_s$ 에 대해, CAPD  $p_s$ 는 선형 매핑  $p_s = W_s^T x_s$ 로 정의되며,  $W_s$ 는 클래스별 가중치 행렬이다.
+   - $W_s$ 는 다음 목적 함수를 최소화하여 학습된다 (Eq. 2):
+     $$ \min_{W_s} \frac{1}{\kappa} \sum_{c=1}^{S} \sum_{m=1}^{n_c} \log \left( 1 + \exp \left\{ L(x_m^c;W_s) \right\} \right) + \frac{\lambda_s}{2} \|W_s\|_2^2 $$
+        여기서  $L$ 은 비용 함수로, 올바른 시맨틱 임베딩  $e_s$ 에 대한  $p_s$ 의 투영( $\langle p_s, e_s \rangle$ )을 최대화하고, 잘못된 임베딩에 대한 투영을 최소화하도록 설계되었다.
+   - SGD를 사용하여 최적화되며, 각 관측 클래스에 대한  $W_s$  학습은 병렬로 독립적으로 수행될 수 있다.
 
 2. **미관측 클래스 CAPD 학습($p_u$)**:
-   - 미관측 클래스는 훈련 시 이미지가 관측되지 않으므로, `$p_u$`는 관측 클래스 CAPD의 선형 조합으로 근사된다:
-     `$p_u = \sum_{s=1}^S \theta_{s,u} p_s = P_S \theta_u$` (Eq. 3).
-   - **CAPD에 대한 거리 학습**: 시맨틱 임베딩 공간에서 마할라노비스(Mahalanobis) 거리 측정 `$M$`을 학습하여 유사한 CAPD는 가깝게, dissimilar CAPD는 멀리 떨어뜨린다 (Eq. 4).
-     $$ \max*M \min*{(i,j) \in \bar{A}} d*M^2(p_i, p_j) \quad \text{s.t.} \sum*{(i,j) \in A} d_M^2(p_i, p_j) \leq 1 $$
-   - 미관측 시맨틱 임베딩 `$e_u$`는 관측 시맨틱 임베딩 `$e_s$`의 선형 조합으로 근사화된다:
-     `$\hat{e}_u = \sum_{s=1}^S \alpha_{s,u} e_s = E_S \alpha_u$` (Eq. 5).
-   - `$M$`을 활용하여 `$(\hat{e}_u - e_u)^T M (\hat{e}_u - e_u) + \frac{\lambda_u}{2} \|\alpha_u\|_2^2$`를 최소화하여 `$\alpha_u$`를 찾는다 (Eq. 6).
-   - `$\theta_u \approx \alpha_u$` 가정을 통해 `$p_u \approx P_S \alpha_u$`로 미관측 CAPD를 계산한다 (Eq. 7).
-   - **ZSL 예측**: 주어진 이미지 특징 `$x$`에 대해 `$p_u$`와 `$e_u$`의 내적(`$\langle p_u, e_u \rangle$`)이 최대인 클래스로 할당한다: `$\hat{y} = \arg \max_u \langle p_u, e_u \rangle$` (Eq. 8).
+   - 미관측 클래스는 훈련 시 이미지가 관측되지 않으므로,  $p_u$ 는 관측 클래스 CAPD의 선형 조합으로 근사된다:
+      $p_u = \sum_{s=1}^S \theta_{s,u} p_s = P_S \theta_u$  (Eq. 3).
+   - **CAPD에 대한 거리 학습**: 시맨틱 임베딩 공간에서 마할라노비스(Mahalanobis) 거리 측정  $M$ 을 학습하여 유사한 CAPD는 가깝게, dissimilar CAPD는 멀리 떨어뜨린다 (Eq. 4).
+     $$ \max_M \min_{(i,j) \in \bar{A}} d_M^2(p_i, p_j) \quad \text{s.t.} \sum_{(i,j) \in A} d_M^2(p_i, p_j) \leq 1 $$
+   - 미관측 시맨틱 임베딩  $e_u$ 는 관측 시맨틱 임베딩  $e_s$ 의 선형 조합으로 근사화된다:
+      $\hat{e}_u = \sum_{s=1}^S \alpha_{s,u} e_s = E_S \alpha_u$  (Eq. 5).
+   - $M$ 을 활용하여  $(\hat{e}_u - e_u)^T M (\hat{e}_u - e_u) + \frac{\lambda_u}{2} \|\alpha_u\|_2^2$ 를 최소화하여  $\alpha_u$ 를 찾는다 (Eq. 6).
+   - $\theta_u \approx \alpha_u$  가정을 통해  $p_u \approx P_S \alpha_u$ 로 미관측 CAPD를 계산한다 (Eq. 7).
+   - **ZSL 예측**: 주어진 이미지 특징  $x$ 에 대해  $p_u$ 와  $e_u$ 의 내적( $\langle p_u, e_u \rangle$ )이 최대인 클래스로 할당한다:  $\hat{y} = \arg \max_u \langle p_u, e_u \rangle$  (Eq. 8).
 
 ### B. 미관측 클래스의 축소된 설명 집합
 
-- 모든 관측 클래스를 사용하는 대신, 마할라노비스 거리를 사용하여 `$N < S$`개의 가장 가까운 관측 클래스만으로 `$\hat{e}_u$`를 재구성한다: `$\hat{e}_u = \sum_{i=1}^N \beta_{i,u} e_i$` (Eq. 9).
-- **자동 `$N$` 선택**: 각 미관측 클래스에 대해 가장 유용한 관측 클래스의 수를 자동으로 선택하기 위해 커널 밀도 추정(kernel density estimation)을 사용하여 정규화된 마할라노비스 거리 분포에서 최고 확률 점수를 가진 클래스 수를 `$N$`으로 할당한다.
+- 모든 관측 클래스를 사용하는 대신, 마할라노비스 거리를 사용하여  $N < S$ 개의 가장 가까운 관측 클래스만으로  $\hat{e}_u$ 를 재구성한다:  $\hat{e}_u = \sum_{i=1}^N \beta_{i,u} e_i$  (Eq. 9).
+- **자동  $N$  선택**: 각 미관측 클래스에 대해 가장 유용한 관측 클래스의 수를 자동으로 선택하기 위해 커널 밀도 추정(kernel density estimation)을 사용하여 정규화된 마할라노비스 거리 분포에서 최고 확률 점수를 가진 클래스 수를  $N$ 으로 할당한다.
 
 ### C. 일반화된 Zero-shot Learning (GZSL)
 
 - 문제: 기존 ZSL 방법은 훈련 시 관측 클래스에만 의존하므로 GZSL 테스트 시 관측 클래스에 편향되는 경향이 있다.
-- **관측 클래스를 위한 일반화된 CAPD($p_g_s$)**: 각 관측 클래스 `$s$`에 대해 `$p_g_s = P_S \gamma_s$`와 같이 일반화된 CAPD를 개발한다 (Eq. 10).
-- 목적 함수(Eq. 11)는 평균 일반화된 관측 손실(mean generalized seen loss)과 평균 미관측 재구성 손실(mean unseen reconstruction loss) 간의 제곱 차이를 최소화한다. 이는 시맨틱 레이블 임베딩 영역에서만 `$\gamma_s$`를 계산하여 관측-미관측 다양성을 균형 있게 조정한다.
-  $$ \min*\gamma \left\| \frac{1}{S} \sum*{s=1}^S (E*S \gamma_s - e_s)^2 - \frac{1}{U} \sum*{u=1}^U (E*S \alpha_u - e_u)^2 \right\|\_2^2 + \frac{\lambda*\gamma}{2} \sum\_{s=1}^S \|\gamma_s\|\_2^2 $$
-- **GZSL 예측**: 관측 클래스의 일반화된 CAPD `$p_g_s$`와 미관측 클래스의 CAPD `$p_u$`를 모두 사용하여 예측한다: `$\hat{y} = \arg \max_{l \in y} \langle p_l, v_l \rangle$`, 여기서 `$p_l \in p_u \cup p_g_s$`이고 `$v_l \in e_S \cup e_U$`.
+- **관측 클래스를 위한 일반화된 CAPD($p_{g_s}$)**: 각 관측 클래스  $s$ 에 대해  $p_{g_s} = P_S \gamma_s$ 와 같이 일반화된 CAPD를 개발한다 (Eq. 10).
+- 목적 함수(Eq. 11)는 평균 일반화된 관측 손실(mean generalized seen loss)과 평균 미관측 재구성 손실(mean unseen reconstruction loss) 간의 제곱 차이를 최소화한다. 이는 시맨틱 레이블 임베딩 영역에서만  $\gamma_s$ 를 계산하여 관측-미관측 다양성을 균형 있게 조정한다.
+  $$ \min_\gamma \left\| \frac{1}{S} \sum_{s=1}^S (E_S \gamma_s - e_s)^2 - \frac{1}{U} \sum_{u=1}^U (E_S \alpha_u - e_u)^2 \right\|_2^2 + \frac{\lambda_\gamma}{2} \sum_{s=1}^S \|\gamma_s\|_2^2 $$
+- **GZSL 예측**: 관측 클래스의 일반화된 CAPD  $p_{g_s}$ 와 미관측 클래스의 CAPD  $p_u$ 를 모두 사용하여 예측한다:  $\hat{y} = \arg \max_{l \in y} \langle p_l, v_l \rangle$, 여기서  $p_l \in p_u \cup p_{g_s}$ 이고  $v_l \in e_S \cup e_U$.
 
 ### D. Few-shot Learning (FSL)
 
 - 훈련 시 미관측 클래스의 소수 레이블링된 인스턴스가 사용 가능한 시나리오.
-- **미관측 클래스를 위한 업데이트된 CAPD($p_f_u$)**:
-  - 미관측 클래스에 대해 새로운 분류기 `$W_u$`를 학습하고 `$p'_u = W_u^T x$`를 계산한다.
-  - ZSL에서 파생된 `$p_u$`와 FSL에서 파생된 `$p'_u$`를 융합하여 업데이트된 CAPD를 생성한다:
-    `$p_f_u = \delta_u p_u + \delta'_u p'_u$`, 단, `$\delta_u + \delta'_u = 1$` (Eq. 12).
-  - 가중치 `$\delta_u$`와 `$\delta'_u$`는 훈련 이미지에 대한 CAPD와 해당 시맨틱 벡터 간의 최대 투영 반응의 합을 정규화하여 계산되며, 이는 각 CAPD의 신뢰도를 반영한다.
+- **미관측 클래스를 위한 업데이트된 CAPD($p_{f_u}$)**:
+  - 미관측 클래스에 대해 새로운 분류기  $W_u$ 를 학습하고  $p'_u = W_u^T x$ 를 계산한다.
+  - ZSL에서 파생된  $p_u$ 와 FSL에서 파생된  $p'_u$ 를 융합하여 업데이트된 CAPD를 생성한다:
+    $p_{f_u} = \delta_u p_u + \delta'_u p'_u$ , 단,  $\delta_u + \delta'_u = 1$  (Eq. 12).
+  - 가중치 $\delta_u$ 와  $\delta'_u$ 는 훈련 이미지에 대한 CAPD와 해당 시맨틱 벡터 간의 최대 투영 반응의 합을 정규화하여 계산되며, 이는 각 CAPD의 신뢰도를 반영한다.
 
 ## 📊 Results
 
-본 논문은 aPY, AwA, SUN, CUB의 4가지 표준 데이터셋을 사용하여 광범위한 실험을 수행했다. 이미지 특징으로는 GoogLeNet, VGG-verydeep-19, ResNet을 사용했으며, 시맨틱 임베딩으로는 지도 학습된 속성(attributes)과 비지도 학습된 word2vec(w2v) 및 GloVe(glo) 단어 벡터를 활용했다. 평가 지표로는 Top-1 정확도, 평균 평균 정밀도(mAP)를 사용했으며, GZSL의 경우 관측(seen) 클래스와 미관측(unseen) 클래스 정확도(`$acc_s$`, `$acc_u$`)의 조화 평균(Harmonic Mean, HM)을 사용했다.
+본 논문은 aPY, AwA, SUN, CUB의 4가지 표준 데이터셋을 사용하여 광범위한 실험을 수행했다. 이미지 특징으로는 GoogLeNet, VGG-verydeep-19, ResNet을 사용했으며, 시맨틱 임베딩으로는 지도 학습된 속성(attributes)과 비지도 학습된 word2vec(w2v) 및 GloVe(glo) 단어 벡터를 활용했다. 평가 지표로는 Top-1 정확도, 평균 평균 정밀도(mAP)를 사용했으며, GZSL의 경우 관측(seen) 클래스와 미관측(unseen) 클래스 정확도($acc_s$, $acc_u$)의 조화 평균(Harmonic Mean, HM)을 사용했다.
 
 - **축소된 설명 집합 효과**:
   - 가장 가까운(nearest) 관측 클래스(마할라노비스 거리 기반)를 사용하여 미관측 클래스를 설명하는 것이 가장 좋은 성능을 보였다 (그림 3).
-  - 각 미관측 클래스에 대해 자동화된 `$N$` 선택 방식은 일반적으로 전체 관측 클래스의 약 50% 정도만을 활용하며, 이는 성능 유지 및 복잡성 감소에 기여한다 (표 II).
+  - 각 미관측 클래스에 대해 자동화된  $N$  선택 방식은 일반적으로 전체 관측 클래스의 약 50% 정도만을 활용하며, 이는 성능 유지 및 복잡성 감소에 기여한다 (표 II).
 - **ZSL (지도 속성 사용)**:
-  - 제안된 방법(특히 `[reduced-auto]` 버전)은 대부분의 설정에서 최신 ZSL 접근 방식들보다 Top-1 정확도(표 III, IV)와 mAP(표 V)에서 우수한 성능을 일관되게 달성했다.
+  - 제안된 방법(특히  [reduced-auto] 버전)은 대부분의 설정에서 최신 ZSL 접근 방식들보다 Top-1 정확도(표 III, IV)와 mAP(표 V)에서 우수한 성능을 일관되게 달성했다.
   - 혼동 행렬(confusion matrix) 비교에서도 기존 방법보다 더 나은 전체 및 클래스별 성능을 보였다 (그림 5).
 - **ZSL (비지도 시맨틱스 사용)**:
   - word2vec 및 GloVe와 같은 비지도 시맨틱 임베딩을 사용하는 경우에도 제안된 방법은 AwA 및 CUB 데이터셋에서 일관되게 뛰어난 Top-1 정확도를 기록하며 다른 최신 방법들을 능가했다 (표 VI).
   - 평균 정밀도-재현율(Precision-Recall) 곡선에서도 기존 방법들보다 현저히 우수했다 (그림 6).
 - **GZSL**:
-  - Xian et al. [45]의 설정(ResNet 특징, 속성 시맨틱스)에서 제안된 GZSL 방법은 HM에서 다른 방법들을 큰 폭으로 능가하며, 관측/미관측 클래스 다양성의 균형을 효과적으로 맞추고 최고의 미관측 클래스 정확도(`$acc_u$`)를 달성했다 (표 VII).
+  - Xian et al. [45]의 설정(ResNet 특징, 속성 시맨틱스)에서 제안된 GZSL 방법은 HM에서 다른 방법들을 큰 폭으로 능가하며, 관측/미관측 클래스 다양성의 균형을 효과적으로 맞추고 최고의 미관측 클래스 정확도( $acc_u$ )를 달성했다 (표 VII).
   - Chao et al. [9]의 설정(GoogLeNet 특징, 속성 시맨틱스)에서도 경쟁 방법보다 HM에서 우수한 성능을 보였다 (표 VIII).
   - DMaP [23]와 비교했을 때도 Mean Top1 정확도에서 우수한 결과를 보였다 (표 IX).
 - **FSL (Few/One-Shot Learning)**:
   - 미관측 클래스당 3개의 인스턴스를 사용하는 FSL 설정에서 제안된 방법은 AwA 및 CUB 데이터셋에서 DeViSE [13] 및 CMT [38]를 대부분 능가하는 Top-1 정확도 및 mAP를 달성했다 (표 X).
   - FSL에서는 지도 속성과 비지도 시맨틱스(word2vec, GloVe) 간의 성능 격차가 ZSL에 비해 크게 줄어들었는데, 이는 소수의 레이블링된 예제가 비지도 시맨틱스의 내재된 노이즈를 보완하는 데 도움이 됨을 시사한다.
-  - 업데이트된 미관측 CAPD 구성에서 Few-Shot 분류기의 기여(`$\delta'_u$`)가 Zero-Shot 기여(`$\delta_u$`)보다 일반적으로 더 높았으며, FSL에서 OSL보다 더 큰 기여를 했다 (그림 7). 지도 속성은 w2v/GloVe보다 `$\delta_u$`에서 더 높은 기여도를 보였다.
+  - 업데이트된 미관측 CAPD 구성에서 Few-Shot 분류기의 기여( $\delta'_u$ )가 Zero-Shot 기여( $\delta_u$ )보다 일반적으로 더 높았으며, FSL에서 OSL보다 더 큰 기여를 했다 (그림 7). 지도 속성은 w2v/GloVe보다  $\delta_u$ 에서 더 높은 기여도를 보였다.
 - **모든 결과 요약**: OSL, FSL, ZSL, GZSL에 대한 종합적인 결과(표 XI, XII, XIII, XIV)는 FSL이 OSL보다 성능이 좋고, OSL/FSL에서 비지도 시맨틱스의 성능이 ZSL에 비해 크게 향상됨을 보여준다.
 
 ## 🧠 Insights & Discussion
@@ -118,7 +118,7 @@ Shafin Rahman, Salman H. Khan and Fatih Porikli
 
 - **CAPD의 이점**: CAPD는 판별적인 임베딩을 제공하며, 각 클래스에 특화된 적응을 가능하게 하여 미묘한 클래스 간 차이를 효과적으로 포착한다. 이는 하나의 전역 주성분 방향을 사용하는 기존 방법들과 차별화된다.
 - **가장 가까운 관측 클래스의 이점**: 새로운 객체를 설명할 때 유사한 알려진 객체를 예로 드는 인간의 직관과 마찬가지로, 가장 가까운 관측 클래스(유사한 CAPD)를 사용하여 미관측 CAPD를 재구성하는 것이 예측 성능을 향상시킨다.
-- **자동 `$N$` 선택**: 각 미관측 클래스에 대해 유용한 관측 클래스의 수를 적응적으로 선택하는 제안된 자동화 솔루션은 간단하면서도 효과적이며, 성능 향상에 기여한다.
+- **자동  $N$  선택**: 각 미관측 클래스에 대해 유용한 관측 클래스의 수를 적응적으로 선택하는 제안된 자동화 솔루션은 간단하면서도 효과적이며, 성능 향상에 기여한다.
 - **GZSL 확장**: 제안된 GZSL 방법은 기존 ZSL 방법의 고유한 문제였던 관측 클래스 편향을 효과적으로 해결한다. 이미지 데이터에 대한 추가적인 지도 없이, 오직 시맨틱 정보만을 사용하여 알고리즘 수준에서 관측-미관측 클래스 다양성을 조정함으로써, 관측/미관측 클래스 성능의 균형을 맞추고 전반적인 인식률을 향상시킨다. 이는 후처리 방식과는 대조적이다.
 - **FSL 확장**: CAPD 기반 ZSL 접근 방식은 FSL 설정에 쉽게 적용될 수 있다. 이 방법은 Zero-Shot 설정에서 파생된 CAPD와 Few-Shot 설정에서 새롭게 학습된 CAPD를 결합하며, 예측 반응 품질에 기반한 자동 가중치 부여 체계를 사용한다. 이를 통해 미관측 CAPD를 미세 조정하고 분류 성능을 향상시킨다.
 - **전반적인 일관성**: 제안된 통합 접근 방식은 ZSL, GZSL, F/OSL 설정 전반에 걸쳐 일관되게 우수한 성능을 보이며, 특히 비지도 ZSL에서 탁월한 성과를 달성한다. 이는 시맨틱 공간에서의 신뢰할 수 있는 일반화 및 노이즈 억제와 같은 여러 이점을 제공한다.

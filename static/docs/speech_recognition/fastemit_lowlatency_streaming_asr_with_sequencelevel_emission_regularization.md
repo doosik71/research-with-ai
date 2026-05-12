@@ -42,8 +42,8 @@ Jiahui Yu, Chung-Cheng Chiu, Bo Li, Shuo-yiin Chang, Tara N. Sainath, Yanzhang H
      - 공백 예측 경로: $\alpha(t,u)b(t,u)\beta(t+1,u)$
      - 레이블 예측 경로: $\alpha(t,u)\hat{y}(t,u)\beta(t,u+1)$
    - FastEmit는 레이블 예측 경로의 확률을 추가로 최대화하도록 손실 함수를 수정합니다. 새로운 정규화된 트랜스듀서 손실 $\tilde{L}$은 다음과 같습니다:
-     $$ \tilde{L} = -\log \sum*{(t,u):t+u=n} (P(A*{t,u}|x) + \lambda \tilde{P}(A*{t,u}|x)) $$
-     여기서 $\tilde{P}(A*{t,u}|x) = \alpha(t,u)\hat{y}(t,u)\beta(t,u+1)$는 '레이블 예측' 경로의 확률이며, $\lambda$는 트랜스듀서 손실과 정규화 손실의 균형을 맞추는 하이퍼파라미터입니다.
+     $$ \tilde{L} = -\log \sum_{(t,u):t+u=n} (P(A_{t,u}|x) + \lambda \tilde{P}(A_{t,u}|x)) $$
+     여기서 $\tilde{P}(A_{t,u}|x) = \alpha(t,u)\hat{y}(t,u)\beta(t,u+1)$는 '레이블 예측' 경로의 확률이며, $\lambda$는 트랜스듀서 손실과 정규화 손실의 균형을 맞추는 하이퍼파라미터입니다.
 
 3. **그레디언트 해석**:
    - 이 새로운 손실 $\tilde{L}$에 대한 그레디언트 계산은 다음과 같습니다:

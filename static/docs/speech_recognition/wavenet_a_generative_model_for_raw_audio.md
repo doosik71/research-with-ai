@@ -27,7 +27,7 @@ Aäron van den Oord, Sander Dieleman, Heiga Zen, Karen Simonyan, Oriol Vinyals, 
 ## 🛠️ Methodology
 
 WaveNet은 원본 오디오 파형 $x = \{x_1, ..., x_T\}$에 직접 작동하는 심층 생성 모델입니다. 모델은 자기회귀적이며, 각 오디오 샘플 $x_t$의 예측 분포는 이전 모든 샘플에 조건화됩니다.
-$$ p(x) = \prod*{t=1}^{T} p(x_t | x_1, ..., x*{t-1}) $$
+$$ p(x) = \prod_{t=1}^{T} p(x_t | x_1, ..., x_{t-1}) $$
 
 주요 구성 요소는 다음과 같습니다:
 
@@ -59,7 +59,7 @@ $$ p(x) = \prod*{t=1}^{T} p(x_t | x_1, ..., x*{t-1}) $$
 
 - **조건부 WaveNets (Conditional WaveNets):**
   - 추가 입력 $h$가 주어질 때 오디오의 조건부 분포 $p(x|h)$를 모델링할 수 있습니다.
-    $$ p(x|h) = \prod*{t=1}^{T} p(x_t | x_1, ..., x*{t-1}, h) $$
+    $$ p(x|h) = \prod_{t=1}^{T} p(x_t | x_1, ..., x_{t-1}, h) $$
   - **글로벌 조건화 (Global Conditioning):** 전체 시점에 영향을 미치는 단일 잠재 표현 $h$ (예: 화자 임베딩, 스피커 ID 원-핫 벡터). 활성화 함수는 $z = \tanh(W_{f,k} * x + V_{f,k}^T h) \odot \sigma(W_{g,k} * x + V_{g,k}^T h)$로 수정됩니다.
   - **로컬 조건화 (Local Conditioning):** 오디오 신호보다 낮은 샘플링 주파수를 가질 수 있는 두 번째 시계열 $h_t$ (예: TTS의 언어학적 특징). 전치 컨볼루션 네트워크로 오디오 신호와 동일한 해상도의 $y=f(h)$로 변환한 다음 활성화 단위에 사용합니다: $z = \tanh(W_{f,k} * x + V_{f,k} * y) \odot \sigma(W_{g,k} * x + V_{g,k} * y)$.
 

@@ -102,7 +102,7 @@ $$
 예시로 linear regression 형태를 들면 다음과 같다.
 
 $$
-\min_{\omega}\operatorname*{\mathbb{E}}_{\mathcal{T}\sim p(\mathcal{T}),(\mathcal{D}^{tr},\mathcal{D}^{val})\in\mathcal{T}}
+\min_{\omega}\underset{\mathcal{T}\sim p(\mathcal{T}),\,(\mathcal{D}^{tr},\mathcal{D}^{val})\in\mathcal{T}}{\mathbb{E}}
 \sum_{(\mathbf{x},y)\in\mathcal{D}^{val}}
 \left[
 (\mathbf{x}^{T}\mathbf{g}_{\omega}(\mathcal{D}^{tr})-y)^2

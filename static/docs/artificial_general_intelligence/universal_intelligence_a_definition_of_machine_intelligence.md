@@ -48,7 +48,7 @@ Shane Legg, Marcus Hutter
    - 각 환경 $\mu$에 대한 사전 확률로 $2^{-K(\mu)}$를 사용합니다. 이는 콜모고로프 복잡도가 낮을수록(더 단순할수록) 해당 환경이 발생할 확률이 높다는 것을 의미합니다.
 7. **보편적 지능(Universal Intelligence, $\Upsilon(\pi)$)의 정식 정의:**
    - 에이전트 $\pi$의 보편적 지능은 모든 계산 가능한 보상 총합 유한 환경 $E$에 대한 기대 성능의 가중치 합으로 정의됩니다:
-     $$ \Upsilon(\pi) := \sum*{\mu \in E} 2^{-K(\mu)} V^\pi*\mu $$
+     $$ \Upsilon(\pi) := \sum_{\mu \in E} 2^{-K(\mu)} V^\pi_\mu $$
 
 ## 📊 Results
 

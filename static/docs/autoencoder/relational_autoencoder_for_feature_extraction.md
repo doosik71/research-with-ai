@@ -34,18 +34,18 @@ Qinxue Meng, Daniel Catchpoole, David Skillicorn, and Paul J. Kennedy
 
 - **RAE의 목적 함수:**
   데이터 재구성 손실과 관계 재구성 손실을 가중 평균하여 최소화합니다.
-  $$ \Theta = (1-\alpha) \min*{\theta} L(X,X') + \alpha \min*{\theta} L(R(X),R(X')) $$
+  $$ \Theta = (1-\alpha) \min_{\theta} L(X,X') + \alpha \min_{\theta} L(R(X),R(X')) $$
     여기서 $X$는 원본 데이터, $X'$는 재구성된 데이터, $R(X)$는 $X$의 데이터 샘플 간 관계, $R(X')$는 $X'$의 데이터 샘플 간 관계를 나타냅니다. $\alpha$는 데이터 재구성 손실과 관계 재구성 손실의 가중치를 조절하는 스케일 파라미터입니다.
 
 - **데이터 관계 모델링:**
   데이터 관계 $R(X)$는 데이터 $X$와 그 전치 행렬 $X^{T}$의 곱인 $X X^{T}$로 모델링하여 샘플 간 유사도를 표현합니다.
-  $$ \Theta = (1-\alpha) \min*{\theta} L(X,X') + \alpha \min*{\theta} L(X X^{T}, X' X'^{T}) $$
+  $$ \Theta = (1-\alpha) \min_{\theta} L(X,X') + \alpha \min_{\theta} L(X X^{T}, X' X'^{T}) $$
 
 - **약한 관계 필터링:**
   계산 효율성을 높이고 불필요한 관계를 제거하기 위해 정류 함수(rectifier function) $\tau_t$를 사용하여 특정 임계값 $t$보다 작은 유사도 값 ($r_{ij}$)을 0으로 만듭니다.
-  $$ \tau*t(r*{ij}) = \begin{cases} r*{ij}, & \text{if } r*{ij} \geq t \\ 0, & \text{otherwise} \end{cases} $$
+  $$ \tau_t(r_{ij}) = \begin{cases} r_{ij}, & \text{if } r_{ij} \geq t \\ 0, & \text{otherwise} \end{cases} $$
     따라서 RAE의 최종 목적 함수는 다음과 같습니다:
-    $$ \Theta = (1-\alpha) \min*{\theta} L(X,X') + \alpha \min*{\theta} L(\tau_t(X X^{T}), \tau_t(X' X'^{T})) $$
+    $$ \Theta = (1-\alpha) \min_{\theta} L(X,X') + \alpha \min_{\theta} L(\tau_t(X X^{T}), \tau_t(X' X'^{T})) $$
     손실 함수 $L$로는 제곱 오차(squared error)를 사용합니다.
 
 - **학습 절차:**
@@ -53,11 +53,11 @@ Qinxue Meng, Daniel Catchpoole, David Skillicorn, and Paul J. Kennedy
 
 - **기존 오토인코더 모델로의 확장:**
   - **Relational Sparse Autoencoder (RSAE):** RAE 목적 함수에 가중치 감소 정규화 항 $\lambda ||W||^{2}$을 추가합니다.
-    $$ \Theta = (1-\alpha) \min*{\theta} L(X,X') + \alpha \min*{\theta} L(\tau_t(X X^{T}), \tau_t(X' X'^{T})) + \lambda ||W||^{2} $$
+    $$ \Theta = (1-\alpha) \min_{\theta} L(X,X') + \alpha \min_{\theta} L(\tau_t(X X^{T}), \tau_t(X' X'^{T})) + \lambda ||W||^{2} $$
   - **Relational Denoising Autoencoder (RDAE):** 원본 데이터 $X$와 노이즈가 추가된 $\tilde{X}$ 간의 데이터 및 관계 재구성 손실을 최소화합니다. 노이즈는 가산 등방성 가우시안 노이즈($\tilde{X} = X + \Delta$, $\Delta \sim N(0, \delta^2)$)로 설정됩니다.
-    $$ \Theta = (1-\alpha) \min*{\theta} L(X,g(f(\tilde{X}))) + \alpha \min*{\theta} L(\tau_t(X X^{T}), \tau_t(\tilde{X} \tilde{X}^{T})) \text{ s. t. } \tilde{X} \sim q(\tilde{X}|X) $$
+    $$ \Theta = (1-\alpha) \min_{\theta} L(X,g(f(\tilde{X}))) + \alpha \min_{\theta} L(\tau_t(X X^{T}), \tau_t(\tilde{X} \tilde{X}^{T})) \text{ s. t. } \tilde{X} \sim q(\tilde{X}|X) $$
   - **Relational Variational Autoencoder (RVAE):** VAE의 목적 함수에 데이터 관계에 대한 KL-divergence 항을 추가하여 잠재 변수 분포를 고려합니다.
-    $$ \Theta = (1-\alpha) \min D*{KL}(q*{\phi}(Y|X)||p*{\theta}(X|Y)) + \alpha \min D*{KL}(q*{\phi}(Y|X X^{T})||p*{\theta}(X X^{T}|Y)) $$
+    $$ \Theta = (1-\alpha) \min D_{KL}(q_{\phi}(Y|X)||p_{\theta}(X|Y)) + \alpha \min D_{KL}(q_{\phi}(Y|X X^{T})||p_{\theta}(X X^{T}|Y)) $$
 
 ## 📊 Results
 

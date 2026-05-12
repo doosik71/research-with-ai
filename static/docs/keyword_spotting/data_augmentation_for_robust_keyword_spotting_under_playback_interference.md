@@ -34,14 +34,14 @@ Anirudh Raju, Sankaran Panchapagesan, Xing Liu, Arindam Mandal, Nikko Strom
 2. **간섭 신호 생성**:
    - Amazon 내부 데이터셋에서 얻은 TV/영화 오디오 또는 인기 있는 음악 목록에서 얻은 음악 오디오를 간섭 신호($x_{\text{music}}(t)$)로 사용합니다.
    - 이 오디오를 방 임펄스 응답(Room Impulse Response, RIR) $g_{\text{RIR}}(t)$과 컨볼루션하여 잔향 효과를 모의합니다.
-     $$ x*{\text{interference}}(t) = x*{\text{music}}(t) \ast g\_{\text{RIR}}(t) $$
+     $$ x_{\text{interference}}(t) = x_{\text{music}}(t) \ast g\_{\text{RIR}}(t) $$
      다양한 음향 환경을 시뮬레이션하기 위해 여러 RIR을 사용합니다.
 3. **데이터 오염**:
    - 원래 발화 오디오에 인위적으로 생성된 간섭 신호를 혼합하여 오염된 데이터를 만듭니다.
-     $$ y*{\text{corrupted}}(t) = x*{\text{utterance}}(t) + \alpha \cdot x\_{\text{interference}}(t) $$
+     $$ y_{\text{corrupted}}(t) = x_{\text{utterance}}(t) + \alpha \cdot x\_{\text{interference}}(t) $$
         여기서 $\alpha$는 간섭 신호에 적용되는 스케일링 팩터입니다.
    - 스케일링 팩터 $\alpha$는 발화와 간섭 신호 간의 임의의 신호 대 간섭비(SIR)를 기반으로 계산됩니다.
-     $$ \text{SIR(dB)} = 20 \log \frac{\sqrt{\sum*{i=0}^{N} s[i]^2}}{\alpha \sqrt{\sum*{i=0}^{N} n[i]^2}} $$
+     $$ \text{SIR(dB)} = 20 \log \frac{\sqrt{\sum_{i=0}^{N} s[i]^2}}{\alpha \sqrt{\sum_{i=0}^{N} n[i]^2}} $$
         실험에서는 주로 $[0, 40]$ dB 및 $[-20, 40]$ dB 범위의 SIR이 균일 분포에서 샘플링되어 사용됩니다.
 4. **DNN 훈련**: 오염된 데이터를 사용하여 DNN을 훈련합니다. DNN의 훈련 목표(타겟)는 원본 깨끗한 발화 데이터에 대한 HMM 상태의 강제 정렬(forced alignments)을 통해 얻습니다.
 

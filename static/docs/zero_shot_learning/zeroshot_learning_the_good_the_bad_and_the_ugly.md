@@ -27,7 +27,6 @@ Yongqin Xian, Bernt Schiele, Zeynep Akata
 본 논문은 ZSL 및 GZSL 작업을 체계적으로 평가하기 위한 통일된 프레임워크를 제시합니다.
 
 - **ZSL 작업 공식화**:
-
   - 훈련 세트 $S = \{(x_n, y_n), n=1...N\}$와 훈련 클래스 $y_n \in Y_{tr}$가 주어졌을 때, 정규화된 경험적 위험을 최소화하는 함수 $f: X \to Y$를 학습합니다.
     $$ \frac{1}{N} \sum\_{n=1}^{N} L(y_n, f(x_n;W)) + \Omega(W) \quad (1) $$
   - 여기서 $f(x;W)$는 입력과 출력 임베딩 간의 매핑을 정의하며, 가장 높은 호환성 점수를 가진 클래스를 예측합니다.
@@ -35,7 +34,6 @@ Yongqin Xian, Bernt Schiele, Zeynep Akata
   - ZSL은 테스트 이미지를 보지 못한 클래스 $Y_{ts} \subset Y$에 할당하고, GZSL은 테스트 이미지를 본 클래스 또는 보지 못한 클래스 $Y_{tr+ts} \subset Y$에 할당합니다.
 
 - **평가 방법론 분류**:
-
   1. **선형 호환성 학습**: ALE [3], DEVISE [11], SJE [4]는 이선형 호환성 함수 $F(x,y;W) = \theta(x)^T W \phi(y)$를 사용하며, ESZSL [31]은 여기에 정규화 항을 추가합니다.
   2. **비선형 호환성 학습**: LATEM [39]은 조각별 선형 호환성을, CMT [33]는 신경망과 이상치 탐지 메커니즘을 통해 비선형 매핑을 학습합니다.
   3. **중간 속성 분류기 학습**: DAP [21]은 확률적 속성 분류기를 학습하여 클래스를 예측합니다.
@@ -48,18 +46,16 @@ Yongqin Xian, Bernt Schiele, Zeynep Akata
   - **평가 기준**:
     - **ZSL**: 클래스별 평균 Top-1 정확도(average per-class top-1 accuracy)를 측정하여 불균형 데이터셋에서의 희소 클래스 성능을 중요하게 평가합니다.
     - **GZSL**: 훈련 클래스($acc_{Y_{tr}}$)와 테스트 클래스($acc_{Y_{ts}}$) 정확도를 모두 고려하는 조화 평균(Harmonic Mean, H)을 사용합니다.
-      $$ H = 2 \cdot (acc*{Y*{tr}} \cdot acc*{Y*{ts}}) / (acc*{Y*{tr}} + acc*{Y*{ts}}) \quad (16) $$
+      $$ H = 2 \cdot (acc_{Y_{tr}} \cdot acc_{Y_{ts}}) / (acc_{Y_{tr}} + acc_{Y_{ts}}) \quad (16) $$
 
 ## 📊 Results
 
 - **ZSL 속성 데이터셋 결과**:
-
   - 새로운 제안 분할(PS)을 적용했을 때, 많은 테스트 클래스가 ImageNet 1K에 포함되었던 AWA 데이터셋의 정확도가 표준 분할(SS)에 비해 크게 감소했습니다. 이는 데이터 유출 방지의 중요성을 입증합니다.
   - PS 설정에서 ALE, DEVISE, SJE와 같은 최대 마진 호환성 학습(max-margin compatibility learning) 방법론들이 다른 방법론들(DAP, CMT, CONSE 등)보다 일관되게 우수한 성능을 보였습니다.
   - 파라미터 튜닝 강건성 평가에서, SUN 및 CUB 같은 세분화된 데이터셋은 안정적인 결과를 보였지만, AWA 및 aPY 같은 작고 거친 데이터셋은 검증 분할에 따라 결과가 불안정했습니다.
 
 - **ZSL ImageNet 결과**:
-
   - 대규모 ImageNet 데이터셋에서 SYNC [7]가 가장 좋은 성능을 보였으며, 이는 대규모 설정에서의 강점 또는 Word2Vec 사용의 이점으로 해석될 수 있습니다.
   - 이미지 수가 많은 클래스에서의 성능이 적은 클래스보다 높았고, 전체 20K 클래스에서는 모든 방법론의 성능이 낮아 개선의 여지가 많음을 시사했습니다.
 
