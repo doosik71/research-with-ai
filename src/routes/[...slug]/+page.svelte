@@ -2140,6 +2140,29 @@
 		}
 	}
 
+	function renderFileNotFoundMessage(filename: string, paperUrl: string | undefined): string {
+		const fileMessage = `<p>File not found: ${escapeHtml(filename)}</p>`;
+		const trimmedUrl = paperUrl?.trim();
+
+		if (!trimmedUrl) return fileMessage;
+
+		const displayUrl = escapeHtml(trimmedUrl);
+		let href = '';
+
+		try {
+			const parsedUrl = new URL(trimmedUrl);
+			if (parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:') {
+				href = parsedUrl.href;
+			}
+		} catch {
+			href = '';
+		}
+
+		if (!href) return `${fileMessage}<p>Paper URL: ${displayUrl}</p>`;
+
+		return `${fileMessage}<p>Paper URL: <a href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${displayUrl}</a></p>`;
+	}
+
 	async function loadPreview(
 		paper: Paper,
 		type: 'summary' | 'slide',
@@ -2188,7 +2211,7 @@
 					nextRenderHtml = `<style>${css}</style><div class="marp-slide-wrapper">${processedHtml}</div>`;
 				}
 			} else {
-				nextRenderHtml = `<p>File not found: ${filename}</p>`;
+				nextRenderHtml = renderFileNotFoundMessage(filename, paper.url);
 			}
 		} catch (e) {
 			if (e instanceof Error) {

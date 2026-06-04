@@ -506,7 +506,7 @@ function normalizeArxivUrl(url) {
     throw new Error('Invalid arXiv URL provided');
   }
 
-  if (!/arxiv\.org$/i.test(parsed.hostname)) {
+  if (!isArxivHost(parsed.hostname)) {
     throw new Error('URL must point to arxiv.org');
   }
 
@@ -515,6 +515,40 @@ function normalizeArxivUrl(url) {
   }
 
   return `https://arxiv.org${parsed.pathname}`;
+}
+
+function isArxivHost(hostname) {
+  const normalized = String(hostname ?? '').toLowerCase();
+  return normalized === 'arxiv.org' || normalized.endsWith('.arxiv.org');
+}
+
+function normalizePaperUrl(url) {
+  const trimmed = String(url ?? '').trim();
+  if (!trimmed) {
+    throw new Error('URL is required.');
+  }
+
+  if (isArxivId(trimmed) && !trimmed.toLowerCase().includes('arxiv.org')) {
+    return `https://arxiv.org/abs/${trimmed}`;
+  }
+
+  const withScheme = /:\/\//.test(trimmed) ? trimmed : `https://${trimmed}`;
+  let parsed;
+  try {
+    parsed = new URL(withScheme);
+  } catch {
+    throw new Error('Invalid URL provided');
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error('URL must use http or https');
+  }
+
+  if (isArxivHost(parsed.hostname) && parsed.pathname.startsWith('/abs/')) {
+    return `https://arxiv.org/abs/${extractArxivIdFromText(parsed.pathname.slice('/abs/'.length))}`;
+  }
+
+  return parsed.href;
 }
 
 function decodeHtmlEntities(text) {
@@ -661,7 +695,7 @@ async function appendPaperToTopic(topicId, paper) {
 
   const title = String(paper?.title ?? '').trim();
   const author = String(paper?.author ?? '').trim();
-  const url = normalizeArxivUrl(paper?.url ?? '');
+  const url = normalizePaperUrl(paper?.url ?? '');
   const year = Number(paper?.year);
 
   if (!title) {
@@ -696,14 +730,14 @@ async function appendPaperToTopic(topicId, paper) {
       const parsed = JSON.parse(trimmed);
       const existingUrl = typeof parsed?.url === 'string' ? parsed.url.trim() : '';
       const existingSummary = typeof parsed?.summary === 'string' ? parsed.summary.trim() : '';
-      if (existingUrl && normalizeArxivUrl(existingUrl) === url) {
-        throw new Error('This arXiv paper already exists in the paper list.');
-      }
       if (existingSummary && existingSummary === summary) {
         throw new Error('A paper with the same summary filename already exists.');
       }
+      if (existingUrl && normalizePaperUrl(existingUrl) === url) {
+        throw new Error('This paper URL already exists in the paper list.');
+      }
     } catch (error) {
-      if (error instanceof Error && error.message === 'This arXiv paper already exists in the paper list.') {
+      if (error instanceof Error && error.message === 'This paper URL already exists in the paper list.') {
         throw error;
       }
       if (error instanceof Error && error.message === 'A paper with the same summary filename already exists.') {
@@ -1249,7 +1283,7 @@ function renderHtmlPage() {
         <label>
           <span>URL</span>
           <div class="input-row">
-            <input id="paperUrlInput" name="url" type="text" placeholder="1702.07790 or https://arxiv.org/abs/1702.07790" />
+            <input id="paperUrlInput" name="url" type="text" placeholder="1702.07790 or https://example.org/paper" />
             <button type="button" id="fetchPaperBtn">Fetch</button>
           </div>
         </label>
@@ -1270,7 +1304,7 @@ function renderHtmlPage() {
           <input id="paperSummaryInput" name="summary" type="text" readonly />
         </label>
         <div class="popover-actions">
-          <span class="status" id="paperPopoverStatus">Use Fetch to fill arXiv metadata, or enter it manually.</span>
+          <span class="status" id="paperPopoverStatus">Use Fetch for arXiv metadata, or enter details manually.</span>
           <button type="button" id="cancelPaperBtn">Cancel</button>
           <button type="submit" class="primary">Create Paper</button>
         </div>
@@ -1454,6 +1488,11 @@ function renderHtmlPage() {
       return candidate;
     }
 
+    function isArxivHost(hostname) {
+      const normalized = String(hostname == null ? '' : hostname).toLowerCase();
+      return normalized === 'arxiv.org' || normalized.endsWith('.arxiv.org');
+    }
+
     function normalizePaperUrlInput(rawInput) {
       const trimmed = String(rawInput == null ? '' : rawInput).trim();
       if (!trimmed) {
@@ -1464,31 +1503,23 @@ function renderHtmlPage() {
         return 'https://arxiv.org/abs/' + extractArxivIdFromText(trimmed);
       }
 
-      const absMarker = 'arxiv.org/abs/';
-      const absIndex = trimmed.toLowerCase().indexOf(absMarker);
-      if (absIndex !== -1) {
-        return 'https://arxiv.org/abs/' + extractArxivIdFromText(trimmed.slice(absIndex + absMarker.length));
-      }
-
       const withScheme = trimmed.includes('://') ? trimmed : 'https://' + trimmed;
       let parsed;
       try {
         parsed = new URL(withScheme);
       } catch {
-        if (isArxivId(trimmed)) {
-          return 'https://arxiv.org/abs/' + extractArxivIdFromText(trimmed);
-        }
-        throw new Error('Invalid arXiv URL provided');
+        throw new Error('Invalid URL provided');
       }
 
-      if (!parsed.hostname.toLowerCase().endsWith('arxiv.org')) {
-        throw new Error('URL must point to arxiv.org');
-      }
-      if (!parsed.pathname.startsWith('/abs/')) {
-        throw new Error('URL must be an arXiv abs page URL');
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new Error('URL must use http or https');
       }
 
-      return 'https://arxiv.org/abs/' + extractArxivIdFromText(parsed.pathname.slice('/abs/'.length));
+      if (isArxivHost(parsed.hostname) && parsed.pathname.startsWith('/abs/')) {
+        return 'https://arxiv.org/abs/' + extractArxivIdFromText(parsed.pathname.slice('/abs/'.length));
+      }
+
+      return parsed.href;
     }
 
     function updatePaperSummary() {
@@ -1540,7 +1571,7 @@ function renderHtmlPage() {
       paperAuthorInput.value = '';
       paperYearInput.value = '';
       paperSummaryInput.value = '';
-      paperPopoverStatus.textContent = 'Use Fetch to fill arXiv metadata, or enter it manually.';
+      paperPopoverStatus.textContent = 'Use Fetch for arXiv metadata, or enter details manually.';
       paperUrlInput.focus();
     }
 
@@ -2015,6 +2046,10 @@ function renderHtmlPage() {
     async function fetchPaperFromForm() {
       const url = normalizePaperUrlInput(paperUrlInput.value);
       paperUrlInput.value = url;
+      const parsed = new URL(url);
+      if (!isArxivHost(parsed.hostname) || !parsed.pathname.startsWith('/abs/')) {
+        throw new Error('Fetch only supports arXiv abs URLs. Enter details manually for other URLs.');
+      }
       paperPopoverStatus.textContent = 'Fetching arXiv metadata...';
 
       const response = await fetch('/api/arxiv-paper?url=' + encodeURIComponent(url));
