@@ -247,7 +247,7 @@
 	let routeTopicId = $derived(routeSegments[0]);
 	let routePaperSlug = $derived(routeSegments[1]);
 
-	let appliedRouteKey = $state('');
+	let appliedRouteKey = '';
 	let routeApplySeq = 0;
 
 	$effect(() => {
